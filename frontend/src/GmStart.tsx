@@ -1,13 +1,18 @@
 import './GmStart.css'
 import { useState } from 'react'
 
-function GmStart() {
+interface GmStartProps {
+  onStart: () => void
+}
+
+function GmStart({ onStart }: GmStartProps) {
   const [command, setCommand] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Command:', command)
-    // ここでコマンド処理を実装
+    if (command.trim().toLowerCase() === 'git init') {
+      onStart()
+    }
   }
 
   return (

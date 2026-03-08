@@ -1,0 +1,194 @@
+.game-container {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 200px 1fr 150px;
+  grid-template-rows: 1fr auto;
+  background-color: #f5f5f5;
+  gap: 0;
+}
+
+/* 左パネル */
+.left-panel {
+  grid-column: 1;
+  grid-row: 1;
+  background-color: #e0e0e0;
+  border-right: 2px solid #999;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.panel-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.command-list {
+  flex: 1;
+}
+
+.command-item {
+  margin-bottom: 1.5rem;
+}
+
+.lane-label {
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 0.3rem;
+}
+
+.command-desc {
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.command-example {
+  color: #666;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  margin-top: 0.3rem;
+}
+
+.divider {
+  height: 1px;
+  background-color: #999;
+  margin: 1rem 0;
+}
+
+.hint-section {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 2px solid #999;
+}
+
+.hint-title {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.hint-content {
+  background-color: #fff;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* 中央パネル */
+.center-panel {
+  grid-column: 2;
+  grid-row: 1;
+  background-color: #f0f0f0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.lane {
+  height: 80px;
+  background-color: #ddd;
+  border: 2px solid #999;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ramen-object {
+  position: absolute;
+  left: 20%;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ff8c00;
+  border: 2px solid #ff6600;
+  border-radius: 4px;
+  padding: 1rem 2rem;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 右パネル */
+.right-panel {
+  grid-column: 3;
+  grid-row: 1;
+  background-color: #e0e0e0;
+  border-left: 2px solid #999;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.customer {
+  background-color: #fff;
+  border: 2px solid #999;
+  border-radius: 4px;
+  padding: 1rem;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 画面下部 */
+.bottom-panel {
+  grid-column: 1 / 4;
+  grid-row: 2;
+  background-color: #d0d0d0;
+  border-top: 2px solid #999;
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input-label {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-weight: bold;
+}
+
+.command-form {
+  width: 100%;
+  max-width: 600px;
+}
+
+.command-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 2px solid #666;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+}
+
+.prompt {
+  color: #333;
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+.command-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #333;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+}
+
+.command-input::placeholder {
+  color: #999;
+}

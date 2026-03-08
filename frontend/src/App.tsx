@@ -1,14 +1,19 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
+import { useState } from 'react'
 import './App.css'
+import GmStart from './GmStart'
+import GmScreen from './GmScreen'
 
 function App() {
-  // const [count, setCount] = useState(0)
+  const [screen, setScreen] = useState<'start' | 'game'>('start')
+
+  const handleStart = () => {
+    setScreen('game')
+  }
 
   return (
     <>
-
+      {screen === 'start' && <GmStart onStart={handleStart} />}
+      {screen === 'game' && <GmScreen />}
     </>
   )
 }
