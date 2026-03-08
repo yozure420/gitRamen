@@ -1,0 +1,64 @@
+.gmstart-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+}
+
+.terminal-content {
+  width: 100%;
+  max-width: 600px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.start-message {
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.terminal-form {
+  width: 100%;
+}
+
+.terminal-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #1a1a1a;
+  border: 2px solid #00ff00;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+.terminal-prompt {
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  caret-color: #00ff00;
+}
+
+.terminal-input::placeholder {
+  color: rgba(0, 255, 0, 0.3);
+}
+
+.terminal-input:focus {
+  outline: none;
+}
