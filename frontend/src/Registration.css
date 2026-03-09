@@ -1,0 +1,139 @@
+/* ==========================================================
+   Registration.css — 新規登録画面スタイル
+   Login.css と同じダーク・ターミナル風テーマに統一。
+   クラス名のプレフィックスのみ異なる（registration- vs login-）。
+   ========================================================== */
+
+/* 画面全体を覆うコンテナ */
+.registration-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+}
+
+/* フォームを囲むカード */
+.registration-box {
+  width: 100%;
+  max-width: 440px;
+  padding: 2.5rem 2rem;
+  background-color: rgba(26, 26, 26, 0.85);
+  border: 1px solid #00ff00;
+  border-radius: 6px;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.15);
+}
+
+/* タイトル */
+.registration-title {
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1.8rem;
+  text-align: center;
+  margin: 0 0 2rem;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* フォーム要素の縦積みレイアウト */
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ラベル + インプットのグループ */
+.registration-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* フィールドラベル */
+.registration-label {
+  color: rgba(0, 255, 0, 0.7);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+/* テキスト / パスワード入力欄 */
+.registration-input {
+  background-color: #111;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  padding: 0.65rem 0.9rem;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  outline: none;
+  caret-color: #00ff00;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.registration-input::placeholder {
+  color: rgba(0, 255, 0, 0.3);
+}
+
+.registration-input:focus {
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+}
+
+/* パスワード不一致のときに枠を赤く変える modifier */
+.registration-input--error {
+  border-color: #ff4444;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+}
+
+/* パスワード不一致エラーメッセージ */
+.registration-error {
+  margin: 0;
+  color: #ff4444;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+}
+
+/* 送信ボタン */
+.registration-button {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: transparent;
+  border: 2px solid #00ff00;
+  border-radius: 4px;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.registration-button:hover {
+  background-color: rgba(0, 255, 0, 0.1);
+  box-shadow: 0 0 16px rgba(0, 255, 0, 0.3);
+}
+
+/* フォーム下部テキスト（ログインへの導線） */
+.registration-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: rgba(0, 255, 0, 0.6);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+/* 「ログインに戻る」インラインリンク風ボタン */
+.registration-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: text-shadow 0.2s;
+}
+
+.registration-link-button:hover {
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+}

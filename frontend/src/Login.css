@@ -1,0 +1,124 @@
+/* =====================================================
+   Login.css — ログイン画面スタイル
+   GmStart.css と同じダーク・ターミナル風テーマに統一
+   ===================================================== */
+
+/* 画面全体を覆うコンテナ */
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+}
+
+/* フォームを囲むカード */
+.login-box {
+  width: 100%;
+  max-width: 440px;
+  padding: 2.5rem 2rem;
+  background-color: rgba(26, 26, 26, 0.85);
+  border: 1px solid #00ff00;
+  border-radius: 6px;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.15);
+}
+
+/* タイトル */
+.login-title {
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1.8rem;
+  text-align: center;
+  margin: 0 0 2rem;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* フォーム要素の縦積みレイアウト */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ラベル + インプットのグループ */
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* フィールドラベル */
+.login-label {
+  color: rgba(0, 255, 0, 0.7);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+/* テキスト / パスワード入力欄 */
+.login-input {
+  background-color: #111;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  padding: 0.65rem 0.9rem;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  outline: none;
+  caret-color: #00ff00;
+  transition: box-shadow 0.2s;
+}
+
+.login-input::placeholder {
+  color: rgba(0, 255, 0, 0.3);
+}
+
+.login-input:focus {
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+}
+
+/* 送信ボタン */
+.login-button {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: transparent;
+  border: 2px solid #00ff00;
+  border-radius: 4px;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.login-button:hover {
+  background-color: rgba(0, 255, 0, 0.1);
+  box-shadow: 0 0 16px rgba(0, 255, 0, 0.3);
+}
+
+/* フォーム下部テキスト（新規登録への導線） */
+.login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: rgba(0, 255, 0, 0.6);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+/* 「新規登録はこちら」インラインリンク風ボタン */
+.login-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: text-shadow 0.2s;
+}
+
+.login-link-button:hover {
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+}
