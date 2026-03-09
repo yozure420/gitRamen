@@ -1,0 +1,56 @@
+
+
+.explanation-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #fff;
+  text-align: left; 
+}
+
+.explanation-header {
+  margin-bottom: 3rem;
+}
+
+.explanation-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.explanation-desc {
+  color: #666;
+}
+
+.command-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.command-name {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  padding-left: 10px;
+  border-left: 5px solid #f0932b; 
+}
+
+.command-desc {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.back-to-result-btn {
+  margin-top: 2rem;
+  padding: 10px 20px;
+  background-color: #e0e0e0;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.back-to-result-btn:hover {
+  background-color: #d0d0d0;
+}

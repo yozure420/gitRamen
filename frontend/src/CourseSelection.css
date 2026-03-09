@@ -1,0 +1,93 @@
+
+
+.course-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px; 
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+}
+
+.course-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-bottom: 3.5rem;
+  color: #000;
+  letter-spacing: 0.05em;
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; 
+  width: 100%;
+}
+
+.course-btn {
+  display: flex;
+  justify-content: flex-start; 
+  align-items: center;
+  width: 100%;
+  height: 80px;
+  padding-left: 2rem;
+  background-color: #d9d9d9; 
+  border: 1px solid #999;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative; 
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.course-btn:hover {
+  background-color: #cccccc;
+  transform: scale(1.02); 
+}
+
+.course-name {
+  font-size: 1.8rem;
+  color: #000;
+}
+
+
+.course-img {
+  position: absolute;
+  right: 15px;
+  top: -25px; 
+  width: 100px; 
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); 
+}
+
+/* タイトルに戻るボタンのコンテナ */
+.back-to-title-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end; 
+  margin-top: 4rem;
+  padding-right: 1rem;
+}
+
+
+.back-to-title-btn {
+  padding: 10px 25px;
+  background-color: transparent;
+  border: 2px solid #333; 
+  border-radius: 8px; 
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s ease; 
+}
+
+/* マウスを乗せたら色が反転してかっこよくする！ */
+.back-to-title-btn:hover {
+  background-color: #333;
+  color: #fff;
+  transform: translateY(-2px); 
+}
