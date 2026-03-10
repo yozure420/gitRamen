@@ -3,7 +3,7 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-db/*
+*.db 
 .env
 .venv
 venv/

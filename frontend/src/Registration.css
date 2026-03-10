@@ -92,6 +92,15 @@
   font-size: 0.8rem;
 }
 
+/* API レベルのエラーメッセージ（ユーザー名重複など） */
+.registration-api-error {
+  margin: 0;
+  color: #ff4444;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 /* 送信ボタン */
 .registration-button {
   margin-top: 0.5rem;
@@ -106,9 +115,15 @@
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-.registration-button:hover {
+.registration-button:hover:not(:disabled) {
   background-color: rgba(0, 255, 0, 0.1);
   box-shadow: 0 0 16px rgba(0, 255, 0, 0.3);
+}
+
+/* 送信中は薄くして操作不可を視覚的に示す */
+.registration-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* フォーム下部テキスト（ログインへの導線） */

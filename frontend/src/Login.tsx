@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import './Login.css'
+import { loginUser, saveToken } from './api/auth'
 
 // ログイン画面が必要とする外部コールバック
 interface LoginProps {
-  /** ログイン成功時に呼ばれる（バックエンド連携後はここで認証処理を行う） */
+  /** ログイン成功時に呼ばれる */
   onLogin: () => void
   /** 「新規登録はこちら」押下時に呼ばれる */
   onGoToRegister: () => void
@@ -12,16 +13,35 @@ interface LoginProps {
 function Login({ onLogin, onGoToRegister }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  /** API エラーや入力ミス時にフォーム下部に表示するメッセージ */
+  const [error, setError] = useState('')
+  /** API 通信中は二重送信を防ぐためボタンを無効化する */
+  const [isLoading, setIsLoading] = useState(false)
 
   /**
    * フォーム送信ハンドラ。
-   * 現時点ではバックエンド連携なしのため、入力が空でなければそのまま遷移する。
-   * 将来的にはここで API 呼び出しを行い、認証結果に応じて onLogin() を呼ぶ。
+   * バックエンドの POST /api/auth/login を呼び、成功時に JWT を保存して遷移する。
    */
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (username.trim() === '' || password.trim() === '') return
-    onLogin()
+    setError('')
+
+    if (username.trim() === '' || password.trim() === '') {
+      setError('ユーザーネームとパスワードを入力してください')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const data = await loginUser(username, password)
+      saveToken(data.access_token)
+      onLogin()
+    } catch (err) {
+      // バックエンドが返すエラーメッセージ（例: "Invalid name or password"）を表示
+      setError(err instanceof Error ? err.message : 'ログインに失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -63,8 +83,11 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
             />
           </div>
 
-          <button type="submit" className="login-button">
-            ログイン
+          {/* API エラー・入力ミス時のエラーメッセージ */}
+          {error && <p className="login-error">{error}</p>}
+
+          <button type="submit" className="login-button" disabled={isLoading}>
+            {isLoading ? '送信中...' : 'ログイン'}
           </button>
         </form>
 

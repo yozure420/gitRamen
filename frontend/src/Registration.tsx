@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './Registration.css'
+import { registerUser } from './api/auth'
 
 // 新規登録画面が必要とする外部コールバック
 interface RegistrationProps {
@@ -13,6 +14,10 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  /** API エラーやバリデーションエラー時にフォーム下部に表示するメッセージ */
+  const [error, setError] = useState('')
+  /** API 通信中は二重送信を防ぐためボタンを無効化する */
+  const [isLoading, setIsLoading] = useState(false)
 
   /**
    * パスワード不一致エラーメッセージ。
@@ -26,16 +31,28 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
 
   /**
    * フォーム送信ハンドラ。
-   * 全フィールドが入力済みかつパスワードが一致している場合のみ登録を進める。
-   * 将来的にはここで API 呼び出しを行い、成功後に onRegister() を呼ぶ。
+   * バックエンドの POST /api/auth/register を呼び、成功時にログイン画面へ遷移する。
    */
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
 
-    if (username.trim() === '' || password.trim() === '') return
+    if (username.trim() === '' || password.trim() === '') {
+      setError('ユーザーネームとパスワードを入力してください')
+      return
+    }
     if (password !== confirmPassword) return
 
-    onRegister()
+    setIsLoading(true)
+    try {
+      await registerUser(username, password)
+      onRegister()
+    } catch (err) {
+      // バックエンドが返すエラーメッセージ（例: "Name already registered"）を表示
+      setError(err instanceof Error ? err.message : '登録に失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -97,8 +114,11 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
             )}
           </div>
 
-          <button type="submit" className="registration-button">
-            登録する
+          {/* API エラー・入力ミス時のエラーメッセージ */}
+          {error && <p className="registration-api-error">{error}</p>}
+
+          <button type="submit" className="registration-button" disabled={isLoading}>
+            {isLoading ? '送信中...' : '登録する'}
           </button>
         </form>
 
