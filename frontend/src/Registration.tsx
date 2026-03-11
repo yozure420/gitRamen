@@ -41,6 +41,10 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
       setError('ユーザーネームとパスワードを入力してください')
       return
     }
+    if (password.length < 8) {
+      setError('パスワードは8文字以上で入力してください')
+      return
+    }
     if (password !== confirmPassword) return
 
     setIsLoading(true)
@@ -48,8 +52,11 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
       await registerUser(username, password)
       onRegister()
     } catch (err) {
-      // バックエンドが返すエラーメッセージ（例: "Name already registered"）を表示
-      setError(err instanceof Error ? err.message : '登録に失敗しました')
+      if (err instanceof Error && err.message === 'Name already registered') {
+        setError('このユーザーネームは既に使用されています')
+      } else {
+        setError(err instanceof Error ? err.message : '登録に失敗しました')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -92,6 +99,7 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
               placeholder="password"
               autoComplete="new-password"
             />
+            <p className="registration-hint">※ 8文字以上で入力してください</p>
           </div>
 
           {/* パスワード確認入力（2回目）＋不一致エラー */}

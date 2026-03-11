@@ -59,9 +59,13 @@ export async function registerUser(
   })
 
   if (!res.ok) {
-    // FastAPI は失敗時に { detail: "..." } を返す
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? '登録に失敗しました')
+    // Pydantic バリデーションエラー（422）は detail が配列になるため先頭の msg を取り出す
+    const detail = body.detail
+    const message = Array.isArray(detail)
+      ? (detail[0]?.msg ?? '登録に失敗しました')
+      : (detail ?? '登録に失敗しました')
+    throw new Error(message)
   }
 
   return res.json() as Promise<UserResponse>
