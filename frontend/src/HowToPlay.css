@@ -135,5 +135,6 @@
 
 .howto-back-btn:hover {
     background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
     color: #fff;
 }
