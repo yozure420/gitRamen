@@ -4,14 +4,16 @@ import { useState } from 'react'
 interface TitlePageProps {
     onStart: () => void
     onMyPage: () => void
+    onHowToPlay: () => void
+    onSettings: () => void
 }
 
-function TitlePage({ onStart, onMyPage }: TitlePageProps) {
+function TitlePage({ onStart, onMyPage, onHowToPlay, onSettings }: TitlePageProps) {
     const [hoveredItem, setHoveredItem] = useState<string | null>(null)
     const menuItems = [
     { key: 'start', label: 'スタート', action: onStart },
-    { key: 'howto', label: '遊び方', action: () => {} },
-    { key: 'settings', label: '設定', action: () => {} },
+    { key: 'howto', label: '遊び方', action: onHowToPlay },
+    { key: 'settings', label: '設定', action: onSettings },
 ]
 
     return (
