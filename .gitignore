@@ -28,3 +28,6 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# フリー音源（再配布禁止）
+frontend/public/sounds/*.mp3
