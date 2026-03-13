@@ -451,11 +451,6 @@
   filter: drop-shadow(0 0 9px rgba(237, 177, 92, 0.62)) drop-shadow(0 4px 8px rgba(48, 32, 18, 0.46));
 }
 
-.ramen-fallback {
-  font-size: 46px;
-  line-height: 1;
-}
-
 .ramen-toppings {
   position: absolute;
   right: -7px;

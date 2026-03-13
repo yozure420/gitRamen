@@ -30,6 +30,7 @@ type ExecuteGameCommandParams = {
   setShowLog: (value: boolean) => void
   setIsCompactLog: (value: boolean) => void
   setLaneCount: (value: number) => void
+  setIsPaused: (value: boolean) => void
 }
 
 export function executeGameCommand(params: ExecuteGameCommandParams): void {
@@ -54,6 +55,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setShowLog,
     setIsCompactLog,
     setLaneCount,
+    setIsPaused,
   } = params
 
   if (!cmd.trim() || isGameOver) return
@@ -296,8 +298,10 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   }
 
   if (normalizedCmd === 'git help') {
-    setShowHelp(!showHelp)
-    setMessage(showHelp ? 'ヒントを非表示' : '💡 ヒントを表示')
+    const nextShow = !showHelp
+    setShowHelp(nextShow)
+    setIsPaused(nextShow)
+    setMessage(nextShow ? '💡 ヒントを表示（一時停止中）' : 'ヒントを非表示')
     setInputCommand('')
     return
   }

@@ -127,10 +127,7 @@ function GmLeftPanel({
 
               return (
                 <div key={`${log.ramenId}-${i}`} className="log-item">
-                  #{log.ramenId} Lane{log.lane} / 注文: {log.orderCommand}
-                  {log.gameNote ? ` / note: ${log.gameNote}` : ''}
-                  {' / '}
-                  {log.summary}
+                  #{log.ramenId} Lane{log.lane}<br/>{log.orderCommand}
                 </div>
               )
             })}

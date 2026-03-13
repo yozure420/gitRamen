@@ -20,19 +20,18 @@ const assetByName = Object.fromEntries(
 
 const customerImages = Object.values(customerImageModules)
 
-const baseRamenImageNames = [
-  'food-ramen.png',
-  'food-aburasoba.png',
-  'food-tsukemen.png',
-  'food-ramen-iekei.png',
-  'food-ramen-tanmen.png',
-  'food-ramen-ishiki.png',
-  'food-ramen-tom-yam-kung.png',
-  'ramen-tonkotsu.png',
-  'ramen-shoyu.png',
-  'ramen-miso.png',
-  'ramen-taiwan.png',
-] as const
+const baseRamenImageByKeyword: Record<string, string> = {
+  '味噌': 'ramen-miso.png',
+  '醤油': 'ramen-shoyu.png',
+  '豚骨': 'ramen-tonkotsu.png',
+  '家系': 'food-ramen-iekei.png',
+  '台湾': 'ramen-taiwan.png',
+  'タンメン': 'food-ramen-tanmen.png',
+  'トムヤム': 'food-ramen-tom-yam-kung.png',
+  'つけ麺': 'food-tsukemen.png',
+  '油そば': 'food-aburasoba.png',
+  '一色': 'food-ramen-ishiki.png'
+}
 
 const toppingImageByItem: Record<string, string> = {
   '煮玉子': 'food-ramen-topping-1-tamago.png',
@@ -45,8 +44,16 @@ const toppingImageByItem: Record<string, string> = {
 }
 
 function resolveBaseRamenImage(ramen: Ramen): string {
-  const baseName = baseRamenImageNames[ramen.command.id % baseRamenImageNames.length]
-  return assetByName[baseName] ?? assetByName['food-ramen.png'] ?? ''
+  const haystack = [ramen.displayCommand, ramen.command.game_note, ramen.command.description]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  const matchedImage = Object.entries(baseRamenImageByKeyword).find(([keyword]) => {
+    return haystack.includes(keyword.toLowerCase())
+  })?.[1]
+
+  return assetByName[matchedImage ?? 'food-ramen.png'] ?? assetByName['food-ramen.png'] ?? ''
 }
 
 function resolveToppingImage(item: string): string | null {
@@ -82,58 +89,28 @@ function GmCenterPanel({ activeRamen, getLaneRamens, laneCount }: GmCenterPanelP
               const baseImage = resolveBaseRamenImage(ramen)
               const clampedPosition = Math.min(90, Math.max(10, ramen.position))
               return (
-                <div
-                  key={ramen.id}
-                  className={`ramen-icon ${isActive ? 'ramen-icon-active' : ''} ${ramen.isPushReady ? 'ramen-icon-push-ready' : ''}`}
-                  style={{ left: `${clampedPosition}%` }}
-                >
-                  {baseImage ? (
-                    <img
-                      src={baseImage}
-                      alt="ramen"
-                      className={`ramen-image ${isActive ? 'ramen-image-active' : ''}`}
-                    />
-                  ) : (
-                    <span className="ramen-fallback">🍜</span>
-                  )}
+                <div key={ramen.id} className={`ramen-icon ${isActive ? 'ramen-icon-active' : ''} ${ramen.isPushReady ? 'ramen-icon-push-ready' : ''}`} style={{ left: `${clampedPosition}%` }}>
+                    <img src={baseImage} alt="ramen" className={`ramen-image ${isActive ? 'ramen-image-active' : ''}`} />
                   <div className="ramen-toppings">
                     {ramen.stagedItems.map((item) => {
                       const toppingImage = resolveToppingImage(item)
                       if (!toppingImage) return null
-                      return (
-                        <img
-                          key={`${ramen.id}-${item}`}
-                          src={toppingImage}
-                          alt={item}
-                          className="ramen-topping-image"
-                        />
-                      )
+                      return (<img key={`${ramen.id}-${item}`} src={toppingImage} alt={item} className="ramen-topping-image" />)
                     })}
                   </div>
                   {isActive && (
                     <>
                       {ramen.isPushReady ? (
-                        <div className="ramen-push-badge">🚀 git push origin main！</div>
-                      ) : (
-                        <div className="ramen-command-badge">📝 {ramen.displayCommand}</div>
-                      )}
-                      <div className="ramen-active-badge">⭐操作中</div>
+                        <div className="ramen-push-badge">🚀 git push origin main!</div>
+                      ) : (<div className="ramen-command-badge">📝 {ramen.displayCommand}</div>)
+                      }
                     </>
                   )}
                 </div>
               )
             })}
-
             <div className="lane-customer">
-              {laneCustomerImages[laneNum - 1] ? (
-                <img
-                  src={laneCustomerImages[laneNum - 1] ?? undefined}
-                  alt={`customer-lane-${laneNum}`}
-                  className="lane-customer-image"
-                />
-              ) : (
-                <span>👤</span>
-              )}
+              <img src={laneCustomerImages[laneNum - 1] ?? undefined} alt={`customer-lane-${laneNum}`} className="lane-customer-image" />
             </div>
             <div className="lane-number">Lane {laneNum}</div>
           </div>
@@ -142,5 +119,4 @@ function GmCenterPanel({ activeRamen, getLaneRamens, laneCount }: GmCenterPanelP
     </div>
   )
 }
-
 export default GmCenterPanel

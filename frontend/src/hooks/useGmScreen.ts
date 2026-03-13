@@ -86,6 +86,7 @@ export function useGmScreen({ soundSettings }: UseGmScreenParams) {
 
   const resumeGame = () => {
     setShowLog(false)
+    setShowHelp(false)
     setIsPaused(false)
     setMessage('▶ ゲーム再開！')
   }
@@ -241,6 +242,7 @@ export function useGmScreen({ soundSettings }: UseGmScreenParams) {
       setShowLog,
       setIsCompactLog,
       setLaneCount,
+      setIsPaused,
     })
   }
 
