@@ -20,6 +20,7 @@ class Cmd(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     command: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    game_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     course: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     miss_records: Mapped[List["Miss"]] = relationship(back_populates="command")

@@ -1,4 +1,4 @@
-import './GmStart.css'
+import './css/GmStart.css'
 import { useState } from 'react'
 
 interface GmStartProps {
@@ -8,7 +8,7 @@ interface GmStartProps {
 function GmStart({ onStart }: GmStartProps) {
   const [command, setCommand] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = (e) => {
     e.preventDefault()
     if (command.trim().toLowerCase() === 'git init') {
       onStart()

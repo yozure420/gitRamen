@@ -14,28 +14,34 @@ from models import Cmd, User, History, Miss  # noqa: F401 – 全モデルをロ
 # テーブル作成
 Base.metadata.create_all(bind=engine)
 
+
+def ensure_schema():
+    """既存DBに不足カラムがあれば追加する（簡易マイグレーション）"""
+    with engine.connect() as conn:
+        columns = conn.exec_driver_sql("PRAGMA table_info(command)").fetchall()
+        column_names = {col[1] for col in columns}
+        if "game_note" not in column_names:
+            conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
+            conn.commit()
+
 # 🟢 初級レベル（course=1）
 beginner_commands = [
-    ("git init", "—", "ローカルに新しいGitリポジトリを作成する"),
-    ("git clone", "<URL>", "リモートリポジトリをローカルにコピーする"),
-    ("git status", "—", "現在の変更状態を確認する"),
-    ("git add", "<file>", "指定ファイルをステージングエリアに追加する"),
-    ("git add", ".", "全変更ファイルをステージングに追加する"),
-    ("git commit", '-m "message"', "ステージした変更をメッセージ付きでコミットする"),
-    ("git push", "origin main", "ローカルのコミットをリモートへ送信する"),
-    ("git pull", "—", "リモートの最新変更をローカルに取得＆統合する"),
-    ("git log", "—", "コミット履歴を一覧表示する"),
-    ("git log", "--oneline", "コミット履歴を1行ずつ簡潔に表示する"),
-    ("git branch", "—", "ブランチの一覧を表示する"),
-    ("git branch", "<name>", "新しいブランチを作成する"),
-    ("git checkout", "<branch>", "指定ブランチに切り替える"),
-    ("git checkout", "-b <branch>", "ブランチを作成して即座に切り替える"),
-    ("git merge", "<branch>", "指定ブランチを現在のブランチに統合する"),
-    ("git diff", "—", "ステージ前の変更差分を表示する"),
-    ("git rm", "<file>", "ファイルを削除してステージングに反映する"),
-    ("git mv", "<old> <new>", "ファイルを移動またはリネームする"),
-    ("git config", "--global user.name", "Gitのユーザー名をグローバル設定する"),
-    ("git config", "--global user.email", "Gitのメールアドレスをグローバル設定する"),
+    ("git init", "—", "ローカルに新しいGitリポジトリを作成する", "ゲームスタート"),
+    ("git clone", "<URL>", "リモートリポジトリをローカルにコピーする", "難易度変更"),
+    ("git status", "—", "現在の変更状態を確認する", "今作ってるラーメンを表示する"),
+    ("git add", "<file>", "指定ファイルをステージングエリアに追加する", "具材を入れる"),
+    ("git add", ".", "全変更ファイルをステージングに追加する", "全マシ全のせ"),
+    ("git commit", '-m "message"', "ステージした変更をメッセージ付きでコミットする", "ラーメンのコール"),
+    ("git push", "origin main", "ローカルのコミットをリモートへ送信する", "お客さんに届ける(レーンに流れる速度を早くする)"),
+    ("git pull", "—", "リモートの最新変更をローカルに取得＆統合する", "注文を受け取ってそのまま混ぜる"),
+    ("git log", "—", "コミット履歴を一覧表示する", "レシート出す"),
+    ("git log", "--oneline", "コミット履歴を1行ずつ簡潔に表示する", "レシートを1行で表示する"),
+    ("git branch", "—", "ブランチの一覧を表示する", "レーンの一覧を表示する"),
+    ("git branch", "<name>", "新しいブランチを作成する", "レーンを追加"),
+    ("git checkout", "<branch>", "指定ブランチに切り替える", "レーンを切り替える"),
+    ("git checkout", "-b <branch>", "ブランチを作成して即座に切り替える", "新しいレーンを追加して切り替える"),
+    ("git merge", "<branch>", "指定ブランチを現在のブランチに統合する", "2つの材料を混ぜる(まずそうならコンフリクト)"),
+    ("git fetch", "origin", "リモートの変更を取得するが、マージはしない", "同じお客さんから次にくる注文を受け取る"),
 ]
 
 # 🔵 中級レベル（course=2）
@@ -50,7 +56,6 @@ intermediate_commands = [
     ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す"),
     ("git reset", "--hard HEAD~1", "直前のコミットを完全に取り消し、変更も消す"),
     ("git revert", "<hash>", "指定コミットを打ち消す新たなコミットを作る"),
-    ("git fetch", "origin", "リモートの変更を取得するが、マージはしない"),
     ("git remote", "-v", "リモートリポジトリの一覧とURLを表示する"),
     ("git remote add", "origin <URL>", "リモートリポジトリを追加する"),
     ("git remote set-url", "origin <URL>", "リモートのURLを変更する"),
@@ -68,6 +73,11 @@ intermediate_commands = [
     ("git clean", "-fd", "未追跡のファイル・ディレクトリを一掃する"),
     ("git commit", "--amend", "直前のコミットメッセージや内容を修正する"),
     ("git push", "--force-with-lease", "安全な強制プッシュ（他人の変更を上書きしない）"),
+    ("git diff", "—", "ステージ前の変更差分を表示する"),
+    ("git rm", "<file>", "ファイルを削除してステージングに反映する"),
+    ("git mv", "<old> <new>", "ファイルを移動またはリネームする"),
+    ("git config", "--global user.name", "Gitのユーザー名をグローバル設定する"),
+    ("git config", "--global user.email", "Gitのメールアドレスをグローバル設定する"),
 ]
 
 # 🟠 上級レベル（course=3）
@@ -137,48 +147,32 @@ def seed_database():
     db = SessionLocal()
     
     try:
+        ensure_schema()
         # 既存データをクリア
         db.query(Cmd).delete()
         db.commit()
-        
-        # 初級レベル（course=1）
-        for cmd, option, desc in beginner_commands:
-            command_text = format_command(cmd, option)
-            db.add(Cmd(command=command_text, description=desc, course=1))
-        
-        # 中級レベル（course=2）
-        for cmd, option, desc in intermediate_commands:
-            command_text = format_command(cmd, option)
-            db.add(Cmd(command=command_text, description=desc, course=2))
-        
-        # 上級レベル（course=3）
-        for cmd, option, desc in advanced_commands:
-            command_text = format_command(cmd, option)
-            db.add(Cmd(command=command_text, description=desc, course=3))
-        
-        # 誰が使うねん級（course=4）
-        for cmd, option, desc in expert_commands:
-            command_text = format_command(cmd, option)
-            db.add(Cmd(command=command_text, description=desc, course=4))
-        
+        # 各レベルのコマンドをまとめて投入
+        command_groups = [beginner_commands,intermediate_commands,advanced_commands,expert_commands,]
+        for course, commands in enumerate(command_groups, start=1):
+            for command_row in commands:
+                if len(command_row) == 4:
+                    cmd, option, desc, game_note = command_row
+                else:
+                    cmd, option, desc = command_row
+                    game_note = None
+                db.add(
+                    Cmd(
+                        command=format_command(cmd, option),
+                        description=desc,
+                        game_note=game_note,
+                        course=course,
+                    )
+                )
         db.commit()
-        
         # 投入結果を表示
         total = db.query(Cmd).count()
-        course1 = db.query(Cmd).filter(Cmd.course == 1).count()
-        course2 = db.query(Cmd).filter(Cmd.course == 2).count()
-        course3 = db.query(Cmd).filter(Cmd.course == 3).count()
-        course4 = db.query(Cmd).filter(Cmd.course == 4).count()
+        course1, course2, course3, course4 = [db.query(Cmd).filter(Cmd.course == i).count() for i in range(1, 5)]
         
-        print("=" * 50)
-        print("🍜 Gitコマンドデータ投入完了！")
-        print("=" * 50)
-        print(f"🟢 初級レベル (course=1): {course1}件")
-        print(f"🔵 中級レベル (course=2): {course2}件")
-        print(f"🟠 上級レベル (course=3): {course3}件")
-        print(f"💀 誰が使うねん級 (course=4): {course4}件")
-        print(f"📊 合計: {total}件")
-        print("=" * 50)
         
     except Exception as e:
         db.rollback()
@@ -186,7 +180,6 @@ def seed_database():
         raise
     finally:
         db.close()
-
 
 if __name__ == "__main__":
     seed_database()

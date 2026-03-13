@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './Registration.css'
+import './css/Registration.css'
 import { registerUser } from './api/auth'
 
 // 新規登録画面が必要とする外部コールバック
@@ -33,7 +33,7 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
    * フォーム送信ハンドラ。
    * バックエンドの POST /api/auth/register を呼び、成功時にログイン画面へ遷移する。
    */
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
     setError('')
 

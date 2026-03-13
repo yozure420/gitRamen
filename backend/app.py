@@ -9,8 +9,19 @@ from typing import List, Optional
 from routers.auth import router as auth_router
 import random
 
+
+def ensure_schema() -> None:
+    """Add missing columns for existing SQLite DBs (lightweight migration)."""
+    with engine.connect() as conn:
+        columns = conn.exec_driver_sql("PRAGMA table_info(command)").fetchall()
+        column_names = {col[1] for col in columns}
+        if "game_note" not in column_names:
+            conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
+            conn.commit()
+
 # データベーステーブルを作成
 Base.metadata.create_all(bind=engine)
+ensure_schema()
 
 app = FastAPI(title="GitRamen API")
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
@@ -29,6 +40,7 @@ class CommandResponse(BaseModel):
     id: int
     command: str
     description: str
+    game_note: Optional[str] = None
     course: int
     
     class Config:

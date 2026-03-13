@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './Login.css'
+import './css/Login.css'
 import { loginUser, saveToken } from './api/auth'
 
 // ログイン画面が必要とする外部コールバック
@@ -22,7 +22,7 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
    * フォーム送信ハンドラ。
    * バックエンドの POST /api/auth/login を呼び、成功時に JWT を保存して遷移する。
    */
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
     setError('')
 
