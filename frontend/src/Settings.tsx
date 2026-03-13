@@ -1,5 +1,5 @@
 import './Settings.css'
-import { previewSound } from './Sounds'
+import { previewSound, stopAllSounds } from './Sounds'
 
 export interface SoundSettings {
     bgm: boolean
