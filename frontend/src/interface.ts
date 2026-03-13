@@ -1,3 +1,4 @@
+// バックエンドから取得するコマンド
 export interface Command {
     id: number
     command: string
@@ -6,6 +7,7 @@ export interface Command {
     course: number
 }
 
+// ゲーム内のラーメンオブジェクト
 export interface Ramen {
     id: number
     command: Command
@@ -16,7 +18,7 @@ export interface Ramen {
     logicExample?: string
     currentLane: number
     targetLane: number
-    position: number // 0-100
+    position: number // 0-100（100に達したら配達判定）
     isCompleted: boolean
     stagedItems: string[] // 追加: git addで追加した具材
     isCommitted: boolean // 追加: git commitしたか
@@ -27,6 +29,7 @@ export interface Ramen {
     hasRequiredCommandExecuted: boolean // 注文コマンドを達成したか
 }
 
+// コマンド入力履歴
 export interface CommandHistory {
     command: string
     timestamp: Date
