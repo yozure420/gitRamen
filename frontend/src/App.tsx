@@ -14,28 +14,40 @@ function App() {
 
   return (
     <>
-      {/* ログイン画面: 成功 → main_menu、新規登録ボタン → register */}
-      {screen === 'login' && (
-        <Login
-          onLogin={() => setScreen('main_menu')}
-          onGoToRegister={() => setScreen('register')}
+      {screen === 'title' && (
+        <TitlePage
+          onStart={() => setScreen('start')}
+          onMyPage={() => setScreen('mypage')}
+          onHowToPlay={() => setScreen('howto')}
+          onSettings={() => setScreen('settings')}
         />
       )}
 
-      {/* 新規登録画面: 登録完了 → login、ログインに戻る → login */}
-      {screen === 'register' && (
-        <Registration
-          onRegister={() => setScreen('login')}
-          onGoToLogin={() => setScreen('login')}
+      {screen === 'mypage' && (
+        <MyPage
+          onCourseSelect={() => setScreen('start')}
+          onBackToTitle={() => setScreen('title')}
         />
       )}
 
-      {/* ゲームスタート画面: "git init" 入力 → game */}
+      {screen === 'howto' && (
+        <HowToPlay onBack={() => setScreen('title')} />
+      )}
+
+      {screen === 'settings' && (
+        <Settings
+          soundSettings={soundSettings}
+          onChangeSoundSettings={setSoundSettings}
+          onBack={() => setScreen('title')}
+        />
+      )}
+
       {screen === 'start' && (
         <GmStart onStart={() => setScreen('game')} />
       )}
 
       {/* ゲーム本編画面 */}
+
       {screen === 'game' && <GmScreen />}
     </>
   )

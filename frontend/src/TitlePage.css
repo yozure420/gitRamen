@@ -1,0 +1,120 @@
+.title-container {
+    width: 100vw;
+    height: 100vh;
+    background: #f7efe0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+
+.title-bg-texture {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(200, 180, 150, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+}
+
+.title-bg-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(180deg, rgba(232, 167, 53, 0.06) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+/* Title */
+.title-heading-wrapper {
+    position: relative;
+    margin-bottom: 72px;
+    text-align: center;
+}
+
+.title-heading {
+    font-size: clamp(2.8rem, 5vw, 4rem);
+    font-weight: 900;
+    color: #2d2418;
+    margin: 0;
+    letter-spacing: 0.08em;
+    text-shadow: 2px 2px 0 rgba(232, 167, 53, 0.15);
+    line-height: 1.3;
+}
+
+.title-subtitle {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #a08060;
+    letter-spacing: 0.3em;
+    font-weight: 500;
+}
+
+/* Menu */
+.title-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.title-menu-item {
+    background: transparent;
+    border: 2px solid ;
+    /* border-bottom: 2px solid rgba(45, 36, 24, 0.15); */
+    border-radius: 6px;
+    padding: 14px 64px;
+    font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+    font-weight: 700;
+    color: #3d3020;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    letter-spacing: 0.12em;
+    min-width: 280px;
+    text-align: center;
+
+}
+
+.title-menu-item:hover,
+.title-menu-item.active {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
+    color: #fff;
+    /* transform: translateX(6px); */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Auth */
+.title-auth {
+    position: absolute;
+    bottom: 32px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: #8a7560;
+}
+
+.title-auth-link {
+    background: none;
+    border: none;
+    color: #b08040;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 4px 8px;
+}
+
+.title-auth-link:hover {
+    color: #d4922a;
+}

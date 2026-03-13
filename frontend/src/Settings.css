@@ -1,0 +1,181 @@
+.settings-container {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(160deg, #fefcf7 0%, #faf5eb 40%, #f7efe0 100%);
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.settings-header {
+    padding: 24px 32px;
+    border-bottom: 2px solid rgba(45, 36, 24, 0.1);
+    flex-shrink: 0;
+}
+
+.settings-title {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #2d2418;
+    letter-spacing: 0.05em;
+}
+
+.settings-body {
+    flex: 1;
+    padding: 32px;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.settings-section {
+    margin-bottom: 32px;
+}
+
+.settings-section-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #2d2418;
+    margin: 0 0 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8a735;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: rgba(232, 167, 53, 0.08);
+    border-radius: 8px;
+}
+
+.settings-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #3d3020;
+}
+
+.settings-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-preview-btn {
+    width: 34px;
+    height: 34px;
+    border: 2px solid #e8a735;
+    border-radius: 50%;
+    background: transparent;
+    color: #e8a735;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.settings-preview-btn:hover {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
+    color: #fff;
+}
+
+/* Toggle switch */
+.settings-toggle {
+    position: relative;
+    width: 72px;
+    height: 34px;
+    border: none;
+    border-radius: 17px;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.25s ease;
+    display: flex;
+    align-items: center;
+}
+
+.settings-toggle.on {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+}
+
+.settings-toggle.off {
+    background: #c0b8a8;
+}
+
+.settings-toggle-knob {
+    position: absolute;
+    top: 3px;
+    width: 28px;
+    height: 28px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left 0.25s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.settings-toggle.on .settings-toggle-knob {
+    left: 41px;
+}
+
+.settings-toggle.off .settings-toggle-knob {
+    left: 3px;
+}
+
+.settings-toggle-text {
+    width: 100%;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #fff;
+    pointer-events: none;
+}
+
+.settings-toggle.on .settings-toggle-text {
+    padding-right: 24px;
+}
+
+.settings-toggle.off .settings-toggle-text {
+    padding-left: 24px;
+}
+
+/* Footer */
+.settings-footer {
+    padding: 16px 32px 24px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.settings-back-btn {
+    background: transparent;
+    border: 2px solid #e8a735;
+    border-radius: 8px;
+    padding: 12px 36px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e8a735;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+}
+
+.settings-back-btn:hover {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
+    color: #fff;
+}
