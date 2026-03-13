@@ -10,9 +10,10 @@ import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
 type GmScreenProps = {
   soundSettings: SoundSettings
+  initialCourse: number
 }
 
-function GmScreen({ soundSettings }: GmScreenProps) {
+function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
   const {
     inputCommand,
     setInputCommand,
@@ -36,7 +37,7 @@ function GmScreen({ soundSettings }: GmScreenProps) {
     courseCommands,
     laneCount,
     resumeGame,
-  } = useGmScreen({ soundSettings })
+  } = useGmScreen({ soundSettings, initialCourse })
 
   useEffect(() => {
     if (soundSettings.bgm) {

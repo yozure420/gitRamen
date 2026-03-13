@@ -1,73 +1,97 @@
-/* 寿司打風スタート画面デザイン */
 .gmstart-container {
+  --matcha-bg: #9fb285;
+  --matcha-bg-deep: #93a979;
+  --wood-light: #e9c692;
+  --wood-mid: #d6a469;
+  --wood-dark: #ba8248;
+  --ink: #2b241c;
+  --ink-soft: #62503e;
+  --paper: #f7f2e8;
+  --paper-strong: #fffaf0;
+  --accent-red: #cf5f44;
+  --accent-green: #598a4e;
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 34px 20px;
   position: relative;
   overflow: hidden;
-  font-family: 'Segoe UI', 'Yu Gothic', sans-serif;
+  color: var(--ink);
+  font-family: 'M PLUS Rounded 1c', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 252, 241, 0.34) 0%, rgba(255, 252, 241, 0) 45%),
+    radial-gradient(circle at 82% 78%, rgba(218, 239, 188, 0.32) 0%, rgba(218, 239, 188, 0) 42%),
+    linear-gradient(180deg, var(--matcha-bg) 0%, var(--matcha-bg-deep) 100%);
 }
 
-/* 背景アニメーション */
-.gmstart-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 87, 51, 0.15) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
+.gmstart-container::before,
 .gmstart-container::after {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
   right: 0;
+  height: 34px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0)),
+    repeating-linear-gradient(
+      90deg,
+      var(--wood-light) 0,
+      var(--wood-light) 14px,
+      var(--wood-mid) 14px,
+      var(--wood-mid) 32px,
+      var(--wood-dark) 32px,
+      var(--wood-dark) 42px
+    );
+  box-shadow: inset 0 -2px 0 rgba(117, 71, 29, 0.3);
+  z-index: 2;
+}
+
+.gmstart-container::before {
+  top: 0;
+}
+
+.gmstart-container::after {
   bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(255, 87, 51, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
-  animation: particleMove 15s ease-in-out infinite;
+  transform: rotate(180deg);
 }
 
-@keyframes particleMove {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
-}
-
-/* コンテンツ */
 .terminal-content {
   position: relative;
-  z-index: 10;
-  background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(15, 52, 96, 0.95) 100%);
-  padding: 4rem 5rem;
+  z-index: 3;
+  width: min(760px, 100%);
+  padding: 3.2rem 3rem 2.8rem;
   border-radius: 24px;
-  border: 2px solid rgba(255, 87, 51, 0.5);
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(255, 87, 51, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  min-width: 600px;
-  animation: fadeInUp 1s ease-out;
+  border: 1px solid rgba(153, 111, 67, 0.24);
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.94) 0%, rgba(249, 241, 226, 0.94) 100%);
+  box-shadow:
+    0 22px 40px rgba(101, 76, 47, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(2px);
+  animation: gmstartFadeUp 0.45s ease-out;
 }
 
-@keyframes fadeInUp {
+.terminal-content::before {
+  content: '開店準備';
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.28rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f2d6a9 0%, #e6bb7f 100%);
+  color: #4d371f;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  border: 1px solid rgba(167, 118, 64, 0.45);
+}
+
+@keyframes gmstartFadeUp {
   from {
     opacity: 0;
-    transform: translateY(50px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
@@ -76,32 +100,21 @@
 }
 
 .start-message {
-  color: #fff;
-  font-size: 2.5rem;
-  font-weight: bold;
+  margin: 1rem 0 2rem;
   text-align: center;
-  margin-bottom: 3rem;
-  text-shadow: 
-    0 0 10px rgba(255, 87, 51, 0.8),
-    0 0 20px rgba(255, 87, 51, 0.5),
-    0 0 30px rgba(255, 87, 51, 0.3);
-  letter-spacing: 3px;
-  animation: glow 2s ease-in-out infinite;
+  color: #4d3a29;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-@keyframes glow {
-  0%, 100% { 
-    text-shadow: 
-      0 0 10px rgba(255, 87, 51, 0.8),
-      0 0 20px rgba(255, 87, 51, 0.5),
-      0 0 30px rgba(255, 87, 51, 0.3);
-  }
-  50% { 
-    text-shadow: 
-      0 0 15px rgba(255, 87, 51, 1),
-      0 0 30px rgba(255, 87, 51, 0.8),
-      0 0 45px rgba(255, 87, 51, 0.5);
-  }
+.start-submessage {
+  margin: -1rem 0 1.4rem;
+  text-align: center;
+  color: #5f4a36;
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .terminal-form {
@@ -111,129 +124,77 @@
 .terminal-input-wrapper {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.6);
-  border: 3px solid rgba(255, 87, 51, 0.6);
+  gap: 0.7rem;
+  padding: 1rem 1.15rem;
   border-radius: 16px;
-  padding: 1.2rem 1.5rem;
-  box-shadow: 
-    inset 0 2px 15px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(255, 87, 51, 0.4);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.terminal-input-wrapper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 87, 51, 0.3), transparent);
-  transition: left 0.6s;
-}
-
-.terminal-input-wrapper:hover::before {
-  left: 100%;
+  border: 1px solid rgba(141, 107, 67, 0.35);
+  background: #fffef9;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 8px 20px rgba(117, 88, 58, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .terminal-input-wrapper:focus-within {
-  border-color: #ff5733;
-  box-shadow: 
-    inset 0 2px 15px rgba(0, 0, 0, 0.6),
-    0 0 40px rgba(255, 87, 51, 0.7),
-    0 0 60px rgba(255, 87, 51, 0.3);
-  transform: translateY(-3px);
+  border-color: rgba(188, 130, 69, 0.6);
+  box-shadow: 0 0 0 2px rgba(188, 130, 69, 0.18), 0 10px 24px rgba(117, 88, 58, 0.16);
+  transform: translateY(-1px);
 }
 
 .terminal-prompt {
-  color: #ff5733;
-  font-weight: bold;
-  font-size: 1.5rem;
-  margin-right: 1rem;
-  text-shadow: 
-    0 0 10px rgba(255, 87, 51, 1),
-    0 0 20px rgba(255, 87, 51, 0.5);
-  animation: blink 1.5s step-start infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  flex: 0 0 auto;
+  color: var(--accent-red);
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .terminal-input {
   flex: 1;
-  background: transparent;
+  min-width: 0;
+  padding: 0.3rem 0;
   border: none;
-  color: #fff;
-  font-size: 1.3rem;
-  font-family: 'Consolas', 'Courier New', monospace;
+  background: transparent;
+  color: var(--ink);
   outline: none;
-  padding: 0.5rem;
-  letter-spacing: 1px;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 .terminal-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-  font-style: italic;
+  color: rgba(98, 80, 62, 0.55);
 }
 
-.terminal-input:focus::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* 装飾的な要素 */
-.terminal-content::before {
-  content: '🍜';
-  position: absolute;
-  top: -50px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 4rem;
-  filter: drop-shadow(0 0 20px rgba(255, 87, 51, 0.8));
-  animation: bounce 2s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-20px); }
-}
-
-/* レスポンシブ対応 */
 @media (max-width: 768px) {
+  .gmstart-container {
+    padding: 34px 14px;
+  }
+
   .terminal-content {
-    padding: 3rem 2rem;
-    min-width: auto;
-    width: 90%;
+    padding: 2.7rem 1.4rem 2rem;
+    border-radius: 18px;
   }
-  
+
   .start-message {
-    font-size: 1.8rem;
-    margin-bottom: 2rem;
+    margin-top: 1.35rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.55rem;
   }
-  
-  .terminal-input {
-    font-size: 1.1rem;
+
+  .start-submessage {
+    margin-top: -0.9rem;
+    margin-bottom: 1.1rem;
+    font-size: 0.82rem;
   }
-  
+
+  .terminal-input-wrapper {
+    padding: 0.9rem 0.95rem;
+  }
+
   .terminal-prompt {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
-}
 
-/* キーボードヒント */
-.keyboard-hint {
-  text-align: center;
-  margin-top: 2rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  animation: fadeIn 2s ease-out 1s both;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  .terminal-input {
+    font-size: 1rem;
+  }
 }

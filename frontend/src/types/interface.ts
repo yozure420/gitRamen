@@ -13,9 +13,24 @@ export interface SoundSettings {
     miss: boolean
 }
 
+export type CommandStepType = 'add' | 'commit' | 'push' | 'command'
+
+export interface CommandStep {
+    id: string
+    type: CommandStepType
+    displayCommand: string
+    expectedInputs: string[]
+    logicLabel: string
+    logicDescription: string
+    logicExample: string
+    itemName?: string
+}
+
 export interface Ramen {
     id: number
     command: Command
+    steps: CommandStep[]
+    currentStepIndex: number
     displayCommand: string
     expectedInputs: string[]
     logicLabel?: string

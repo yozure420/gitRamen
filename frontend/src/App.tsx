@@ -14,6 +14,7 @@ type Screen = 'title' | 'mypage' | 'howto' | 'settings' | 'game' | 'start'
 function App() {
   // 現在表示している画面を管理する。最初はログイン画面から始まる
   const [screen, setScreen] = useState<Screen>('title')
+  const [selectedCourse, setSelectedCourse] = useState(1)
   const [soundSettings, setSoundSettings] = useState<SoundSettings>({
     bgm: true,
     se: true,
@@ -52,12 +53,15 @@ function App() {
       )}
 
       {screen === 'start' && (
-        <GmStart onStart={() => setScreen('game')} />
+        <GmStart onStart={(course) => {
+          setSelectedCourse(course)
+          setScreen('game')
+        }} />
       )}
 
       {/* ゲーム本編画面 */}
 
-      {screen === 'game' && <GmScreen soundSettings={soundSettings} />}
+      {screen === 'game' && <GmScreen soundSettings={soundSettings} initialCourse={selectedCourse} />}
     </>
   )
 }

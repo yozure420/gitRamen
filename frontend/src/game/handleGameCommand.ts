@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { Command, CommandHistory, Ramen } from '../types/interface'
+import { advanceWorkflow, getCurrentCommandStep } from './gameEngine'
 
 export function normalizeCommand(input: string): string {
   return input
@@ -62,6 +63,58 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
   setCommandHistory(prev => [...prev, { command: cmd, timestamp: new Date() }])
 
+  const activeRamen = getActiveRamen()
+  const currentStep = activeRamen ? getCurrentCommandStep(activeRamen) : null
+
+  const isCurrentStepMatch = (ramen: Ramen | null, input: string): boolean => {
+    const step = ramen ? getCurrentCommandStep(ramen) : null
+    return step?.expectedInputs.some(expected => normalizeCommand(expected) === input) ?? false
+  }
+
+  const getNextStepCommand = (ramen: Ramen): string | null => {
+    return ramen.steps[ramen.currentStepIndex + 1]?.displayCommand ?? null
+  }
+
+  const completeCurrentStep = (ramen: Ramen, options?: {
+    scoreDelta?: number
+    message: string
+    update?: (current: Ramen) => Partial<Ramen>
+  }) => {
+    const { scoreDelta = 50 * course, message, update } = options ?? { message: '' }
+
+    if (scoreDelta !== 0) {
+      setScore(prev => prev + scoreDelta)
+    }
+
+    setRamens(prev => prev.map(current => {
+      if (current.id !== ramen.id) return current
+      const nextState = advanceWorkflow(current, {
+        commandsExecuted: current.commandsExecuted + 1,
+        ...(update ? update(current) : {}),
+      })
+      return nextState
+    }))
+
+    setMessage(message)
+    setInputCommand('')
+  }
+
+  const rejectOutOfOrder = (stepType: 'add' | 'commit' | 'push') => {
+    if (!currentStep) return false
+    if (currentStep.type === stepType) return false
+
+    if (stepType === 'add') {
+      setMessage(`❌ まだ add の番ではありません。今は「${currentStep.displayCommand}」です`)
+    } else if (stepType === 'commit') {
+      setMessage(`❌ まだ commit できません。先に「${currentStep.displayCommand}」を完了してください`)
+    } else {
+      setMessage(`❌ まだ push できません。先に「${currentStep.displayCommand}」を完了してください`)
+    }
+
+    setInputCommand('')
+    return true
+  }
+
   if (cmd.match(/^git clone .+$/i)) {
     setMessage('📝 注文を開始します！ラーメンが流れてくるのを待ってください')
     setInputCommand('')
@@ -70,94 +123,74 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
   const addMatch = cmd.match(/^git add (.+)$/i)
   if (addMatch) {
-    const activeRamen = getActiveRamen()
     if (!activeRamen) {
       setMessage('❌ 操作できるラーメンがありません')
       setInputCommand('')
       return
     }
 
+    if (rejectOutOfOrder('add')) return
+
     const item = addMatch[1].trim()
+    const nextStep = getNextStepCommand(activeRamen)
 
-    const isAddOrder = activeRamen.command.command.toLowerCase().startsWith('git add')
-
-    const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      setMessage(`❌ 今必要なのは「${currentStep?.displayCommand ?? ''}」です`)
+      setInputCommand('')
+      return
+    }
 
     if (item === '.') {
-      const isRequiredAddAll =
-        activeRamen.command.id === 5 ||
-        activeRamen.expectedInputs.some(input => normalizeCommand(input) === 'git add .') ||
-        isAddOrder
-      setRamens(prev => prev.map(r => {
-        if (r.id !== activeRamen.id) return r
-        const newCount = r.commandsExecuted + 1
-        return {
-          ...r,
-          stagedItems: [...availableItems],
-          commandsExecuted: newCount,
-          isPushReady: newCount >= r.pushThreshold,
-          hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || isRequiredAddAll,
-        }
-      }))
-      setMessage(willBePushReady
-        ? '🚀 全マシ全のせ完了！準備完了！git push origin main でお客さんに届けよう！'
-        : '✅ 全マシ全のせ！')
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `✅ 全マシ全のせ！ 次: ${nextStep}`
+          : '✅ 全マシ全のせ！',
+        update: () => ({ stagedItems: [...availableItems] }),
+      })
     } else if (availableItems.includes(item)) {
       if (activeRamen.stagedItems.includes(item)) {
         setMessage(`⚠️ ${item}は既に追加されています`)
         setInputCommand('')
         return
       }
-      const isThisRequiredTopping = activeRamen.expectedInputs.some(input => normalizeCommand(input) === normalizedCmd)
-      const marksAddStepDone = isAddOrder || isThisRequiredTopping
-      setRamens(prev => prev.map(r => {
-        if (r.id !== activeRamen.id) return r
-        const newCount = r.commandsExecuted + 1
-        return {
-          ...r,
-          stagedItems: [...r.stagedItems, item],
-          commandsExecuted: newCount,
-          isPushReady: newCount >= r.pushThreshold,
-          hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || marksAddStepDone,
-        }
-      }))
-      setMessage(willBePushReady
-        ? `🚀 ${item}を追加！準備完了！git push origin main でお客さんに届けよう！`
-        : `✅ ${item}を追加しました`)
+
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `✅ ${item}を追加しました。次: ${nextStep}`
+          : `✅ ${item}を追加しました`,
+        update: (current) => ({ stagedItems: [...current.stagedItems, item] }),
+      })
     } else {
       setMessage(`❌ ${item}という具材はありません`)
+      setInputCommand('')
     }
-    setInputCommand('')
     return
   }
 
   const commitMatch = cmd.match(/^git commit -m "(.+)"$/i)
   if (commitMatch) {
-    const activeRamen = getActiveRamen()
     if (!activeRamen) {
       setMessage('❌ 操作できるラーメンがありません')
       setInputCommand('')
       return
     }
 
-    const willBePushReadyCommit = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-    const isRequiredCommitCall = activeRamen.command.id === 6 || activeRamen.expectedInputs.some(input => normalizeCommand(input) === normalizedCmd)
-    setRamens(prev => prev.map(r => {
-      if (r.id !== activeRamen.id) return r
-      const newCount = r.commandsExecuted + 1
-      return {
-        ...r,
-        isCommitted: true,
-        commandsExecuted: newCount,
-        isPushReady: newCount >= r.pushThreshold,
-        hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || isRequiredCommitCall,
-      }
-    }))
+    if (rejectOutOfOrder('commit')) return
+
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      setMessage(`❌ 今必要な commit は「${currentStep?.displayCommand ?? ''}」です`)
+      setInputCommand('')
+      return
+    }
+
     const callText = commitMatch[1]
-    setMessage(willBePushReadyCommit
-      ? `🚀 ${callText} 準備完了！git push origin main でお客さんに届けよう！`
-      : `🍜 ${callText}`)
-    setInputCommand('')
+    const nextStep = getNextStepCommand(activeRamen)
+    completeCurrentStep(activeRamen, {
+      message: nextStep
+        ? `🍜 ${callText} 次: ${nextStep}`
+        : `🍜 ${callText}`,
+      update: () => ({ isCommitted: true }),
+    })
     return
   }
 
@@ -165,7 +198,6 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   if (switchMatch) {
     const targetLane = parseInt(switchMatch[2], 10)
 
-    const activeRamen = getActiveRamen()
     if (activeRamen) {
       if (targetLane > laneCount) {
         setMessage(`❌ Lane ${targetLane} は未開設です。git branch <lane名> でレーンを追加してください`)
@@ -173,127 +205,105 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
         return
       }
 
-      const willBePushReadySwitch = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-      setRamens(prev => prev.map(r => {
-        if (r.id !== activeRamen.id) return r
-        const newCount = r.commandsExecuted + 1
-        return { ...r, currentLane: targetLane, commandsExecuted: newCount, isPushReady: newCount >= r.pushThreshold }
-      }))
-      setMessage(willBePushReadySwitch
-        ? `🚀 Lane ${targetLane} に移動！準備完了！git push origin main でお客さんに届けよう！`
-        : `🔀 ラーメン #${activeRamen.id} を Lane ${targetLane} に移動`)
+      if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+        setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+        setInputCommand('')
+        return
+      }
+
+      const nextStep = getNextStepCommand(activeRamen)
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `🔀 ラーメン #${activeRamen.id} を Lane ${targetLane} に移動。次: ${nextStep}`
+          : `🔀 ラーメン #${activeRamen.id} を Lane ${targetLane} に移動`,
+        update: () => ({ currentLane: targetLane }),
+      })
     } else {
       setMessage('❌ 移動できるラーメンがありません')
+      setInputCommand('')
     }
-    setInputCommand('')
     return
   }
 
   if (normalizedCmd === 'git branch') {
-    const activeRamen = getActiveRamen()
     const laneList = Array.from({ length: laneCount }, (_, i) => `lane${i + 1}`).join(', ')
-    if (activeRamen && activeRamen.command.id === 11) {
-      const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-      setRamens(prev => prev.map(r => {
-        if (r.id !== activeRamen.id) return r
-        const newCount = r.commandsExecuted + 1
-        return {
-          ...r,
-          commandsExecuted: newCount,
-          isPushReady: newCount >= r.pushThreshold,
-          hasRequiredCommandExecuted: true,
-        }
-      }))
-      setMessage(willBePushReady
-        ? `🚀 現在のレーン: ${laneList}。準備完了！git push origin main で届けよう！`
-        : `🌿 現在のレーン: ${laneList}`)
+    if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      const nextStep = getNextStepCommand(activeRamen)
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `🌿 現在のレーン: ${laneList}。次: ${nextStep}`
+          : `🌿 現在のレーン: ${laneList}`,
+      })
     } else {
       setMessage(`🌿 現在のレーン: ${laneList}`)
+      setInputCommand('')
     }
-    setInputCommand('')
     return
   }
 
   const checkoutBranchMatch = cmd.match(/^git checkout -b (.+)$/i)
   if (checkoutBranchMatch) {
-    const activeRamen = getActiveRamen()
     if (!activeRamen) {
       setMessage('❌ 操作できるラーメンがありません')
       setInputCommand('')
       return
     }
 
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+      setInputCommand('')
+      return
+    }
+
     const laneName = checkoutBranchMatch[1].trim()
-    const isRequiredCheckout = activeRamen.command.id === 114 || activeRamen.expectedInputs.some(input => normalizeCommand(input) === normalizedCmd)
-    const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
     const nextLane = laneCount < maxLanes ? laneCount + 1 : laneCount
 
     if (laneCount < maxLanes) {
       setLaneCount(nextLane)
     }
 
-    setRamens(prev => prev.map(r => {
-      if (r.id !== activeRamen.id) return r
-      const newCount = r.commandsExecuted + 1
-      return {
-        ...r,
-        currentLane: nextLane,
-        commandsExecuted: newCount,
-        isPushReady: newCount >= r.pushThreshold,
-        hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || isRequiredCheckout,
-      }
-    }))
-
-    setMessage(willBePushReady
-      ? `🚀 ${laneName} を作成して Lane ${nextLane} へ切替！準備完了！`
-      : `🆕 ${laneName} を作成して Lane ${nextLane} へ切替！`)
-    setInputCommand('')
+    const nextStep = getNextStepCommand(activeRamen)
+    completeCurrentStep(activeRamen, {
+      message: nextStep
+        ? `🆕 ${laneName} を作成して Lane ${nextLane} へ切替！ 次: ${nextStep}`
+        : `🆕 ${laneName} を作成して Lane ${nextLane} へ切替！`,
+      update: () => ({ currentLane: nextLane }),
+    })
     return
   }
 
   const branchMatch = cmd.match(/^git branch (.+)$/i)
   if (branchMatch) {
-    const activeRamen = getActiveRamen()
     if (!activeRamen) {
       setMessage('❌ 操作できるラーメンがありません')
       setInputCommand('')
       return
     }
 
-    const isBranchOrder = activeRamen.command.id === 12 || /^git branch\s+/i.test(activeRamen.displayCommand)
-    if (!isBranchOrder) {
-      setMessage('❌ 今は branch の注文ではありません')
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
       setInputCommand('')
       return
     }
 
     const laneName = branchMatch[1].trim()
-    const willBePushReadyBranch = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-
-    setRamens(prev => prev.map(r => {
-      if (r.id !== activeRamen.id) return r
-      const newCount = r.commandsExecuted + 1
-      return {
-        ...r,
-        commandsExecuted: newCount,
-        isPushReady: newCount >= r.pushThreshold,
-        hasRequiredCommandExecuted: true,
-      }
-    }))
+    const nextStep = getNextStepCommand(activeRamen)
 
     if (laneCount < maxLanes) {
       const nextLane = laneCount + 1
       setLaneCount(nextLane)
-      setMessage(willBePushReadyBranch
-        ? `🚀 Lane ${nextLane}（${laneName}）を開設！準備完了！git push origin main で届けよう！`
-        : `🆕 Lane ${nextLane}（${laneName}）を開設！お客さんが増えました！`)
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `🆕 Lane ${nextLane}（${laneName}）を開設！ 次: ${nextStep}`
+          : `🆕 Lane ${nextLane}（${laneName}）を開設！お客さんが増えました！`,
+      })
     } else {
-      setMessage(willBePushReadyBranch
-        ? '🚀 既に最大レーンです（3）。準備完了！git push origin main で届けよう！'
-        : 'ℹ️ 既に最大レーン数（3）です')
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `ℹ️ 既に最大レーン数（3）です。次: ${nextStep}`
+          : 'ℹ️ 既に最大レーン数（3）です',
+      })
     }
-
-    setInputCommand('')
     return
   }
 
@@ -307,79 +317,53 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   }
 
   if (normalizedCmd === 'git log') {
-    const activeRamen = getActiveRamen()
-    if (activeRamen && activeRamen.command.id === 9) {
-      const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-      setRamens(prev => prev.map(r => {
-        if (r.id !== activeRamen.id) return r
-        const newCount = r.commandsExecuted + 1
-        return {
-          ...r,
-          commandsExecuted: newCount,
-          isPushReady: newCount >= r.pushThreshold,
-          hasRequiredCommandExecuted: true,
-        }
-      }))
-      setMessage(willBePushReady
-        ? '📜 注文履歴を表示（一時停止中）。準備完了！'
-        : '📜 注文履歴を表示（一時停止中）')
+    if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      const nextStep = getNextStepCommand(activeRamen)
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `📜 注文履歴を表示（一時停止中）。次: ${nextStep}`
+          : '📜 注文履歴を表示（一時停止中）',
+      })
     } else {
       setMessage('📜 注文履歴を表示（一時停止中）')
+      setInputCommand('')
     }
     setIsCompactLog(false)
     setShowLog(true)
-    setInputCommand('')
     return
   }
 
   if (normalizedCmd === 'git lof --oneline' || normalizedCmd === 'git log --oneline') {
-    const activeRamen = getActiveRamen()
-    if (activeRamen && activeRamen.command.id === 10) {
-      const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-      setRamens(prev => prev.map(r => {
-        if (r.id !== activeRamen.id) return r
-        const newCount = r.commandsExecuted + 1
-        return {
-          ...r,
-          commandsExecuted: newCount,
-          isPushReady: newCount >= r.pushThreshold,
-          hasRequiredCommandExecuted: true,
-        }
-      }))
-      setMessage(willBePushReady
-        ? '👋 おかえりでーす！レシート簡易表示（一時停止）準備完了！'
-        : '👋 おかえりでーす！レシート簡易表示（一時停止）')
+    if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      const nextStep = getNextStepCommand(activeRamen)
+      completeCurrentStep(activeRamen, {
+        message: nextStep
+          ? `👋 おかえりでーす！レシート簡易表示（一時停止）。次: ${nextStep}`
+          : '👋 おかえりでーす！レシート簡易表示（一時停止）',
+      })
     } else {
       setMessage('🧾 レシート簡易表示（一時停止）')
+      setInputCommand('')
     }
     setIsCompactLog(true)
     setShowLog(true)
-    setInputCommand('')
     return
   }
 
   if (normalizedCmd === 'git status') {
-    const activeRamen = getActiveRamen()
     if (!activeRamen) {
       setMessage('📊 お腹すいた～')
     } else {
-      const statusPrefix = activeRamen.command.id === 3 ? '🆘 お客さんの注文を忘れた！確認しよう！' : '📊 状態確認:'
+      const statusPrefix = isCurrentStepMatch(activeRamen, normalizedCmd) ? '📊 状態確認（ステップ確認）:' : '📊 状態確認:'
       setMessage(`${statusPrefix} ⭐#${activeRamen.id}: 「${activeRamen.displayCommand}」 Lane${activeRamen.currentLane}→${activeRamen.targetLane} ${Math.floor(activeRamen.position)}% | 具材: ${activeRamen.stagedItems.join(', ') || 'なし'}`)
-      if (activeRamen.command.id === 3) {
-        const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-        setRamens(prev => prev.map(r => {
-          if (r.id !== activeRamen.id) return r
-          const newCount = r.commandsExecuted + 1
-          return {
-            ...r,
-            commandsExecuted: newCount,
-            isPushReady: newCount >= r.pushThreshold,
-            hasRequiredCommandExecuted: true,
-          }
-        }))
-        if (willBePushReady) {
-          setMessage(`🆘 お客さんの注文を忘れた！確認しよう！ ⭐#${activeRamen.id}: 「${activeRamen.displayCommand}」 Lane${activeRamen.currentLane}→${activeRamen.targetLane} ${Math.floor(activeRamen.position)}% | 具材: ${activeRamen.stagedItems.join(', ') || 'なし'} | 🚀 準備完了！`)
-        }
+      if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+        const nextStep = getNextStepCommand(activeRamen)
+        completeCurrentStep(activeRamen, {
+          message: nextStep
+            ? `📊 状態確認完了。次: ${nextStep}`
+            : '📊 状態確認完了',
+        })
+        return
       }
     }
     setInputCommand('')
@@ -387,56 +371,43 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   }
 
   if (normalizedCmd === 'git push origin main') {
-    const activeRamen = getActiveRamen()
     if (!activeRamen) {
       setMessage('❌ 配達できるラーメンがありません')
       setInputCommand('')
       return
     }
 
-    const completesRequiredCommand = activeRamen.expectedInputs.some(input => normalizeCommand(input) === normalizedCmd)
+    if (rejectOutOfOrder('push')) return
 
-    setRamens(prev => prev.map(r =>
-      r.id === activeRamen.id
-        ? {
-          ...r,
-          speed: pushSpeed,
-          isPushReady: true,
-          hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || completesRequiredCommand,
-        }
-        : r
-    ))
-    setMessage(completesRequiredCommand || activeRamen.hasRequiredCommandExecuted
-      ? '🚀 プッシュ！お客さんのところへ急げーー！！'
-      : '🚀 強制プッシュ！ただし命令未達成なので失敗判定になります')
-    setInputCommand('')
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      setMessage(`❌ 今必要な push は「${currentStep?.displayCommand ?? ''}」です`)
+      setInputCommand('')
+      return
+    }
+
+    completeCurrentStep(activeRamen, {
+      scoreDelta: 0,
+      message: '🚀 push 完了！お客さんのところへ急げーー！！',
+      update: () => ({ speed: pushSpeed }),
+    })
     return
   }
 
-  const activeRamen = getActiveRamen()
-  if (activeRamen && activeRamen.expectedInputs.some(input => normalizeCommand(input) === normalizedCmd)) {
-    setScore(s => s + 50 * course)
-    const willBePushReadyCmd = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
-    setRamens(prev => prev.map(r => {
-      if (r.id !== activeRamen.id) return r
-      const newCount = r.commandsExecuted + 1
-      return {
-        ...r,
-        commandsExecuted: newCount,
-        isPushReady: newCount >= r.pushThreshold,
-        hasRequiredCommandExecuted: true,
-      }
-    }))
-    setMessage(willBePushReadyCmd
-      ? `🚀 「${cmd}」正解！準備完了！git push origin main でお客さんに届けよう！`
-      : `✅ 正解！「${cmd}」を実行しました！`)
-    setInputCommand('')
+  if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+    const nextStep = getNextStepCommand(activeRamen)
+    completeCurrentStep(activeRamen, {
+      message: nextStep
+        ? `✅ 「${cmd}」完了！次: ${nextStep}`
+        : `✅ 正解！「${cmd}」を実行しました！`,
+    })
     return
   }
 
   const matchingCmd = availableCommands.find(c => normalizeCommand(c.command) === normalizedCmd)
 
-  if (matchingCmd) {
+  if (currentStep) {
+    setMessage(`❌ 今は「${currentStep.displayCommand}」の番です`)
+  } else if (matchingCmd) {
     setMessage('❌ そのコマンドは今じゃない！現在のラーメンのコマンドを入力してください')
   } else {
     setMessage(`❓ 不明なコマンド: ${cmd}`)

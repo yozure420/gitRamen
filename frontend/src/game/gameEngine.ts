@@ -1,4 +1,4 @@
-import type { Ramen } from '../types/interface'
+import type { CommandStep, Ramen } from '../types/interface'
 
 export type DeliveryOutcome = {
   scoreDelta: number
@@ -7,22 +7,51 @@ export type DeliveryOutcome = {
   message: string
 }
 
+export function getCurrentCommandStep(ramen: Ramen): CommandStep | null {
+  return ramen.steps[ramen.currentStepIndex] ?? null
+}
+
+export function isWorkflowCompleted(ramen: Ramen): boolean {
+  return ramen.currentStepIndex >= ramen.steps.length
+}
+
+export function getWorkflowToppingItems(ramen: Ramen): string[] {
+  return ramen.steps
+    .filter(step => step.type === 'add' && step.itemName)
+    .map(step => step.itemName as string)
+}
+
+export function advanceWorkflow(ramen: Ramen, overrides: Partial<Ramen> = {}): Ramen {
+  const nextStepIndex = ramen.currentStepIndex + 1
+  const nextStep = ramen.steps[nextStepIndex] ?? null
+
+  return {
+    ...ramen,
+    ...overrides,
+    currentStepIndex: nextStepIndex,
+    displayCommand: nextStep?.displayCommand ?? ramen.displayCommand,
+    expectedInputs: nextStep?.expectedInputs ?? [],
+    logicLabel: nextStep?.logicLabel ?? ramen.logicLabel,
+    logicDescription: nextStep?.logicDescription ?? ramen.logicDescription,
+    logicExample: nextStep?.logicExample ?? ramen.logicExample,
+    isPushReady: nextStep?.type === 'push',
+    hasRequiredCommandExecuted: nextStepIndex >= ramen.steps.length,
+  }
+}
+
 export function getRequiredToppingForRamen(ramen: Ramen): string | null {
-  if (ramen.command.command.toLowerCase() !== 'git add <file>') {
+  const currentStep = getCurrentCommandStep(ramen)
+  if (!currentStep || currentStep.type !== 'add') {
     return null
   }
-  const topping = ramen.displayCommand.replace(/^git add\s+/i, '').trim()
+  const topping = currentStep.displayCommand.replace(/^git add\s+/i, '').trim()
   return topping || null
 }
 
 type CreateRamenEntryParams = {
   id: number
   command: Ramen['command']
-  displayCommand: string
-  expectedInputs: string[]
-  logicLabel: string
-  logicDescription: string
-  logicExample: string
+  steps: CommandStep[]
   laneCount: number
   speed: number
 }
@@ -70,26 +99,25 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
   const {
     id,
     command,
-    displayCommand,
-    expectedInputs,
-    logicLabel,
-    logicDescription,
-    logicExample,
+    steps,
     laneCount,
     speed,
   } = params
 
   const startLane = Math.floor(Math.random() * laneCount) + 1
   const targetLane = Math.floor(Math.random() * laneCount) + 1
+  const firstStep = steps[0]
 
   return {
     id,
     command,
-    displayCommand,
-    expectedInputs,
-    logicLabel,
-    logicDescription,
-    logicExample,
+    steps,
+    currentStepIndex: 0,
+    displayCommand: firstStep?.displayCommand ?? command.command,
+    expectedInputs: firstStep?.expectedInputs ?? [command.command],
+    logicLabel: firstStep?.logicLabel ?? '通常コマンド',
+    logicDescription: firstStep?.logicDescription ?? '表示されたコマンドをそのまま入力。',
+    logicExample: firstStep?.logicExample ?? `例: ${command.command}`,
     currentLane: startLane,
     targetLane,
     position: 0,
@@ -97,20 +125,20 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
     stagedItems: [],
     isCommitted: false,
     commandsExecuted: 0,
-    pushThreshold: Math.floor(Math.random() * 2) + 2,
-    isPushReady: false,
+    pushThreshold: steps.length,
+    isPushReady: firstStep?.type === 'push',
     speed,
     hasRequiredCommandExecuted: false,
   }
 }
 
 export function evaluateDelivery(ramen: Ramen, course: number): DeliveryOutcome {
-  if (!ramen.hasRequiredCommandExecuted) {
+  if (!isWorkflowCompleted(ramen)) {
     return {
       scoreDelta: -50,
       result: 'failed',
-      summary: '命令未達成で配達失敗',
-      message: '❌ 失敗！命令未達成のまま配達してしまいました (-50点)',
+      summary: 'ワークフロー未完了で配達失敗',
+      message: '❌ 失敗！add / commit / push を完了する前に流れてしまいました (-50点)',
     }
   }
 

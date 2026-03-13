@@ -20,13 +20,14 @@ type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
 
 type UseGmScreenParams = {
   soundSettings: SoundSettings
+  initialCourse: number
 }
 
-export function useGmScreen({ soundSettings }: UseGmScreenParams) {
+export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams) {
   const [inputCommand, setInputCommand] = useState('')
   const [ramens, setRamens] = useState<Ramen[]>([])
   const [score, setScore] = useState(0)
-  const [course, setCourse] = useState(1)
+  const [course, setCourse] = useState(initialCourse)
   const [message, setMessage] = useState('git help でヒントを表示')
   const [showHelp, setShowHelp] = useState(false)
   const [commandHistory, setCommandHistory] = useState<CommandHistory[]>([])
@@ -109,11 +110,7 @@ export function useGmScreen({ soundSettings }: UseGmScreenParams) {
     const newRamen = createRamenEntry({
       id: nextRamenIdRef.current,
       command: randomCommand,
-      displayCommand: runtimeLogic.displayCommand,
-      expectedInputs: runtimeLogic.expectedInputs,
-      logicLabel: runtimeLogic.logicLabel,
-      logicDescription: runtimeLogic.logicDescription,
-      logicExample: runtimeLogic.logicExample,
+      steps: runtimeLogic.steps,
       laneCount: laneCountRef.current,
       speed: RAMEN_SPEED,
     })

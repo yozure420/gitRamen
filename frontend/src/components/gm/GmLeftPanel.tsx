@@ -74,6 +74,9 @@ function GmLeftPanel({
               <div className={`lane-status ${isActive ? 'lane-status-active' : ''}`}>
                 Lane {ramen.currentLane} → Lane {ramen.targetLane}
               </div>
+              <div className={`progress-text ${isActive ? 'progress-text-active' : ''}`}>
+                ステップ: {Math.min(ramen.currentStepIndex + 1, ramen.steps.length)} / {ramen.steps.length}
+              </div>
               {ramen.stagedItems.length > 0 && (
                 <div className={`staged-items ${isActive ? 'staged-items-active' : ''}`}>
                   具材: {ramen.stagedItems.join(', ')}
