@@ -2,14 +2,15 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from db.models import get_db, init_db, Cmd, User, History, Miss
+from database import get_db, engine, Base
+from models import User, History, Cmd, Miss
 from pydantic import BaseModel
 from typing import List, Optional
 from routers.auth import router as auth_router
 import random
 
 # データベーステーブルを作成
-init_db()
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="GitRamen API")
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
