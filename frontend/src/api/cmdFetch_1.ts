@@ -20,3 +20,11 @@ export async function fetchCommandsByCourse(
 export async function fetchCourse1Commands(): Promise<Command[]> {
   return fetchCommandsByCourse(1, 100)
 }
+
+export async function fetchCommandCatalogByCourse(course: number): Promise<Command[]> {
+  const data: Command[] = await fetch(
+    `${API_BASE_URL}/api/commands/course?course=${course}`
+  ).then(r => r.json())
+
+  return data
+}

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Ramen } from '../../interface'
+import type { SoundSettings } from '../../Settings'
+import { playSound } from '../../Sounds'
 
 type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
 
@@ -11,6 +13,7 @@ type GmBottomPanelProps = {
   setInputCommand: (value: string) => void
   isLoading: boolean
   isGameOver: boolean
+  soundSettings: SoundSettings
 }
 
 function GmBottomPanel({
@@ -21,6 +24,7 @@ function GmBottomPanel({
   setInputCommand,
   isLoading,
   isGameOver,
+  soundSettings,
 }: GmBottomPanelProps) {
   let messageClass = ''
   if (message.includes('正解') || message.includes('完了') || message.includes('完璧') || message.includes('うまい')) {
@@ -47,7 +51,10 @@ function GmBottomPanel({
             ref={inputRef}
             type="text"
             value={inputCommand}
-            onChange={(e) => setInputCommand(e.target.value)}
+            onChange={(e) => {
+              setInputCommand(e.target.value)
+              playSound('type', soundSettings)
+            }}
             onBlur={() => {
               if (!isLoading && !isGameOver) {
                 inputRef.current?.focus()

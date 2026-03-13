@@ -278,6 +278,22 @@
   font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
+.course-command-list {
+  margin-top: 0.3rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+
+.course-command-item {
+  padding: 0.2rem 0;
+  border-bottom: 1px dashed rgba(124, 90, 53, 0.22);
+}
+
+.course-command-item:last-child {
+  border-bottom: none;
+}
+
 .log-list {
   max-height: 150px;
   overflow-y: auto;

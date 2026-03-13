@@ -1,11 +1,18 @@
+import { useEffect } from 'react'
 import './css/GmScreen.css'
 import { useGmScreen } from './hooks/useGmScreen'
 import GmLeftPanel from './components/gm/GmLeftPanel'
 import GmCenterPanel from './components/gm/GmCenterPanel'
 import GmRightPanel from './components/gm/GmRightPanel'
 import GmBottomPanel from './components/gm/GmBottomPanel'
+import type { SoundSettings } from './Settings'
+import { startGameBgm, stopGameBgm } from './Sounds'
 
-function GmScreen() {
+type GmScreenProps = {
+  soundSettings: SoundSettings
+}
+
+function GmScreen({ soundSettings }: GmScreenProps) {
   const {
     inputCommand,
     setInputCommand,
@@ -23,13 +30,25 @@ function GmScreen() {
     isGameOver,
     isLoading,
     handleSubmit,
-    handleLevelChange,
     getLaneRamens,
     activeRamen,
     availableItems,
+    courseCommands,
     laneCount,
     resumeGame,
-  } = useGmScreen()
+  } = useGmScreen({ soundSettings })
+
+  useEffect(() => {
+    if (soundSettings.bgm) {
+      startGameBgm(soundSettings)
+    } else {
+      stopGameBgm()
+    }
+
+    return () => {
+      stopGameBgm()
+    }
+  }, [soundSettings])
 
   return (
     <div className="game-container">
@@ -37,6 +56,8 @@ function GmScreen() {
         score={score}
         timeRemaining={timeRemaining}
         course={course}
+        laneCount={laneCount}
+        courseCommands={courseCommands}
         ramens={ramens}
         activeRamen={activeRamen}
         showHelp={showHelp}
@@ -46,8 +67,6 @@ function GmScreen() {
         isCompactLog={isCompactLog}
         isPaused={isPaused}
         resumeGame={resumeGame}
-        isLoading={isLoading}
-        handleLevelChange={handleLevelChange}
       />
 
       <GmCenterPanel
@@ -69,6 +88,7 @@ function GmScreen() {
         setInputCommand={setInputCommand}
         isLoading={isLoading}
         isGameOver={isGameOver}
+        soundSettings={soundSettings}
       />
     </div>
   )

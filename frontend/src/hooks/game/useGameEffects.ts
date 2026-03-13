@@ -1,6 +1,8 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import type { Command, Ramen } from '../../interface'
 import { evaluateDelivery } from '../../game/gameEngine'
+import type { SoundSettings } from '../../Settings'
+import { playSound } from '../../Sounds'
 
 type UseGameTimerParams = {
   isLoading: boolean
@@ -46,6 +48,7 @@ type UseRamenMovementParams = {
   isGameOver: boolean
   isPaused: boolean
   course: number
+  soundSettings: SoundSettings
   availableCommands: Command[]
   setRamens: Dispatch<SetStateAction<Ramen[]>>
   setScore: Dispatch<SetStateAction<number>>
@@ -59,6 +62,7 @@ export function useRamenMovement({
   isGameOver,
   isPaused,
   course,
+  soundSettings,
   availableCommands,
   setRamens,
   setScore,
@@ -68,12 +72,22 @@ export function useRamenMovement({
 }: UseRamenMovementParams) {
   const finalizeOrderLogRef = useRef(finalizeOrderLog)
   const spawnRamenRef = useRef(spawnRamen)
+  const soundSettingsRef = useRef(soundSettings)
+  const resolvedRamenIdsRef = useRef<Set<number>>(new Set())
   useEffect(() => {
     finalizeOrderLogRef.current = finalizeOrderLog
   }, [finalizeOrderLog])
   useEffect(() => {
     spawnRamenRef.current = spawnRamen
   }, [spawnRamen])
+  useEffect(() => {
+    soundSettingsRef.current = soundSettings
+  }, [soundSettings])
+  useEffect(() => {
+    if (isLoading) {
+      resolvedRamenIdsRef.current.clear()
+    }
+  }, [isLoading])
 
   useEffect(() => {
     if (isLoading || isGameOver || isPaused) return
@@ -83,15 +97,22 @@ export function useRamenMovement({
         return prev.map(ramen => {
           if (ramen.isCompleted) return ramen
 
+          if (resolvedRamenIdsRef.current.has(ramen.id)) {
+            return { ...ramen, position: 100, isCompleted: true }
+          }
+
           const newPosition = Math.min(100, ramen.position + ramen.speed)
 
           if (newPosition >= 100) {
+            resolvedRamenIdsRef.current.add(ramen.id)
             const outcome = evaluateDelivery(ramen, course)
             setScore(s => Math.max(0, s + outcome.scoreDelta))
             setMessage(outcome.message)
+            playSound(outcome.result === 'delivered' ? 'se' : 'miss', soundSettingsRef.current)
             finalizeOrderLogRef.current(ramen.id, outcome.result, outcome.summary)
             setTimeout(() => {
               setRamens(p => p.filter(r => r.id !== ramen.id))
+              resolvedRamenIdsRef.current.delete(ramen.id)
               setTimeout(() => {
                 if (availableCommands.length > 0) {
                   spawnRamenRef.current(availableCommands)

@@ -56,7 +56,7 @@ function App() {
 
       {/* ゲーム本編画面 */}
 
-      {screen === 'game' && <GmScreen />}
+      {screen === 'game' && <GmScreen soundSettings={soundSettings} />}
     </>
   )
 }

@@ -1,9 +1,11 @@
-import type { CommandHistory, OrderLog, Ramen } from '../../interface'
+import type { Command, CommandHistory, OrderLog, Ramen } from '../../interface'
 
 type GmLeftPanelProps = {
   score: number
   timeRemaining: number
   course: number
+  laneCount: number
+  courseCommands: Command[]
   ramens: Ramen[]
   activeRamen: Ramen | null
   showHelp: boolean
@@ -13,14 +15,14 @@ type GmLeftPanelProps = {
   isCompactLog: boolean
   isPaused: boolean
   resumeGame: () => void
-  isLoading: boolean
-  handleLevelChange: (newCourse: number) => void
 }
 
 function GmLeftPanel({
   score,
   timeRemaining,
   course,
+  laneCount,
+  courseCommands,
   ramens,
   activeRamen,
   showHelp,
@@ -30,14 +32,14 @@ function GmLeftPanel({
   isCompactLog,
   isPaused,
   resumeGame,
-  isLoading,
-  handleLevelChange,
 }: GmLeftPanelProps) {
   const activeRamens = ramens.filter(r => !r.isCompleted)
+  const commandBlockCount = laneCount >= 2 ? 2 : 1
+  const visibleCourseCommands = courseCommands.filter(cmd => cmd.id !== 1 && cmd.id !== 2)
 
   return (
     <div className="left-panel">
-      <h2 className="panel-title">ラーメン配達</h2>
+      <h2 className="panel-title">ラーメン作り中...</h2>
 
       <div className="status-card">
         <div className="status-line">
@@ -57,18 +59,18 @@ function GmLeftPanel({
           const isActive = activeRamen?.id === ramen.id
           return (
             <div key={ramen.id} className={`command-item ${isActive ? 'command-item-active' : ''}`}>
-              <div className={`lane-label ${isActive ? 'lane-label-active' : ''}`}>
-                {isActive && '⭐ '}ラーメン #{ramen.id}{isActive && ' (操作中)'}
-              </div>
-              <div className={`command-text ${isActive ? 'command-text-active' : ''}`}>
-                <span>📝 command: {ramen.displayCommand}</span>
-                {ramen.command.game_note && <span> | 🎮 game_note: {ramen.command.game_note}</span>}
-              </div>
-              <div className={`command-logic ${isActive ? 'command-logic-active' : ''}`}>
-                <div>🧠 命令ロジック: {ramen.logicLabel ?? '通常コマンド'}</div>
-                {ramen.logicDescription && <div>{ramen.logicDescription}</div>}
-                {ramen.logicExample && <div>{ramen.logicExample}</div>}
-              </div>
+              {Array.from({ length: commandBlockCount }).map((_, idx) => (
+                <div key={`${ramen.id}-order-block-${idx}`}>
+                  <div className={`lane-label ${isActive ? 'lane-label-active' : ''}`}>
+                    {isActive && '⭐ '}ラーメン #{ramen.id}{isActive && ' (操作中)'}
+                  </div>
+                  <div className={`command-text ${isActive ? 'command-text-active' : ''}`}>
+                    {ramen.command.game_note && <span>注文: {ramen.command.game_note}</span>}
+                    <br/>
+                    <span>コマンド: {ramen.displayCommand}</span>
+                  </div>
+                </div>
+              ))}
               <div className={`lane-status ${isActive ? 'lane-status-active' : ''}`}>
                 Lane {ramen.currentLane} → Lane {ramen.targetLane}
               </div>
@@ -94,16 +96,15 @@ function GmLeftPanel({
         <div className="hint-section hint-section-help">
           <h3 className="hint-title">💡 遊び方</h3>
           <div className="hint-content hint-content-help">
-            <div>🍜 ラーメンが勝手に前進します（1個ずつ）</div>
-            <div>📝 ⭐操作中のラーメンに表示されているコマンドを入力</div>
-            <div>🌱 初期レーンは1つ。<code>git branch &lt;lane名&gt;</code> で最大3レーンまで開設</div>
-            <div>🔀 <code>git switch lane[1-3]</code> で開設済みレーンへ移動</div>
-            <div>➕ <code>git add ネギ</code> で具材追加</div>
-            <div>🌟 <code>git add .</code> で全部のせ</div>
-            <div>🍜 <code>git commit -m "msg"</code> で完成</div>
-            <div>🎯 正しいお客さん(Lane)に届けると高得点</div>
-            <div>📊 <code>git status</code> で状態確認</div>
-            <div>📜 <code>git log</code> で履歴表示</div>
+            <div>📚 この難易度で出題されるコマンド一覧:</div>
+            <div className="course-command-list">
+              {visibleCourseCommands.map((cmd) => (
+                <div key={cmd.id} className="course-command-item">
+                  <code>{cmd.command}</code>
+                  {cmd.game_note ? <span> - {cmd.game_note}</span> : null}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -146,22 +147,6 @@ function GmLeftPanel({
           )}
         </div>
       )}
-
-      <div className="level-section">
-        <div className="level-title">難易度:</div>
-        <div className="level-buttons">
-          {[1, 2, 3, 4].map(lvl => (
-            <button
-              key={lvl}
-              onClick={() => handleLevelChange(lvl)}
-              disabled={isLoading}
-              className={`level-btn ${course === lvl ? 'level-btn-active' : ''}`}
-            >
-              {lvl === 1 ? '🟢' : lvl === 2 ? '🔵' : lvl === 3 ? '🟠' : '💀'} Lv{lvl}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
