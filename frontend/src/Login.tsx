@@ -5,7 +5,7 @@ import { loginUser, saveToken } from './api/auth'
 // ログイン画面が必要とする外部コールバック
 interface LoginProps {
   /** ログイン成功時に呼ばれる */
-  onLogin: () => void
+  onLogin: (token: string) => void
   /** 「新規登録はこちら」押下時に呼ばれる */
   onGoToRegister: () => void
 }
@@ -35,7 +35,7 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
     try {
       const data = await loginUser(username, password)
       saveToken(data.access_token)
-      onLogin()
+      onLogin(data.access_token)
     } catch (err) {
       // バックエンドが返すエラーメッセージ（例: "Invalid name or password"）を表示
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')

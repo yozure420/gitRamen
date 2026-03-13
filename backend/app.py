@@ -7,6 +7,7 @@ from models import User, History, Cmd, Miss
 from pydantic import BaseModel
 from typing import List, Optional
 from routers.auth import router as auth_router
+from routers.mypage import router as mypage_router
 import random
 
 
@@ -25,6 +26,7 @@ ensure_schema()
 
 app = FastAPI(title="GitRamen API")
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(mypage_router, prefix="/mypage", tags=["mypage"])
 
 # CORS設定（フロントエンドからのアクセスを許可）
 app.add_middleware(
@@ -42,7 +44,7 @@ class CommandResponse(BaseModel):
     description: str
     game_note: Optional[str] = None
     course: int
-    
+
     class Config:
         from_attributes = True
 
@@ -73,13 +75,13 @@ async def get_random_commands(
 ):
     """指定コースのコマンドをランダムに取得"""
     commands = db.query(Cmd).filter(Cmd.course == course).all()
-    
+
     if not commands:
         raise HTTPException(status_code=404, detail=f"No commands found for course {course}")
-    
+
     if len(commands) < count:
         count = len(commands)
-    
+
     random_commands = random.sample(commands, count)
     return random_commands
 
@@ -105,10 +107,10 @@ async def get_commands_by_course(
 async def get_command(command_id: int, db: Session = Depends(get_db)):
     """特定のコマンドを取得"""
     command = db.query(Cmd).filter(Cmd.id == command_id).first()
-    
+
     if not command:
         raise HTTPException(status_code=404, detail="Command not found")
-    
+
     return command
 
 @app.post("/api/commands/check", response_model=CheckCommandResponse)
@@ -118,16 +120,16 @@ async def check_command(
 ):
     """ユーザーの入力コマンドが正解かチェック"""
     command = db.query(Cmd).filter(Cmd.id == request.command_id).first()
-    
+
     if not command:
         raise HTTPException(status_code=404, detail="Command not found")
-    
+
     # 入力の正規化（大文字小文字無視、前後の空白削除）
     user_input_normalized = request.user_input.strip().lower()
     expected_normalized = command.command.strip().lower()
-    
+
     is_correct = user_input_normalized == expected_normalized
-    
+
     return CheckCommandResponse(
         is_correct=is_correct,
         expected=command.command,

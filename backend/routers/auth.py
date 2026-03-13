@@ -7,6 +7,7 @@ from models import User
 from schemas.auth import UserRegister, UserLogin, TokenResponse, UserResponse
 from auth.password import hash_password, verify_password
 from auth.jwt import create_access_token, decode_token
+from uuid import UUID
 
 router = APIRouter()
 # auto_error=False にすることで、トークン未送信でも 403 ではなく None として受け取り、
@@ -47,7 +48,8 @@ def get_current_user(
             detail="Invalid token payload",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    user = db.query(User).filter(User.id == user_id).first()
+    user_uuid = UUID(user_id)
+    user = db.query(User).filter(User.id == user_uuid).first()
     if user is None:
         # トークンは正しいが、該当するユーザーが DB に存在しない（削除済みなど）
         raise HTTPException(

@@ -1,24 +1,40 @@
 import { useState } from 'react'
 import './css/App.css'
-import GmStart from './GmStart'
-import GmScreen from './GmScreen'
 import TitlePage from './TitlePage'
+import Login from './Login'
+import Registration from './Registration'
 import MyPage from './MyPage'
 import HowToPlay from './HowToPlay'
-import Settings, { type SoundSettings } from './Settings'
+import Settings from './Settings'
+import type { SoundSettings } from './Settings'
+import GmStart from './GmStart'
+import GmScreen from './GmScreen'
 
-// アプリ全体で遷移しうる画面の種類
-type Screen = 'title' | 'mypage' | 'howto' | 'settings' | 'game' | 'start'
+type Screen = 'title' | 'login' | 'register' | 'mypage' | 'howto' | 'settings' | 'start' | 'game'
 
 function App() {
-  // 現在表示している画面を管理する。最初はログイン画面から始まる
   const [screen, setScreen] = useState<Screen>('title')
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('access_token')
+  })
   const [soundSettings, setSoundSettings] = useState<SoundSettings>({
     bgm: true,
     se: true,
     type: true,
     miss: true,
   })
+
+  const handleLogin = (newToken: string) => {
+    setToken(newToken)
+    localStorage.setItem('access_token', newToken)
+    setScreen('title')
+  }
+
+  const handleLogout = () => {
+    setToken(null)
+    localStorage.removeItem('access_token')
+    setScreen('title')
+  }
 
   return (
     <>
@@ -28,11 +44,30 @@ function App() {
           onMyPage={() => setScreen('mypage')}
           onHowToPlay={() => setScreen('howto')}
           onSettings={() => setScreen('settings')}
+          onLogin={() => setScreen('login')}
+          onLogout={handleLogout}
+          onRegister={() => setScreen('register')}
+          isLoggedIn={!!token}
+        />
+      )}
+
+      {screen === 'login' && (
+        <Login
+          onLogin={handleLogin}
+          onGoToRegister={() => setScreen('register')}
+        />
+      )}
+
+      {screen === 'register' && (
+        <Registration
+          onRegister={() => setScreen('login')}
+          onGoToLogin={() => setScreen('login')}
         />
       )}
 
       {screen === 'mypage' && (
         <MyPage
+          token={token}
           onCourseSelect={() => setScreen('start')}
           onBackToTitle={() => setScreen('title')}
         />
