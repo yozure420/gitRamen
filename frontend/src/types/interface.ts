@@ -42,6 +42,8 @@ export interface Ramen {
     isCompleted: boolean
     stagedItems: string[] // 追加: git addで追加した具材
     isCommitted: boolean // 追加: git commitしたか
+    isPushed: boolean // push実行済みか
+    pushedToMainFromOtherLane: boolean // 別レーンから origin main に push したか
     commandsExecuted: number // 実行済みコマンド数
     pushThreshold: number    // pushReadyになるまでのコマンド数（2か3）
     isPushReady: boolean     // git push origin mainで届けられる状態
@@ -62,4 +64,16 @@ export interface OrderLog {
     result: 'pending' | 'delivered' | 'failed'
     summary: string
     timestamp: Date
+}
+
+export interface CustomerAlert {
+    lane: number
+    text: string
+    label?: string
+}
+
+export interface StatusWindowData {
+    title: string
+    phaseMessage: string
+    details: string[]
 }

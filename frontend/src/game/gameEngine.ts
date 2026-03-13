@@ -5,6 +5,8 @@ export type DeliveryOutcome = {
   result: 'delivered' | 'failed'
   summary: string
   message: string
+  customerWarning?: string
+  errorLabel?: string
 }
 
 export function getCurrentCommandStep(ramen: Ramen): CommandStep | null {
@@ -54,6 +56,7 @@ type CreateRamenEntryParams = {
   steps: CommandStep[]
   laneCount: number
   speed: number
+  targetLaneOverride?: number | 'startLane'
 }
 
 export function selectLaneRamens(ramens: Ramen[], lane: number): Ramen[] {
@@ -95,6 +98,43 @@ export function canSpawnRamen(params: {
   return true
 }
 
+function adjustCheckoutStepsForStartLane(steps: CommandStep[], startLane: number, laneCount: number): CommandStep[] {
+  return steps.map((step) => {
+    const match = step.displayCommand.match(/^git checkout lane([1-3])$/i)
+    if (!match) return step
+
+    const requestedLane = Number(match[1])
+    let nextLane = requestedLane
+
+    if (requestedLane === startLane) {
+      const laneOptions = Array.from({ length: laneCount }, (_, index) => index + 1)
+        .filter((lane) => lane !== startLane)
+
+      if (laneOptions.length === 0) {
+        return step
+      }
+
+      nextLane = laneOptions[Math.floor(Math.random() * laneOptions.length)]
+    }
+
+    const nextCommand = `git checkout lane${nextLane}`
+
+    return {
+      ...step,
+      id: `${step.type}:${nextCommand}`,
+      displayCommand: nextCommand,
+      expectedInputs: step.expectedInputs.map((input) => {
+        if (input.match(/^git checkout lane([1-3])$/i)) {
+          return nextCommand
+        }
+        return input
+      }),
+      logicDescription: `現在は lane${startLane}。注文先 lane${nextLane} に切り替えてから調理する。`,
+      logicExample: `例: ${nextCommand}`,
+    }
+  })
+}
+
 export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
   const {
     id,
@@ -102,16 +142,33 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
     steps,
     laneCount,
     speed,
+    targetLaneOverride,
   } = params
 
   const startLane = Math.floor(Math.random() * laneCount) + 1
-  const targetLane = Math.floor(Math.random() * laneCount) + 1
-  const firstStep = steps[0]
+  const adjustedSteps = adjustCheckoutStepsForStartLane(steps, startLane, laneCount)
+  const firstStep = adjustedSteps[0]
+  const checkoutLaneMatch = firstStep?.displayCommand.match(/^git checkout lane([1-3])$/i)
+  const targetLane = (() => {
+    if (checkoutLaneMatch) {
+      return Number(checkoutLaneMatch[1])
+    }
+
+    if (targetLaneOverride === 'startLane') {
+      return startLane
+    }
+
+    if (typeof targetLaneOverride === 'number') {
+      return Math.min(Math.max(1, targetLaneOverride), laneCount)
+    }
+
+    return Math.floor(Math.random() * laneCount) + 1
+  })()
 
   return {
     id,
     command,
-    steps,
+    steps: adjustedSteps,
     currentStepIndex: 0,
     displayCommand: firstStep?.displayCommand ?? command.command,
     expectedInputs: firstStep?.expectedInputs ?? [command.command],
@@ -124,6 +181,8 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
     isCompleted: false,
     stagedItems: [],
     isCommitted: false,
+    isPushed: false,
+    pushedToMainFromOtherLane: false,
     commandsExecuted: 0,
     pushThreshold: steps.length,
     isPushReady: firstStep?.type === 'push',
@@ -133,12 +192,36 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
 }
 
 export function evaluateDelivery(ramen: Ramen, course: number): DeliveryOutcome {
+  if (ramen.isPushed && !ramen.isCommitted) {
+    const penalty = 70 * course
+    return {
+      scoreDelta: -penalty,
+      result: 'failed',
+      summary: '空振りプッシュ: 未コミットのまま配達',
+      message: `💥 空振りプッシュ！中身が入っていない！ (-${penalty}点)`,
+      customerWarning: '中身が入っていない！まずい！',
+      errorLabel: '空振りプッシュ',
+    }
+  }
+
+  if (ramen.isPushed && ramen.pushedToMainFromOtherLane) {
+    const penalty = 60 * course
+    return {
+      scoreDelta: -penalty,
+      result: 'failed',
+      summary: '誤配達: 別レーンから origin main へ push',
+      message: `❌ 注文ミス！別レーンから main へ届けてしまいました (-${penalty}点)`,
+      customerWarning: '注文が間違ってる！main宛てになってる💢',
+      errorLabel: 'push先ミス',
+    }
+  }
+
   if (!isWorkflowCompleted(ramen)) {
     return {
       scoreDelta: -50,
       result: 'failed',
       summary: 'ワークフロー未完了で配達失敗',
-      message: '❌ 失敗！add / commit / push を完了する前に流れてしまいました (-50点)',
+      message: '❌ 失敗！必要な手順を完了する前に流れてしまいました (-50点)',
     }
   }
 
@@ -167,6 +250,8 @@ export function evaluateDelivery(ramen: Ramen, course: number): DeliveryOutcome 
     scoreDelta: -50,
     result: 'failed',
     summary: `配達先ミス: Lane ${ramen.targetLane}`,
-    message: `❌ 間違い！Lane ${ramen.targetLane} に届けるべきでした (-50点)`,
+    message: `❌ 誤配達！Lane ${ramen.targetLane} の注文なのに別レーンへ届けました (-50点)`,
+    customerWarning: 'これ頼んでないんだけど💢',
+    errorLabel: '誤配達',
   }
 }

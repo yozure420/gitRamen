@@ -1,20 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
-import type { Command, Ramen, CommandHistory, OrderLog } from '../types/interface'
-import { resolveRuntimeCommandLogic } from '../game/commandLogic'
+import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
+import { createLaneAwarePullOrderPayload } from '../game/commandLogic'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand'
-import { canSpawnRamen, createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
-import { useGameTimer, useRamenMovement, useRamenSpawner } from './useGameEffects'
+import { createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
+import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 
 const GAME_TIME_LIMIT = 60
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
-const SPAWN_CHECK_INTERVAL = 500
-const MAX_RAMENS = 1
 const MAX_LANES = 3
-const MIN_SPAWN_DELAY = 500
-const MIN_POSITION_GAP = 4
 const AVAILABLE_ITEMS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト']
 type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
 
@@ -38,16 +34,18 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const [timeRemaining, setTimeRemaining] = useState(GAME_TIME_LIMIT)
   const [isGameOver, setIsGameOver] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [customerAlert, setCustomerAlert] = useState<CustomerAlert | null>(null)
+  const [statusWindow, setStatusWindow] = useState<StatusWindowData | null>(null)
   const [availableCommands, setAvailableCommands] = useState<Command[]>([])
   const [courseCommands, setCourseCommands] = useState<Command[]>([])
   const [nextRamenId, setNextRamenId] = useState(1)
   const [laneCount, setLaneCount] = useState(1)
+  const [existingBranches, setExistingBranches] = useState<string[]>(['main'])
 
   useEffect(() => { laneCountRef.current = laneCount }, [laneCount])
   useEffect(() => { nextRamenIdRef.current = nextRamenId }, [nextRamenId])
   useEffect(() => { ramensRef.current = ramens }, [ramens])
 
-  const lastSpawnTimeRef = useRef<number>(0)
   const laneCountRef = useRef<number>(1)
   const nextRamenIdRef = useRef<number>(1)
   const ramensRef = useRef<Ramen[]>([])
@@ -92,37 +90,43 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setMessage('▶ ゲーム再開！')
   }
 
-  const spawnRamen = (commands: Command[]) => {
-    if (commands.length === 0) return
+  const closeLog = () => {
+    setShowLog(false)
+  }
 
-    const now = Date.now()
-    if (!canSpawnRamen({
-      now,
-      lastSpawnAt: lastSpawnTimeRef.current,
-      ramens: ramensRef.current,
-      minSpawnDelay: MIN_SPAWN_DELAY,
-      minPositionGap: MIN_POSITION_GAP,
-      maxRamens: MAX_RAMENS,
-    })) return
-
-    const randomCommand = commands[Math.floor(Math.random() * commands.length)]
-    const runtimeLogic = resolveRuntimeCommandLogic(randomCommand)
+  const startOrderFromPull = (): string => {
+    const payload = createLaneAwarePullOrderPayload({
+      course,
+      ramenId: nextRamenIdRef.current,
+      laneCount: laneCountRef.current,
+      maxLanes: MAX_LANES,
+      existingBranches,
+    })
     const newRamen = createRamenEntry({
       id: nextRamenIdRef.current,
-      command: randomCommand,
-      steps: runtimeLogic.steps,
+      command: payload.command,
+      steps: payload.runtimeLogic.steps,
       laneCount: laneCountRef.current,
       speed: RAMEN_SPEED,
+      targetLaneOverride: payload.targetLaneOverride,
     })
 
     setRamens(prev => [...prev, newRamen])
     ramensRef.current = [...ramensRef.current, newRamen]
-    setMessage(`🍜 新しいラーメン #${nextRamenIdRef.current}！Lane ${newRamen.currentLane} → Lane ${newRamen.targetLane} へ`)
-
-    lastSpawnTimeRef.current = now
     nextRamenIdRef.current = nextRamenIdRef.current + 1
     setNextRamenId(nextRamenIdRef.current)
     appendOrderLog(newRamen)
+
+    if (payload.noticeTitle) {
+      setStatusWindow({
+        title: payload.noticeTitle,
+        phaseMessage: payload.orderText,
+        details: payload.noticeDetails ?? [],
+      })
+      setTimeout(() => setStatusWindow(null), 2600)
+    }
+
+    return `📥 注文受付！「${payload.orderText}」 ${newRamen.currentLane}レーンで調理開始`
   }
 
   const startGame = async () => {
@@ -132,11 +136,12 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setRamens([])
     setNextRamenId(1)
     setLaneCount(1)
+    setExistingBranches(['main'])
     setShowLog(false)
     setIsCompactLog(false)
     setIsPaused(false)
+    setCustomerAlert(null)
     setOrderLogs([])
-    lastSpawnTimeRef.current = 0
     laneCountRef.current = 1
     nextRamenIdRef.current = 1
     ramensRef.current = []
@@ -154,8 +159,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
 
       setAvailableCommands(commands)
       setCourseCommands(catalog)
-      setMessage(`🎮 コース ${course} スタート！git clone URL で注文、git add で具材追加！`)
-      setTimeout(() => spawnRamen(commands), 500)
+      setMessage(`🎮 コース ${course} スタート！まずは git pull で注文を受けてください（git log で履歴確認可）`)
     } catch (error) {
       console.error('Failed to load commands:', error)
       setMessage('❌ サーバーに接続できません')
@@ -196,21 +200,11 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     isPaused,
     course,
     soundSettings,
-    availableCommands,
     setRamens,
     setScore,
     setMessage,
+    setCustomerAlert,
     finalizeOrderLog,
-    spawnRamen,
-  })
-
-  useRamenSpawner({
-    isLoading,
-    isGameOver,
-    isPaused,
-    availableCommands,
-    spawnCheckInterval: SPAWN_CHECK_INTERVAL,
-    spawnRamen,
   })
 
   const handleSubmit: FormOnSubmit = (e) => {
@@ -223,12 +217,13 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       normalizedCmd,
       isGameOver,
       course,
-      laneCount,
+      existingBranches,
       showHelp,
       availableCommands,
       availableItems: AVAILABLE_ITEMS,
       maxLanes: MAX_LANES,
       pushSpeed: PUSH_SPEED,
+      onPullOrder: startOrderFromPull,
       getActiveRamen,
       setInputCommand,
       setCommandHistory,
@@ -239,7 +234,9 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       setShowLog,
       setIsCompactLog,
       setLaneCount,
+      setExistingBranches,
       setIsPaused,
+      setStatusWindow,
     })
   }
 
@@ -272,9 +269,13 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     availableItems: AVAILABLE_ITEMS,
     courseCommands,
     laneCount,
+    existingBranches,
     orderLogs,
     isCompactLog,
     isPaused,
+    customerAlert,
+    statusWindow,
     resumeGame,
+    closeLog,
   }
 }

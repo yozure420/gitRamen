@@ -11,9 +11,8 @@ export async function fetchCommandsByCourse(
   ).then(r => r.json())
 
   // Safety net: even if backend changes, keep only selected-level commands in UI.
-  // Exclude id=1 (git init) from gameplay
-  // Exclude id=1 (git init), id=13 (git checkout <branch>), id=15 (git merge <branch>) - unresolvable placeholders
-  const EXCLUDED_IDS = new Set([1, 13, 15])
+  // Exclude id=1 (git init), id=2 (git clone), id=15 (git merge <branch>) from gameplay
+  const EXCLUDED_IDS = new Set([1, 2, 15])
   return data.filter(cmd => cmd.course === course && !EXCLUDED_IDS.has(cmd.id))
 }
 

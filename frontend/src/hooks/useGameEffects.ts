@@ -1,5 +1,5 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
-import type { Command, Ramen } from '../types/interface'
+import type { Command, CustomerAlert, Ramen } from '../types/interface'
 import { evaluateDelivery } from '../game/gameEngine'
 import type { SoundSettings } from '../types/interface'
 import { playSound } from '../lib/Sounds'
@@ -49,12 +49,11 @@ type UseRamenMovementParams = {
   isPaused: boolean
   course: number
   soundSettings: SoundSettings
-  availableCommands: Command[]
   setRamens: Dispatch<SetStateAction<Ramen[]>>
   setScore: Dispatch<SetStateAction<number>>
   setMessage: (value: string) => void
+  setCustomerAlert: Dispatch<SetStateAction<CustomerAlert | null>>
   finalizeOrderLog: (ramenId: number, result: 'delivered' | 'failed', summary: string) => void
-  spawnRamen: (commands: Command[]) => void
 }
 
 export function useRamenMovement({
@@ -63,23 +62,18 @@ export function useRamenMovement({
   isPaused,
   course,
   soundSettings,
-  availableCommands,
   setRamens,
   setScore,
   setMessage,
+  setCustomerAlert,
   finalizeOrderLog,
-  spawnRamen,
 }: UseRamenMovementParams) {
   const finalizeOrderLogRef = useRef(finalizeOrderLog)
-  const spawnRamenRef = useRef(spawnRamen)
   const soundSettingsRef = useRef(soundSettings)
   const resolvedRamenIdsRef = useRef<Set<number>>(new Set())
   useEffect(() => {
     finalizeOrderLogRef.current = finalizeOrderLog
   }, [finalizeOrderLog])
-  useEffect(() => {
-    spawnRamenRef.current = spawnRamen
-  }, [spawnRamen])
   useEffect(() => {
     soundSettingsRef.current = soundSettings
   }, [soundSettings])
@@ -108,16 +102,21 @@ export function useRamenMovement({
             const outcome = evaluateDelivery(ramen, course)
             setScore(s => Math.max(0, s + outcome.scoreDelta))
             setMessage(outcome.message)
+            if (outcome.customerWarning) {
+              setCustomerAlert({
+                lane: ramen.targetLane,
+                text: outcome.customerWarning,
+                label: outcome.errorLabel,
+              })
+              setTimeout(() => {
+                setCustomerAlert(prev => (prev?.lane === ramen.targetLane ? null : prev))
+              }, 1300)
+            }
             playSound(outcome.result === 'delivered' ? 'se' : 'miss', soundSettingsRef.current)
             finalizeOrderLogRef.current(ramen.id, outcome.result, outcome.summary)
             setTimeout(() => {
               setRamens(p => p.filter(r => r.id !== ramen.id))
               resolvedRamenIdsRef.current.delete(ramen.id)
-              setTimeout(() => {
-                if (availableCommands.length > 0) {
-                  spawnRamenRef.current(availableCommands)
-                }
-              }, 500)
             }, 1000)
             return { ...ramen, position: 100, isCompleted: true }
           }
@@ -135,7 +134,6 @@ export function useRamenMovement({
     isGameOver,
     isPaused,
     course,
-    availableCommands,
     setRamens,
     setScore,
     setMessage,

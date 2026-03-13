@@ -1,18 +1,15 @@
-import type { Command, CommandHistory, OrderLog, Ramen } from '../../types/interface'
+import type { Command, Ramen } from '../../types/interface'
 
 type GmLeftPanelProps = {
   score: number
   timeRemaining: number
   course: number
   laneCount: number
+  existingBranches: string[]
   courseCommands: Command[]
   ramens: Ramen[]
   activeRamen: Ramen | null
   showHelp: boolean
-  showLog: boolean
-  commandHistory: CommandHistory[]
-  orderLogs: OrderLog[]
-  isCompactLog: boolean
   isPaused: boolean
   resumeGame: () => void
 }
@@ -22,20 +19,21 @@ function GmLeftPanel({
   timeRemaining,
   course,
   laneCount,
+  existingBranches,
   courseCommands,
   ramens,
   activeRamen,
   showHelp,
-  showLog,
-  commandHistory,
-  orderLogs,
-  isCompactLog,
   isPaused,
   resumeGame,
 }: GmLeftPanelProps) {
   const activeRamens = ramens.filter(r => !r.isCompleted)
   const commandBlockCount = laneCount >= 2 ? 2 : 1
   const visibleCourseCommands = courseCommands.filter(cmd => cmd.id !== 1 && cmd.id !== 2)
+  const formatLaneLabel = (laneNumber: number): string => {
+    const branchName = existingBranches[laneNumber - 1]
+    return branchName ? `${branchName}レーン` : `Lane ${laneNumber}`
+  }
 
   return (
     <div className="left-panel">
@@ -72,7 +70,7 @@ function GmLeftPanel({
                 </div>
               ))}
               <div className={`lane-status ${isActive ? 'lane-status-active' : ''}`}>
-                Lane {ramen.currentLane} → Lane {ramen.targetLane}
+                {formatLaneLabel(ramen.currentLane)} → {formatLaneLabel(ramen.targetLane)}
               </div>
               <div className={`progress-text ${isActive ? 'progress-text-active' : ''}`}>
                 ステップ: {Math.min(ramen.currentStepIndex + 1, ramen.steps.length)} / {ramen.steps.length}
@@ -117,41 +115,6 @@ function GmLeftPanel({
         </div>
       )}
 
-      {showLog && (
-        <div className="hint-section hint-section-log">
-          <h3 className="hint-title">{isCompactLog ? '🧾 git log --oneline' : '📜 git log'}</h3>
-          <div className="log-list">
-            {orderLogs.length === 0 && <div className="log-item">注文履歴がまだありません</div>}
-            {orderLogs.slice().reverse().map((log, i) => {
-              if (isCompactLog) {
-                const stamp = log.timestamp.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-                const resultIcon = log.result === 'delivered' ? '✅' : log.result === 'failed' ? '❌' : '⏳'
-                return (
-                  <div key={`${log.ramenId}-${i}`} className="log-item">
-                    {stamp} {resultIcon} L{log.lane} {log.orderCommand}
-                  </div>
-                )
-              }
-
-              return (
-                <div key={`${log.ramenId}-${i}`} className="log-item">
-                  #{log.ramenId} Lane{log.lane}<br/>{log.orderCommand}
-                </div>
-              )
-            })}
-          </div>
-          {isPaused && (
-            <div className="level-section">
-              <button className="level-btn level-btn-active" onClick={resumeGame}>▶ 再開</button>
-            </div>
-          )}
-          {commandHistory.length > 0 && (
-            <div className="hint-content" style={{ marginTop: '0.4rem' }}>
-              最新入力: <code>{commandHistory[commandHistory.length - 1].command}</code>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

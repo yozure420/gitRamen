@@ -22,11 +22,13 @@ function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
     course,
     message,
     showHelp,
-    commandHistory,
     showLog,
     orderLogs,
     isCompactLog,
     isPaused,
+    customerAlert,
+    statusWindow,
+    closeLog,
     timeRemaining,
     isGameOver,
     isLoading,
@@ -36,6 +38,7 @@ function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
     availableItems,
     courseCommands,
     laneCount,
+    existingBranches,
     resumeGame,
   } = useGmScreen({ soundSettings, initialCourse })
 
@@ -58,14 +61,11 @@ function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
         timeRemaining={timeRemaining}
         course={course}
         laneCount={laneCount}
+        existingBranches={existingBranches}
         courseCommands={courseCommands}
         ramens={ramens}
         activeRamen={activeRamen}
         showHelp={showHelp}
-        showLog={showLog}
-        commandHistory={commandHistory}
-        orderLogs={orderLogs}
-        isCompactLog={isCompactLog}
         isPaused={isPaused}
         resumeGame={resumeGame}
       />
@@ -74,6 +74,13 @@ function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
         activeRamen={activeRamen}
         getLaneRamens={getLaneRamens}
         laneCount={laneCount}
+        existingBranches={existingBranches}
+        customerAlert={customerAlert}
+        statusWindow={statusWindow}
+        showLog={showLog}
+        isCompactLog={isCompactLog}
+        orderLogs={orderLogs}
+        closeLog={closeLog}
       />
 
       <GmRightPanel
