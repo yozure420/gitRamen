@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
-import type { Ramen } from '../../interface'
-import type { SoundSettings } from '../../Settings'
-import { playSound } from '../../Sounds'
+import type { Ramen } from '../../types/interface'
+import type { SoundSettings } from '../../types/interface'
+import { playSound } from '../../lib/Sounds'
 
 type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
 

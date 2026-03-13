@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { Command, CommandHistory, Ramen } from '../interface'
+import type { Command, CommandHistory, Ramen } from '../types/interface'
 
 export function normalizeCommand(input: string): string {
   return input

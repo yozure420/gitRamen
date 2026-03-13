@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
-import './css/GmScreen.css'
-import { useGmScreen } from './hooks/useGmScreen'
-import GmLeftPanel from './components/gm/GmLeftPanel'
-import GmCenterPanel from './components/gm/GmCenterPanel'
-import GmRightPanel from './components/gm/GmRightPanel'
-import GmBottomPanel from './components/gm/GmBottomPanel'
-import type { SoundSettings } from './Settings'
-import { startGameBgm, stopGameBgm } from './Sounds'
+import '../css/GmScreen.css'
+import { useGmScreen } from '../hooks/useGmScreen'
+import GmLeftPanel from '../components/gm/GmLeftPanel'
+import GmCenterPanel from '../components/gm/GmCenterPanel'
+import GmRightPanel from '../components/gm/GmRightPanel'
+import GmBottomPanel from '../components/gm/GmBottomPanel'
+import type { SoundSettings } from '../types/interface'
+import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
 type GmScreenProps = {
   soundSettings: SoundSettings

@@ -1,4 +1,4 @@
-import type { Ramen } from '../interface'
+import type { Ramen } from '../types/interface'
 
 export type DeliveryOutcome = {
   scoreDelta: number

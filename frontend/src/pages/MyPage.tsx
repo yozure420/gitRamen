@@ -1,4 +1,4 @@
-import './MyPage.css'
+import '../css/MyPage.css'
 import { useState } from 'react'
 
 interface UserData {
@@ -145,7 +145,7 @@ function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
                 <div className="mypage-panel-body">
                     <div className="mypage-battle-summary">
                         <span className="mypage-rate">レート {userData.rate}</span>
-                        <span className="mypage-wl">勝利：{userData.wins}　敗北：{userData.losses}</span>
+                        <span className="mypage-wl">勝利：{userData.wins} 敗北：{userData.losses}</span>
                     </div>
                     <div className="mypage-battle-table">
                         <div className="mypage-battle-th">日付</div>

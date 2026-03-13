@@ -1,4 +1,4 @@
-import type { Command } from '../interface'
+import type { Command } from '../types/interface'
 
 const API_BASE_URL = 'http://localhost:8000'
 

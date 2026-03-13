@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import './css/Login.css'
-import { loginUser, saveToken } from './api/auth'
-
+import '../css/Login.css'
+import { loginUser, saveToken } from '../api/auth'
 // ログイン画面が必要とする外部コールバック
 interface LoginProps {
   /** ログイン成功時に呼ばれる */
@@ -43,12 +42,10 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
       setIsLoading(false)
     }
   }
-
   return (
     <div className="login-container">
       <div className="login-box">
         <h1 className="login-title">ログイン</h1>
-
         <form onSubmit={handleSubmit} className="login-form">
           {/* ユーザーネーム入力 */}
           <div className="login-field">
@@ -66,7 +63,6 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
               autoComplete="username"
             />
           </div>
-
           {/* パスワード入力 */}
           <div className="login-field">
             <label htmlFor="login-password" className="login-label">
@@ -82,23 +78,16 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
               autoComplete="current-password"
             />
           </div>
-
           {/* API エラー・入力ミス時のエラーメッセージ */}
           {error && <p className="login-error">{error}</p>}
-
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? '送信中...' : 'ログイン'}
           </button>
         </form>
-
         {/* 新規登録への導線 */}
         <p className="login-footer">
           アカウントをお持ちでない方は{' '}
-          <button
-            type="button"
-            onClick={onGoToRegister}
-            className="login-link-button"
-          >
+          <button type="button" onClick={onGoToRegister} className="login-link-button">
             新規登録はこちら
           </button>
         </p>
@@ -106,5 +95,4 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
     </div>
   )
 }
-
 export default Login

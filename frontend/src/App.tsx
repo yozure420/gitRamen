@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import './css/App.css'
-import GmStart from './GmStart'
-import GmScreen from './GmScreen'
-import TitlePage from './TitlePage'
-import MyPage from './MyPage'
-import HowToPlay from './HowToPlay'
-import Settings, { type SoundSettings } from './Settings'
+import GmStart from './pages/GmStart'
+import GmScreen from './pages/GmScreen'
+import TitlePage from './pages/TitlePage'
+import MyPage from './pages/MyPage'
+import HowToPlay from './pages/HowToPlay'
+import Settings from './pages/Settings'
+import type { SoundSettings } from './types/interface'
 
 // アプリ全体で遷移しうる画面の種類
 type Screen = 'title' | 'mypage' | 'howto' | 'settings' | 'game' | 'start'

@@ -1,4 +1,4 @@
-import './HowToPlay.css'
+import '../css/HowToPlay.css'
 
 interface HowToPlayProps {
     onBack: () => void

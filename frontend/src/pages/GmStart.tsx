@@ -1,4 +1,4 @@
-import './css/GmStart.css'
+import '../css/GmStart.css'
 import { useState } from 'react'
 
 interface GmStartProps {

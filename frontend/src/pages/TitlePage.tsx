@@ -1,4 +1,4 @@
-import './TitlePage.css'
+import '../css/TitlePage.css'
 import { useState } from 'react'
 
 interface TitlePageProps {

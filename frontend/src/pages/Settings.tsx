@@ -1,27 +1,18 @@
-import './Settings.css'
-import { previewSound } from './Sounds'
+import '../css/Settings.css'
+import { previewSound } from '../lib/Sounds'
+import type { SoundSettings } from '../types/interface'
 
-export interface SoundSettings {
-    bgm: boolean
-    se: boolean
-    type: boolean
-    miss: boolean
-}
-
-interface SettingsProps {
+type SettingsProps = {
     soundSettings: SoundSettings
     onChangeSoundSettings: (settings: SoundSettings) => void
     onBack: () => void
 }
-
 type PreviewKey = 'se' | 'type' | 'miss'
 const previewKeys: PreviewKey[] = ['se', 'type', 'miss']
-
 function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProps) {
     const toggle = (key: keyof SoundSettings) => {
     onChangeSoundSettings({ ...soundSettings, [key]: !soundSettings[key] })
     }
-
     const items: { key: keyof SoundSettings; label: string }[] = [
         { key: 'bgm', label: 'BGM' },
         { key: 'se', label: '効果音' },
@@ -37,7 +28,6 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
         <header className="settings-header">
             <h1 className="settings-title">設定</h1>
         </header>
-
         <div className="settings-body">
             <section className="settings-section">
                 <h2 className="settings-section-title">サウンド</h2>
@@ -75,7 +65,6 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                 </div>
             </section>
         </div>
-
         <div className="settings-footer">
             <button className="settings-back-btn" onClick={onBack}>
                 タイトルに戻る
@@ -84,5 +73,4 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
     </div>
     )
 }
-
 export default Settings

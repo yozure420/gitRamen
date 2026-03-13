@@ -1,4 +1,4 @@
-import type { Command, CommandHistory, OrderLog, Ramen } from '../../interface'
+import type { Command, CommandHistory, OrderLog, Ramen } from '../../types/interface'
 
 type GmLeftPanelProps = {
   score: number

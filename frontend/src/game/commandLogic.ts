@@ -1,4 +1,4 @@
-import type { Command } from '../interface'
+import type { Command } from '../types/interface'
 
 export type RuntimeCommandLogic = {
   displayCommand: string

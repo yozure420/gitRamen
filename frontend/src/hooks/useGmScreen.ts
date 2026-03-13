@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
-import type { Command, Ramen, CommandHistory, OrderLog } from '../interface'
+import type { Command, Ramen, CommandHistory, OrderLog } from '../types/interface'
 import { resolveRuntimeCommandLogic } from '../game/commandLogic'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand'
 import { canSpawnRamen, createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
 import { useGameTimer, useRamenMovement, useRamenSpawner } from './game/useGameEffects'
-import type { SoundSettings } from '../Settings'
+import type { SoundSettings } from '../types/interface'
 
 const GAME_TIME_LIMIT = 60
 const RAMEN_SPEED = 0.12

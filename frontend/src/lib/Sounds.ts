@@ -1,4 +1,4 @@
-import type { SoundSettings } from './Settings'
+import type { SoundSettings } from '../types/interface'
 
 const sounds = {
     type: new Audio('/sounds/決定ボタンを押す38.mp3'),

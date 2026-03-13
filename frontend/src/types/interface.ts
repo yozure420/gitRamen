@@ -6,6 +6,13 @@ export interface Command {
     course: number
 }
 
+export interface SoundSettings {
+    bgm: boolean
+    se: boolean
+    type: boolean
+    miss: boolean
+}
+
 export interface Ramen {
     id: number
     command: Command
