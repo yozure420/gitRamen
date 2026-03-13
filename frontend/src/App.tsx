@@ -1,41 +1,59 @@
 import { useState } from 'react'
 import './App.css'
-import Login from './Login'
-import Registration from './Registration'
+import TitlePage from './TitlePage'
+import MyPage from './MyPage'
+import HowToPlay from './HowToPlay'
+import Settings from './Settings'
 import GmStart from './GmStart'
 import GmScreen from './GmScreen'
 
-// アプリ全体で遷移しうる画面の種類
-type Screen = 'login' | 'register' | 'main_menu' | 'game'　| 'start'
+type Screen = 'title' | 'mypage' | 'howto' | 'settings' |  'start' | 'game'
 
 function App() {
-  // 現在表示している画面を管理する。最初はログイン画面から始まる
-  const [screen, setScreen] = useState<Screen>('login')
+  const [screen, setScreen] = useState<Screen>('title')
+  const [soundSettings, setSoundSettings] = useState<SoundSettings>({
+    bgm: true,
+    se: true,
+    type: true,
+    miss: true
+  })
 
   return (
     <>
-      {/* ログイン画面: 成功 → main_menu、新規登録ボタン → register */}
-      {screen === 'login' && (
-        <Login
-          onLogin={() => setScreen('main_menu')}
-          onGoToRegister={() => setScreen('register')}
+      {screen === 'title' && (
+        <TitlePage
+          onStart={() => setScreen('start')}
+          onMyPage={() => setScreen('mypage')}
+          onHowToPlay={() => setScreen('howto')}
+          onSettings={() => setScreen('settings')}
         />
       )}
 
-      {/* 新規登録画面: 登録完了 → login、ログインに戻る → login */}
-      {screen === 'register' && (
-        <Registration
-          onRegister={() => setScreen('login')}
-          onGoToLogin={() => setScreen('login')}
+      {screen === 'mypage' && (
+        <MyPage
+          onCourseSelect={() => setScreen('start')}
+          onBackToTitle={() => setScreen('title')}
         />
       )}
 
-      {/* ゲームスタート画面: "git init" 入力 → game */}
+      {screen === 'howto' && (
+        <HowToPlay onBack={() => setScreen('title')} />
+      )}
+
+      {screen === 'settings' && (
+        <Settings
+          soundSettings={soundSettings}
+          onChangeSoundSettings={setSoundSettings}
+          onBack={() => setScreen('title')}
+        />
+      )}
+
       {screen === 'start' && (
         <GmStart onStart={() => setScreen('game')} />
       )}
 
       {/* ゲーム本編画面 */}
+
       {screen === 'game' && <GmScreen />}
     </>
   )

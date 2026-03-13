@@ -1,0 +1,140 @@
+.howto-container {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(160deg, #fefcf7 0%, #faf5eb 40%, #f7efe0 100%);
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.howto-header {
+    padding-left: 32px;
+    border-bottom: 2px solid rgba(45, 36, 24, 0.1);
+    flex-shrink: 0;
+    color: #2d2418;
+}
+
+.howto-title {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #2d2418;
+    letter-spacing: 0.05em;
+}
+
+.howto-body {
+    flex: 1;
+    padding: 24px 32px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.howto-section {
+    margin-bottom: 32px;
+}
+
+.howto-section-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #2d2418;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8a735;
+}
+
+/* Steps */
+.howto-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.howto-step-num {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.howto-step-text {
+    margin: 0;
+    color: #3d3020;
+    font-size: 0.95rem;
+    line-height: 28px;
+}
+
+/* Command list */
+.howto-cmd-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.howto-cmd-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 14px;
+    background: rgba(232, 167, 53, 0.08);
+    border-radius: 6px;
+}
+
+.howto-cmd {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #b8751e;
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.howto-cmd-desc {
+    color: #5a4a38;
+    font-size: 0.9rem;
+}
+
+/* Hint */
+.howto-hint {
+    margin: 0;
+    color: #5a4a38;
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+/* Footer */
+.howto-footer {
+    padding: 16px 32px 24px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.howto-back-btn {
+    background: transparent;
+    border: 2px solid #e8a735;
+    border-radius: 8px;
+    padding: 12px 36px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e8a735;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+}
+
+.howto-back-btn:hover {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
+    color: #fff;
+}

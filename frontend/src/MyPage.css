@@ -1,0 +1,320 @@
+.mypage-container {
+    width: 100vw;
+    height: 100vh;
+    background: #f7efe0;
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+/* Header */
+.mypage-header {
+    background: linear-gradient(135deg, #e8a735 0%, #d4922a 100%);
+    padding: 16px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #b8751e;
+    flex-shrink: 0;
+}
+
+.mypage-title {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.05em;
+}
+
+.mypage-last-play {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Profile Card */
+.mypage-profile {
+    margin: 20px 24px 0;
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border-radius: 12px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 2px solid #b8751e;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.mypage-profile-icon {
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mypage-profile-info {
+    flex: 1;
+}
+
+.mypage-profile-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.mypage-profile-ramen {
+    position: absolute;
+    right: 100px;
+    top: 22.5%;
+    transform: translateY(-50%) rotate(-30deg);
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.mypage-profile-stats {
+    display: flex;
+    gap: 28px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.mypage-stat {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.mypage-stat-highlight {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 2px 12px;
+}
+
+/* Main Content */
+.mypage-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px 24px;
+    min-height: 0;
+}
+
+/* Panel shared */
+.mypage-panel {
+    background: #121212;
+    border-radius: 10px;
+    border: 2px solid #e8a735;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mypage-panel-header {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #fff;
+}
+
+.mypage-panel-body {
+    padding: 16px;
+    flex: 1;
+    overflow: auto;
+}
+
+/* Command Miss History */
+.mypage-chart-wrapper {
+    display: flex;
+    flex: 1;
+    gap: 4px;
+}
+
+.mypage-chart-yaxis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 48px; /* space for x labels */
+    flex-shrink: 0;
+}
+
+.mypage-chart-ylabel {
+    color: #8a7560;
+    font-size: 0.75rem;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    line-height: 1;
+}
+
+.mypage-chart-area {
+    flex: 1;
+    position: relative;
+    border-left: 1.5px solid #5a4a38;
+    display: flex;
+    flex-direction: column;
+}
+
+.mypage-chart-gridlines {
+    position: absolute;
+    inset: 0;
+    bottom: 48px; /* y軸のパディングと合わせる */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.mypage-chart-gridline {
+    width: 100%;
+    height: 0;
+    border-bottom: 1px solid rgba(90, 74, 56, 0.3);
+}
+
+.mypage-chart-bars {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0 12px;
+}
+
+.mypage-chart-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+    flex-shrink: 0;
+}
+
+.mypage-chart-bar-track {
+    flex: 1;
+    width: 32px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+}
+
+.mypage-chart-bar-fill {
+    width: 100%;
+    background: linear-gradient(0deg, #e8a735, #f0c060);
+    border-radius: 3px 3px 0 0;
+    transition: height 0.5s ease;
+}
+
+.mypage-chart-label {
+    color: #e8a735;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    white-space: nowrap;
+    padding-top: 6px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.mypage-chart-xaxis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 48px;
+    height: 0;
+    border-top: 1.5px solid #5a4a38;
+}
+
+/* Battle History */
+.mypage-battle-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mypage-rate {
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.mypage-wl {
+    color: #a08060;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.mypage-battle-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    font-size: 0.85rem;
+}
+
+.mypage-battle-th {
+    color: #8a7560;
+    font-weight: 700;
+    padding: 6px 0;
+    border-bottom: 1px solid #3a3020;
+}
+
+.mypage-battle-th.center { text-align: center; }
+.mypage-battle-th.right { text-align: right; }
+
+.mypage-battle-row {
+    display: contents;
+}
+
+.mypage-battle-td {
+    color: #c0a880;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(58, 48, 32, 0.5);
+}
+
+.mypage-battle-td.center { text-align: center; }
+.mypage-battle-td.right { text-align: right; }
+.mypage-battle-td.win { color: #4ecb71; font-weight: 700; }
+.mypage-battle-td.lose { color: #e85555; font-weight: 700; }
+
+/* Bottom Navigation */
+.mypage-bottom-nav {
+    padding: 16px 24px 20px;
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.mypage-nav-btn {
+    background: transparent;
+    border: 2px solid #e8a735;
+    border-radius: 8px;
+    padding: 12px 36px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e8a735;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+}
+
+.mypage-nav-btn:hover,
+.mypage-nav-btn.active {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
+    color: #fff;
+}
