@@ -2,13 +2,17 @@ import '../css/TitlePage.css'
 import { useState } from 'react'
 
 interface TitlePageProps {
+    isLoggedIn: boolean
     onStart: () => void
     onMyPage: () => void
     onHowToPlay: () => void
     onSettings: () => void
+    onLogin: () => void
+    onRegister: () => void
+    onLogout: () => void
 }
 
-function TitlePage({ onStart, onMyPage, onHowToPlay, onSettings }: TitlePageProps) {
+function TitlePage({ isLoggedIn, onStart, onMyPage, onHowToPlay, onSettings, onLogin, onRegister, onLogout}: TitlePageProps) {
     const [hoveredItem, setHoveredItem] = useState<string | null>(null)
     const menuItems = [
     { key: 'start', label: 'スタート', action: onStart },
@@ -40,11 +44,19 @@ function TitlePage({ onStart, onMyPage, onHowToPlay, onSettings }: TitlePageProp
         ))}
         </nav>
 
-        {/* Login / Register */}
+        {/* Login / Register / MyPage */}
         <div className="title-auth">
-            <button className="title-auth-link" onClick={onMyPage}>ログイン</button>
-            {/* <span>または</span> */}
-            <button className="title-auth-link">新規登録</button>
+            {isLoggedIn ? (
+                <>
+                    <button className="title-auth-link" onClick={onMyPage}>マイページ</button>
+                    <button className="title-auth-link" onClick={onLogout}>ログアウト</button>
+                </>
+            ) : (
+                <>
+                    <button className="title-auth-link" onClick={onLogin}>ログイン</button>
+                    <button className="title-auth-link" onClick={onRegister}>新規登録</button>
+                </>
+            )}
         </div>
     </div>
 )
