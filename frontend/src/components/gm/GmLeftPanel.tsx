@@ -109,6 +109,11 @@ function GmLeftPanel({
               ))}
             </div>
           </div>
+          {isPaused && (
+            <div className="level-section">
+              <button className="level-btn level-btn-active" onClick={resumeGame}>▶ 再開</button>
+            </div>
+          )}
         </div>
       )}
 

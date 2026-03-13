@@ -321,13 +321,14 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       const nextStep = getNextStepCommand(activeRamen)
       completeCurrentStep(activeRamen, {
         message: nextStep
-          ? `📜 注文履歴を表示（一時停止中）。次: ${nextStep}`
-          : '📜 注文履歴を表示（一時停止中）',
+          ? `📜 注文履歴を表示。次: ${nextStep}`
+          : '📜 注文履歴を表示',
       })
     } else {
-      setMessage('📜 注文履歴を表示（一時停止中）')
+      setMessage('📜 注文履歴を表示')
       setInputCommand('')
     }
+    setIsPaused(false)
     setIsCompactLog(false)
     setShowLog(true)
     return
@@ -338,13 +339,14 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       const nextStep = getNextStepCommand(activeRamen)
       completeCurrentStep(activeRamen, {
         message: nextStep
-          ? `👋 おかえりでーす！レシート簡易表示（一時停止）。次: ${nextStep}`
-          : '👋 おかえりでーす！レシート簡易表示（一時停止）',
+          ? `👋 おかえりでーす！レシート簡易表示。次: ${nextStep}`
+          : '👋 おかえりでーす！レシート簡易表示',
       })
     } else {
-      setMessage('🧾 レシート簡易表示（一時停止）')
+      setMessage('🧾 レシート簡易表示')
       setInputCommand('')
     }
+    setIsPaused(false)
     setIsCompactLog(true)
     setShowLog(true)
     return
