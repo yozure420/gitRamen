@@ -7,7 +7,9 @@ import { createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/g
 import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 
-const GAME_TIME_LIMIT = 60
+// ここを変更するだけでゲームの時間変えられます^^//
+const GAME_TIME_LIMIT = 300
+//-----------------------------------------//
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
 const MAX_LANES = 3
