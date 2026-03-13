@@ -14,8 +14,8 @@ interface SettingsProps {
     onBack: () => void
 }
 
-type PreviewKey = 'se' | 'type' | 'miss'
-const previewKeys: PreviewKey[] = ['se', 'type', 'miss']
+type PreviewKey = 'bgm' | 'se' | 'type' | 'miss'
+const previewKeys: PreviewKey[] = ['bgm', 'se', 'type', 'miss']
 
 function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProps) {
     const toggle = (key: keyof SoundSettings) => {
@@ -77,7 +77,10 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
         </div>
 
         <div className="settings-footer">
-            <button className="settings-back-btn" onClick={onBack}>
+            <button className="settings-back-btn" onClick={() => {
+                stopAllSounds()
+                onBack()
+            }}>
                 タイトルに戻る
             </button>
         </div>
