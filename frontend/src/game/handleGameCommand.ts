@@ -251,6 +251,46 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     return
   }
 
+  // ── git checkout <name>（-b なし）──────────────────────
+  // switchMatch (lane[1-3]) にも checkoutBranchMatch (-b) にも該当しなかった checkout
+  const checkoutPlainMatch = cmd.match(/^git checkout (.+)$/i)
+  if (checkoutPlainMatch) {
+    const activeRamen = getActiveRamen()
+    if (!activeRamen) {
+      setMessage('❌ 操作できるラーメンがありません')
+      setInputCommand('')
+      return
+    }
+
+    const isCheckoutOrder = activeRamen.expectedInputs.some(
+      input => normalizeCommand(input) === normalizedCmd,
+    )
+    if (!isCheckoutOrder) {
+      setMessage('❌ 今は checkout の注文ではありません')
+      setInputCommand('')
+      return
+    }
+
+    const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
+    const targetLane = activeRamen.targetLane
+    setRamens(prev => prev.map(r => {
+      if (r.id !== activeRamen.id) return r
+      const newCount = r.commandsExecuted + 1
+      return {
+        ...r,
+        currentLane: targetLane,
+        commandsExecuted: newCount,
+        isPushReady: newCount >= r.pushThreshold,
+        hasRequiredCommandExecuted: true,
+      }
+    }))
+    setMessage(willBePushReady
+      ? `🚀 Lane ${targetLane} へ切替！準備完了！git push origin main で届けよう！`
+      : `🔀 Lane ${targetLane} へ切替しました`)
+    setInputCommand('')
+    return
+  }
+
   const branchMatch = cmd.match(/^git branch (.+)$/i)
   if (branchMatch) {
     const activeRamen = getActiveRamen()
@@ -409,6 +449,126 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setMessage(completesRequiredCommand || activeRamen.hasRequiredCommandExecuted
       ? '🚀 プッシュ！お客さんのところへ急げーー！！'
       : '🚀 強制プッシュ！ただし命令未達成なので失敗判定になります')
+    setInputCommand('')
+    return
+  }
+
+  // ── git pull ──────────────────────────────────────────
+  if (normalizedCmd === 'git pull') {
+    const activeRamen = getActiveRamen()
+    if (!activeRamen) {
+      setMessage('❌ 操作できるラーメンがありません')
+      setInputCommand('')
+      return
+    }
+
+    const isPullOrder = activeRamen.command.command.toLowerCase() === 'git pull'
+    const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
+
+    // pull = fetch + merge: ランダム具材を1つ自動追加して完了マーク
+    const bonus = availableItems.find(item => !activeRamen.stagedItems.includes(item))
+    setRamens(prev => prev.map(r => {
+      if (r.id !== activeRamen.id) return r
+      const newCount = r.commandsExecuted + 1
+      return {
+        ...r,
+        stagedItems: bonus ? [...r.stagedItems, bonus] : r.stagedItems,
+        commandsExecuted: newCount,
+        isPushReady: newCount >= r.pushThreshold,
+        hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || isPullOrder,
+      }
+    }))
+    const bonusMsg = bonus ? `「${bonus}」をリモートから取得して追加！` : '追加できる具材はありませんでした'
+    setMessage(willBePushReady
+      ? `🚀 ${bonusMsg} 準備完了！git push origin main で届けよう！`
+      : `📥 ${bonusMsg}`)
+    setInputCommand('')
+    return
+  }
+
+  // ── git fetch origin ──────────────────────────────────
+  if (normalizedCmd === 'git fetch origin') {
+    const activeRamen = getActiveRamen()
+    if (!activeRamen) {
+      setMessage('📡 リモートに新しい注文はありません')
+      setInputCommand('')
+      return
+    }
+
+    const isFetchOrder = activeRamen.command.command.toLowerCase() === 'git fetch origin'
+    const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
+
+    setRamens(prev => prev.map(r => {
+      if (r.id !== activeRamen.id) return r
+      const newCount = r.commandsExecuted + 1
+      return {
+        ...r,
+        commandsExecuted: newCount,
+        isPushReady: newCount >= r.pushThreshold,
+        hasRequiredCommandExecuted: r.hasRequiredCommandExecuted || isFetchOrder,
+      }
+    }))
+    setMessage(willBePushReady
+      ? `🚀 注文を確認！「${activeRamen.displayCommand}」→ Lane${activeRamen.targetLane}。準備完了！`
+      : `📡 次の注文を確認: 「${activeRamen.displayCommand}」→ Lane${activeRamen.targetLane}`)
+    setInputCommand('')
+    return
+  }
+
+  // ── git merge <branch> ────────────────────────────────
+  const mergeMatch = cmd.match(/^git merge (.+)$/i)
+  if (mergeMatch) {
+    const activeRamen = getActiveRamen()
+    if (!activeRamen) {
+      setMessage('❌ 操作できるラーメンがありません')
+      setInputCommand('')
+      return
+    }
+
+    const isMergeOrder = activeRamen.expectedInputs.some(
+      input => normalizeCommand(input) === normalizedCmd,
+    )
+    if (!isMergeOrder) {
+      setMessage('❌ 今は merge の注文ではありません')
+      setInputCommand('')
+      return
+    }
+
+    const willBePushReady = !activeRamen.isPushReady && (activeRamen.commandsExecuted + 1) >= activeRamen.pushThreshold
+
+    // 30% の確率でコンフリクト発生（具材がランダムに1つ消える）
+    const hasConflict = Math.random() < 0.3
+    setRamens(prev => prev.map(r => {
+      if (r.id !== activeRamen.id) return r
+      const newCount = r.commandsExecuted + 1
+      let newStagedItems = [...r.stagedItems]
+      if (hasConflict && newStagedItems.length > 0) {
+        const removeIdx = Math.floor(Math.random() * newStagedItems.length)
+        newStagedItems.splice(removeIdx, 1)
+      }
+      // マージ成功時はランダム具材を1つ追加
+      if (!hasConflict) {
+        const bonus = availableItems.find(item => !newStagedItems.includes(item))
+        if (bonus) newStagedItems.push(bonus)
+      }
+      return {
+        ...r,
+        stagedItems: newStagedItems,
+        commandsExecuted: newCount,
+        isPushReady: newCount >= r.pushThreshold,
+        hasRequiredCommandExecuted: true,
+      }
+    }))
+
+    if (hasConflict) {
+      setMessage(willBePushReady
+        ? '🚀 ⚠️ コンフリクト発生！具材が1つ消えた…でも準備完了！'
+        : '⚠️ コンフリクト発生！材料がぶつかって具材が1つ消えました…')
+    } else {
+      setMessage(willBePushReady
+        ? '🚀 マージ成功！材料が追加されました！準備完了！'
+        : '🔀 マージ成功！別レーンの材料が追加されました！')
+    }
     setInputCommand('')
     return
   }

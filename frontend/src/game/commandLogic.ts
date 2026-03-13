@@ -94,6 +94,36 @@ const commandLogicRules: CommandLogicRule[] = [
       }
     },
   },
+  {
+    // git checkout <branch>（-b なし）をランダムレーン名に差し替える
+    commandMatcher: /^git checkout <branch>$/i,
+    buildRuntimeLogic: () => {
+      const laneName = pickRandomLaneName()
+      const displayCommand = `git checkout ${laneName}`
+      return {
+        displayCommand,
+        logicLabel: 'レーン切替',
+        logicDescription: '指定されたお客さんレーンに担当を切り替える。',
+        logicExample: `例: ${displayCommand}`,
+        expectedInputs: [displayCommand],
+      }
+    },
+  },
+  {
+    // git merge <branch> をランダムレーン名に差し替える
+    commandMatcher: /^git merge <branch>$/i,
+    buildRuntimeLogic: () => {
+      const laneName = pickRandomLaneName()
+      const displayCommand = `git merge ${laneName}`
+      return {
+        displayCommand,
+        logicLabel: '材料マージ',
+        logicDescription: '別レーンの材料を現在のラーメンに統合する。まずそうならコンフリクト！',
+        logicExample: `例: ${displayCommand}`,
+        expectedInputs: [displayCommand],
+      }
+    },
+  },
 ]
 
 export function resolveRuntimeCommandLogic(command: Command): RuntimeCommandLogic {
