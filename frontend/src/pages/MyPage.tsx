@@ -1,5 +1,6 @@
 import '../css/MyPage.css'
 import { useState } from 'react'
+import ramenImage from '../assets/ramen/ramen.png'
 
 interface UserData {
     username: string
@@ -88,7 +89,7 @@ function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
                 <span className="mypage-stat-highlight">正解率：{userData.accuracy}%</span>
             </div>
         </div>
-        <img src="/images/ramen.png" alt="" className="mypage-profile-ramen" />
+        <img src={ramenImage} alt="" className="mypage-profile-ramen" />
     </div>
 
     {/* Main Content */}

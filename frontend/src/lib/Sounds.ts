@@ -1,9 +1,12 @@
 import type { SoundSettings } from '../types/interface'
+import typeSeMp3 from '../assets/sounds/決定ボタンを押す38.mp3'
+import missSeMp3 from '../assets/sounds/ビープ音4.mp3'
+import correctSeMp3 from '../assets/sounds/クイズ正解2.mp3'
 
 const sounds = {
-    type: new Audio('/sounds/決定ボタンを押す38.mp3'),
-    miss: new Audio('/sounds/ビープ音4.mp3'),
-    se: new Audio('/sounds/クイズ正解2.mp3'),
+    type: new Audio(typeSeMp3),
+    miss: new Audio(missSeMp3),
+    se: new Audio(correctSeMp3),
 }
 
 // Dedicated BGM source (add file under public/sounds/game-bgm.mp3 when available)

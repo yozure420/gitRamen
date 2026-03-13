@@ -1,8 +1,8 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
-import type { Command, Ramen } from '../../types/interface'
-import { evaluateDelivery } from '../../game/gameEngine'
-import type { SoundSettings } from '../../types/interface'
-import { playSound } from '../../lib/Sounds'
+import type { Command, Ramen } from '../types/interface'
+import { evaluateDelivery } from '../game/gameEngine'
+import type { SoundSettings } from '../types/interface'
+import { playSound } from '../lib/Sounds'
 
 type UseGameTimerParams = {
   isLoading: boolean

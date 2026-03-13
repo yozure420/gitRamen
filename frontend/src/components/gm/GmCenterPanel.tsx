@@ -1,18 +1,23 @@
 import { useMemo } from 'react'
 import type { Ramen } from '../../types/interface'
 
-const assetModules = import.meta.glob('../../assets/*.png', {
+const ramenAssetModules = import.meta.glob('../../assets/ramen/*.png', {
   eager: true,
   import: 'default',
 }) as Record<string, string>
 
-const customerImageModules = import.meta.glob('../../img/*.png', {
+const toppingAssetModules = import.meta.glob('../../assets/topping/*.png', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
+
+const customerImageModules = import.meta.glob('../../assets/human/*.png', {
   eager: true,
   import: 'default',
 }) as Record<string, string>
 
 const assetByName = Object.fromEntries(
-  Object.entries(assetModules).map(([path, url]) => {
+  Object.entries({ ...ramenAssetModules, ...toppingAssetModules }).map(([path, url]) => {
     const name = path.split('/').pop() ?? path
     return [name, url]
   })
@@ -41,6 +46,7 @@ const toppingImageByItem: Record<string, string> = {
   'コーン': 'food-ramen-topping-6-corn.png',
   'もやし': 'food-ramen-topping-7-moyashi.png',
   'メンマ': 'food-ramen-topping-8-menma.png',
+  'ナルト': 'food-ramen-topping-10-naruto.png',
 }
 
 function resolveBaseRamenImage(ramen: Ramen): string {

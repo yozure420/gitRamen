@@ -4,7 +4,7 @@ import type { Command, Ramen, CommandHistory, OrderLog } from '../types/interfac
 import { resolveRuntimeCommandLogic } from '../game/commandLogic'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand'
 import { canSpawnRamen, createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
-import { useGameTimer, useRamenMovement, useRamenSpawner } from './game/useGameEffects'
+import { useGameTimer, useRamenMovement, useRamenSpawner } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 
 const GAME_TIME_LIMIT = 60
@@ -15,7 +15,7 @@ const MAX_RAMENS = 1
 const MAX_LANES = 3
 const MIN_SPAWN_DELAY = 500
 const MIN_POSITION_GAP = 4
-const AVAILABLE_ITEMS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン']
+const AVAILABLE_ITEMS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト']
 type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
 
 type UseGmScreenParams = {

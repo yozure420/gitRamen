@@ -13,21 +13,21 @@ type CommandLogicRule = {
   buildRuntimeLogic: (command: Command) => RuntimeCommandLogic
 }
 
-const TOPPING_OPTIONS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン'] as const
+const TOPPING_OPTIONS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト'] as const
 const CALL_OPTIONS = ['味噌ラーメン特盛りおまち！', '醤油ラーメン全部のせおまち！', '豚骨ラーメン硬め濃いめおまち！'] as const
 const LANE_NAME_OPTIONS = ['akamaru', 'kiwami', 'sapporo', 'iekei'] as const
 
-function pickRandomTopping(): string {
+const pickRandomTopping = (): string => {
   const index = Math.floor(Math.random() * TOPPING_OPTIONS.length)
   return TOPPING_OPTIONS[index]
 }
 
-function pickRandomCall(): string {
+const pickRandomCall = (): string => {
   const index = Math.floor(Math.random() * CALL_OPTIONS.length)
   return CALL_OPTIONS[index]
 }
 
-function pickRandomLaneName(): string {
+const pickRandomLaneName = (): string => {
   const suffix = Math.floor(Math.random() * 90) + 10
   const index = Math.floor(Math.random() * LANE_NAME_OPTIONS.length)
   return `${LANE_NAME_OPTIONS[index]}-${suffix}`
