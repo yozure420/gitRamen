@@ -1,0 +1,147 @@
+/* =====================================================
+   Login.css — ログイン画面スタイル
+   寿司打風テーマ: 温かみのある和食ナチュラル
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap');
+
+/* 画面全体を覆うコンテナ */
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5ede0;
+}
+
+/* フォームを囲むカード */
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem 2.2rem;
+  background: #fffdf9;
+  border: 2px solid #d4956a;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(180, 100, 50, 0.12);
+}
+
+/* タイトル */
+.login-title {
+  color: #7a3b1e;
+  font-family: 'Noto Serif JP', 'Yu Mincho', '游明朝', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 1.8rem;
+  letter-spacing: 0.12em;
+}
+
+/* フォーム要素の縦積みレイアウト */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* ラベル + インプットのグループ */
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* フィールドラベル */
+.login-label {
+  color: #8b5e3c;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+
+/* テキスト / パスワード入力欄 */
+.login-input {
+  background-color: #fff;
+  border: 1px solid #c9a882;
+  border-radius: 4px;
+  padding: 0.65rem 0.9rem;
+  color: #3d2010;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 1rem;
+  outline: none;
+  caret-color: #c0392b;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-input::placeholder {
+  color: #c9a882;
+}
+
+.login-input:focus {
+  border-color: #d4956a;
+  box-shadow: 0 0 0 3px rgba(212, 149, 106, 0.2);
+}
+
+/* API エラー・入力ミスのエラーメッセージ */
+.login-error {
+  margin: 0;
+  color: #c0392b;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* 送信ボタン */
+.login-button {
+  margin-top: 0.4rem;
+  padding: 0.75rem;
+  background: #d4956a;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgba(180, 100, 50, 0.25);
+}
+
+.login-button:hover:not(:disabled) {
+  background: #bf7d52;
+  box-shadow: 0 4px 12px rgba(180, 100, 50, 0.35);
+}
+
+/* 送信中は薄くして操作不可を視覚的に示す */
+.login-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* フォーム下部テキスト（新規登録への導線） */
+.login-footer {
+  margin-top: 1.4rem;
+  text-align: center;
+  color: #a07050;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.85rem;
+}
+
+/* 「新規登録はこちら」インラインリンク風ボタン */
+.login-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c0392b;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.login-link-button:hover {
+  color: #96281b;
+}

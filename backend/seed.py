@@ -8,8 +8,8 @@ from pathlib import Path
 # バックエンドのルートディレクトリをPythonパスに追加
 sys.path.insert(0, str(Path(__file__).parent))
 
-from database import SessionLoccal, Base, engine
-from models.cmd import Cmd
+from database import SessionLocal, Base, engine
+from models import Cmd, User, History, Miss  # noqa: F401 – 全モデルをロードして metadata を確定させる
 
 # テーブル作成
 Base.metadata.create_all(bind=engine)
@@ -134,7 +134,7 @@ def format_command(cmd: str, option: str) -> str:
 
 def seed_database():
     """データベースに初期データを投入"""
-    db = SessionLoccal()
+    db = SessionLocal()
     
     try:
         # 既存データをクリア
