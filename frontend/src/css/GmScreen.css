@@ -578,6 +578,23 @@
   font-weight: 700;
 }
 
+.item-chip-target-pending {
+  border-color: rgba(198, 143, 69, 0.68);
+  box-shadow: 0 0 0 2px rgba(228, 174, 85, 0.18), 0 0 18px rgba(228, 174, 85, 0.5);
+  animation: toppingPulse 0.9s ease-in-out infinite;
+  font-weight: 700;
+}
+
+@keyframes toppingPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
 .message-text {
   margin: 0 0 0.35rem;
   text-align: center;

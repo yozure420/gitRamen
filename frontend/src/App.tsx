@@ -1,16 +1,24 @@
 import { useState } from 'react'
 import './css/App.css'
-import Login from './Login'
-import Registration from './Registration'
 import GmStart from './GmStart'
 import GmScreen from './GmScreen'
+import TitlePage from './TitlePage'
+import MyPage from './MyPage'
+import HowToPlay from './HowToPlay'
+import Settings, { type SoundSettings } from './Settings'
 
 // アプリ全体で遷移しうる画面の種類
-type Screen = 'login' | 'register' | 'main_menu' | 'game' | 'start'
+type Screen = 'title' | 'mypage' | 'howto' | 'settings' | 'game' | 'start'
 
 function App() {
   // 現在表示している画面を管理する。最初はログイン画面から始まる
-  const [screen, setScreen] = useState<Screen>('game')
+  const [screen, setScreen] = useState<Screen>('title')
+  const [soundSettings, setSoundSettings] = useState<SoundSettings>({
+    bgm: true,
+    se: true,
+    type: true,
+    miss: true,
+  })
 
   return (
     <>

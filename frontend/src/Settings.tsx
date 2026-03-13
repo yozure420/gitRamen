@@ -1,5 +1,5 @@
 import './Settings.css'
-import { previewSound } from './sounds'
+import { previewSound } from './Sounds'
 
 export interface SoundSettings {
     bgm: boolean
@@ -43,29 +43,34 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                 <h2 className="settings-section-title">サウンド</h2>
                 <div className="settings-list">
                     {items.map((item) => (
+                        (() => {
+                            const key = item.key
+                            return (
                         <div key={item.key} className="settings-row">
                             <span className="settings-label">{item.label}</span>
                             <div className="settings-controls">
-                                {hasPreview(item.key) && (
+                                {hasPreview(key) && (
                                 <button
                                 className="settings-preview-btn"
-                                onClick={() => previewSound(item.key)}
+                                onClick={() => previewSound(key)}
                                 title="試聴"
                                 >
                                     ▶
                                 </button>
                                 )}
                                 <button
-                                className={`settings-toggle ${soundSettings[item.key] ? 'on' : 'off'}`}
-                                onClick={() => toggle(item.key)}
+                                className={`settings-toggle ${soundSettings[key] ? 'on' : 'off'}`}
+                                onClick={() => toggle(key)}
                                 >
                                     <span className="settings-toggle-knob" />
                                     <span className="settings-toggle-text">
-                                        {soundSettings[item.key] ? 'ON' : 'OFF'}
+                                        {soundSettings[key] ? 'ON' : 'OFF'}
                                     </span>
                                 </button>
                             </div>
                         </div>
+                            )
+                        })()
             ))}
                 </div>
             </section>

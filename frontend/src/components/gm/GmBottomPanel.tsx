@@ -22,12 +22,12 @@ function GmBottomPanel({
   isLoading,
   isGameOver,
 }: GmBottomPanelProps) {
-  const messageClass =
-    message.includes('正解') || message.includes('完了') || message.includes('完璧')
-      ? 'message-success'
-      : message.includes('❌') || message.includes('間違')
-        ? 'message-error'
-        : ''
+  let messageClass = ''
+  if (message.includes('正解') || message.includes('完了') || message.includes('完璧') || message.includes('うまい')) {
+    messageClass = 'message-success'
+  } else if (message.includes('❌') || message.includes('間違') || message.includes('まずい')) {
+    messageClass = 'message-error'
+  }
 
   const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -39,27 +39,7 @@ function GmBottomPanel({
 
   return (
     <div className="bottom-panel">
-      {message && (
-        <p className={`message-text ${messageClass}`}>
-          {message}
-        </p>
-      )}
-      {activeRamen && (
-        <p className="active-order">
-          命令文:
-          {' '}
-          <code>
-            command: {activeRamen.displayCommand}
-            {activeRamen.command.game_note && ` | game_note: ${activeRamen.command.game_note}`}
-          </code>
-        </p>
-      )}
-      {activeRamen?.isPushReady && (
-        <p className="push-ready-hint">
-          🚀 準備完了！<code>git push origin main</code> でお客さんに届けよう！
-        </p>
-      )}
-      <p className="input-label">⭐操作中のラーメンのコマンドを入力するか、git add/commit/switchを使用</p>
+      {message && (<p className={`message-text ${messageClass}`}>{message}</p>)}
       <form onSubmit={handleSubmit} className="command-form">
         <div className="command-input-wrapper">
           <span className="prompt">&gt;</span>
@@ -74,7 +54,7 @@ function GmBottomPanel({
               }
             }}
             className="command-input"
-            placeholder="例: git add ネギ または git switch lane2"
+            placeholder="コマンドを入力してください"
             inputMode="text"
             autoCapitalize="off"
             autoCorrect="off"
@@ -89,3 +69,5 @@ function GmBottomPanel({
 }
 
 export default GmBottomPanel
+
+// コマンドの正誤判定はhandleSubmit関数に渡して行ってる、いやその関数どこのファイルにあんねん
