@@ -286,7 +286,7 @@ export function resolveRuntimeCommandLogic(command: Command): RuntimeCommandLogi
   }
 }
 
-export function createPullOrderPayload(course: number, ramenId: number, baseCommandId: number): PullOrderPayload {
+export function createPullOrderPayload(course: number, _ramenId: number, baseCommandId: number): PullOrderPayload {
   const baseRamen = pickRandomBaseRamen()
   const topping = pickRandomTopping()
   const orderText = `${baseRamen}、トッピングは${topping}`
@@ -318,7 +318,7 @@ export function createLaneAwarePullOrderPayload(params: {
   maxLanes: number
   existingBranches: string[]
 }): PullOrderPayload {
-  const { course, ramenId, baseCommandId, laneCount, maxLanes, existingBranches } = params
+  const { course, baseCommandId, laneCount, maxLanes, existingBranches } = params
 
   // Random customer-arrival event: the required command is branch creation.
   if (laneCount < maxLanes && Math.random() < 0.35) {
