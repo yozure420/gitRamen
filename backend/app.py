@@ -27,9 +27,14 @@ app = FastAPI(title="GitRamen API")
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 # CORS設定（フロントエンドからのアクセスを許可）
+origins = [
+    "http://localhost:5173",    # 開発用
+    "https://app.gitramen.com", # 本番用
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # 開発環境
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
