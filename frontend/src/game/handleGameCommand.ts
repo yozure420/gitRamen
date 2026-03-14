@@ -488,15 +488,30 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     return
   }
 
-  if (normalizedCmd === 'git push origin main') {
+  // 入力されたコマンドが 'git push origin 〇〇' の形かチェックする
+  const pushMatch = cmd.match(/^git push origin (.+)$/i)
+  if (pushMatch) {
     if (!activeRamen) {
       setMessage('❌ 配達できるラーメンがありません')
       setInputCommand('')
       return
     }
 
-    const mainLane = getBranchLane('main')
-    const pushedToMainFromOtherLane = mainLane > 0 && activeRamen.currentLane !== mainLane
+    // 入力されたブランチ名
+    const targetBranch = pushMatch[1].trim() 
+    // 今いるブランチ名
+    const currentBranchName = existingBranches[activeRamen.currentLane - 1] || 'main'
+
+    // ブランチ名が違う場合のエラーメッセージを
+    if (normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)) {
+      setMessage(`❌ 今いるのは ${currentBranchName} です。${targetBranch} に push するには、先に ${targetBranch} ブランチに移動してください！`)
+      setInputCommand('')
+      return
+    }
+
+    // すでにブランチの一致チェックを通過しているので、「他レーンからmainに無理やり流した」という判定は false で確定！
+    const pushedToMainFromOtherLane = false
+    // ----------------------
 
     const isCurrentPushStep = currentStep?.type === 'push' && isCurrentStepMatch(activeRamen, normalizedCmd)
 
@@ -515,7 +530,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
         ...r,
         speed: pushSpeed,
         isPushed: true,
-        pushedToMainFromOtherLane,
+        pushedToMainFromOtherLane, // ← ここに false が渡るようになります
       }
     }))
 
@@ -528,6 +543,8 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setInputCommand('')
     return
   }
+
+
 
   if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
     const nextStep = getNextStepCommand(activeRamen)
