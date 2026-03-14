@@ -9,7 +9,7 @@
 
 // ---- レスポンスの型定義 --------------------------------
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const API_BASE_URL = '/api'
 
 /** POST /api/auth/register, GET /api/auth/me の戻り値 */
 export interface UserResponse {
