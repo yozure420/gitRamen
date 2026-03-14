@@ -49,10 +49,12 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: gitramen_cloudflared
+    profiles:
+      - prod
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
     depends_on:
       nginx:
         condition: service_started

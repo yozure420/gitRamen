@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import OperationalError
 from database import get_db, engine, Base
 from models import User, History, Cmd, Miss
 from pydantic import BaseModel
@@ -16,8 +17,19 @@ def ensure_schema() -> None:
         columns = conn.exec_driver_sql("PRAGMA table_info(command)").fetchall()
         column_names = {col[1] for col in columns}
         if "game_note" not in column_names:
-            conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
-            conn.commit()
+            try:
+                conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
+                conn.commit()
+            except OperationalError as exc:
+                if "duplicate column name" not in str(exc).lower():
+                    raise
+        if "course" not in column_names:
+            try:
+                conn.exec_driver_sql("ALTER TABLE command ADD COLUMN course INTEGER NOT NULL DEFAULT 1")
+                conn.commit()
+            except OperationalError as exc:
+                if "duplicate column name" not in str(exc).lower():
+                    raise
 
 # データベーステーブルを作成
 Base.metadata.create_all(bind=engine)
