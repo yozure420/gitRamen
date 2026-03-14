@@ -1,28 +1,8 @@
 import '../css/MyPage.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ramenImage from '../assets/ramen/ramen.png'
-
-interface UserData {
-    username: string
-    title: string
-    totalPlays: number
-    accuracy: number
-    lastPlay: string
-    rate: number
-    wins: number
-    losses: number
-}
-
-interface MissedCommand {
-    cmd: string
-    count: number
-}
-
-interface BattleRecord {
-    date: string
-    result: '勝利' | '敗北'
-    rateChange: string
-}
+import { fetchUserStats } from '../api/history'
+import type { UserStats } from '../api/history'
 
 interface MyPageProps {
     onCourseSelect: () => void
@@ -31,42 +11,26 @@ interface MyPageProps {
 
 function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
     const [hoveredBtn, setHoveredBtn] = useState<string | null>(null)
+    const [stats, setStats] = useState<UserStats | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
-  // TODO: APIから取得する
-    const userData: UserData = {
-    username: 'タナカ',
-    title: 'Git見習い',
-    totalPlays: 12,
-    accuracy: 93,
-    lastPlay: '2026/03/03',
-    rate: 1000,
-    wins: 10,
-    losses: 2,
-}
+    useEffect(() => {
+        fetchUserStats()
+            .then(setStats)
+            .catch(err => setError(err instanceof Error ? err.message : '取得に失敗しました'))
+    }, [])
 
-    const missedCommands: MissedCommand[] = [
-    { cmd: 'reset', count: 5 },
-    { cmd: 'commit', count: 3 },
-    { cmd: 'checkout', count: 2 },
-    { cmd: 'pull', count: 1 },
-    { cmd: 'revert', count: 1 },
-]
-
-    const battleHistory: BattleRecord[] = [
-    { date: '2026/03/03', result: '勝利', rateChange: '+25' },
-    { date: '2026/03/01', result: '勝利', rateChange: '+18' },
-    { date: '2026/02/28', result: '敗北', rateChange: '-12' },
-    { date: '2026/02/25', result: '勝利', rateChange: '+22' },
-]
-
-    const maxMiss = Math.max(...missedCommands.map(c => c.count))
+    const missedCommands = stats?.missed_commands ?? []
+    const maxMiss = missedCommands.length > 0 ? Math.max(...missedCommands.map(c => c.count)) : 0
 
     return (
     <div className="mypage-container">
         {/* Header */}
         <header className="mypage-header">
             <h1 className="mypage-title">マイページ</h1>
-            <span className="mypage-last-play">最終プレイ：{userData.lastPlay}</span>
+            <span className="mypage-last-play">
+                最終プレイ：{stats?.last_play ?? '—'}
+            </span>
         </header>
 
         {/* Profile Card */}
@@ -82,109 +46,90 @@ function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
                     </g>
                 </svg>
             </div>
-        <div className="mypage-profile-info">
-            <div className="mypage-profile-name">{userData.title} {userData.username}</div>
-            <div className="mypage-profile-stats">
-                <span className="mypage-stat">累計プレイ回数：{userData.totalPlays}回</span>
-                <span className="mypage-stat-highlight">正解率：{userData.accuracy}%</span>
-            </div>
-        </div>
-        <img src={ramenImage} alt="" className="mypage-profile-ramen" />
-    </div>
-
-    {/* Main Content */}
-      <div className="mypage-content">
-        {/* Command Miss History */}
-        <div className="mypage-panel">
-          <div className="mypage-panel-header">コマンドミス履歴</div>
-          <div className="mypage-panel-body">
-            {(() => {
-              const yMax = maxMiss + 1
-              const ticks = Array.from({ length: yMax + 1 }, (_, i) => i)
-              return (
-                <div className="mypage-chart-wrapper">
-                  {/* Y axis labels */}
-                  <div className="mypage-chart-yaxis">
-                    {ticks.reverse().map(v => (
-                      <span key={v} className="mypage-chart-ylabel">{v}</span>
-                    ))}
-                  </div>
-                  {/* Chart area */}
-                  <div className="mypage-chart-area">
-                    {/* Grid lines */}
-                    <div className="mypage-chart-gridlines">
-                      {Array.from({ length: yMax + 1 }, (_, i) => (
-                        <div key={i} className="mypage-chart-gridline" />
-                      ))}
-                    </div>
-                    {/* Bars */}
-                    <div className="mypage-chart-bars">
-                      {missedCommands.map((c, i) => (
-                        <div key={i} className="mypage-chart-bar-col">
-                          <div className="mypage-chart-bar-track">
-                            <div
-                              className="mypage-chart-bar-fill"
-                              style={{ height: `${(c.count / yMax) * 100}%` }}
-                            />
-                          </div>
-                          <code className="mypage-chart-label">{c.cmd}</code>
-                        </div>
-                      ))}
-                    </div>
-                    {/* X axis line */}
-                    <div className="mypage-chart-xaxis" />
-                  </div>
+            <div className="mypage-profile-info">
+                <div className="mypage-profile-name">
+                    {stats ? `${stats.title} ${stats.username}` : '読み込み中…'}
                 </div>
-              )
-            })()}
-          </div>
+                <div className="mypage-profile-stats">
+                    <span className="mypage-stat">累計プレイ回数：{stats?.total_plays ?? '—'}回</span>
+                    {stats && (
+                        <span className="mypage-stat-highlight">最高得点：{stats.best_score}点</span>
+                    )}
+                </div>
+            </div>
+            <img src={ramenImage} alt="" className="mypage-profile-ramen" />
         </div>
 
-        {/* Battle History */}
-            <div className="mypage-panel">
-                <div className="mypage-panel-header">対戦履歴</div>
+        {/* Main Content */}
+        <div className="mypage-content">
+            {/* Command Miss History */}
+            <div className="mypage-panel mypage-panel--full">
+                <div className="mypage-panel-header">コマンドミス履歴</div>
                 <div className="mypage-panel-body">
-                    <div className="mypage-battle-summary">
-                        <span className="mypage-rate">レート {userData.rate}</span>
-                        <span className="mypage-wl">勝利：{userData.wins} 敗北：{userData.losses}</span>
-                    </div>
-                    <div className="mypage-battle-table">
-                        <div className="mypage-battle-th">日付</div>
-                        <div className="mypage-battle-th center">結果</div>
-                        <div className="mypage-battle-th right">レート変動</div>
-                        {battleHistory.map((h, i) => (
-                        <div key={i} className="mypage-battle-row">
-                            <div className="mypage-battle-td">{h.date}</div>
-                            <div className={`mypage-battle-td center ${h.result === '勝利' ? 'win' : 'lose'}`}>
-                                {h.result}
+                    {error && <p className="mypage-error">{error}</p>}
+                    {!error && missedCommands.length === 0 && (
+                        <p className="mypage-empty">ミス履歴がありません</p>
+                    )}
+                    {missedCommands.length > 0 && (() => {
+                        const yMax = maxMiss + 1
+                        const ticks = Array.from({ length: yMax + 1 }, (_, i) => i)
+                        return (
+                            <div className="mypage-chart-wrapper">
+                                {/* Y axis labels */}
+                                <div className="mypage-chart-yaxis">
+                                    {ticks.reverse().map(v => (
+                                        <span key={v} className="mypage-chart-ylabel">{v}</span>
+                                    ))}
+                                </div>
+                                {/* Chart area */}
+                                <div className="mypage-chart-area">
+                                    {/* Grid lines */}
+                                    <div className="mypage-chart-gridlines">
+                                        {Array.from({ length: yMax + 1 }, (_, i) => (
+                                            <div key={i} className="mypage-chart-gridline" />
+                                        ))}
+                                    </div>
+                                    {/* Bars */}
+                                    <div className="mypage-chart-bars">
+                                        {missedCommands.map((c, i) => (
+                                            <div key={i} className="mypage-chart-bar-col">
+                                                <div className="mypage-chart-bar-track">
+                                                    <div
+                                                        className="mypage-chart-bar-fill"
+                                                        style={{ height: `${(c.count / yMax) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <code className="mypage-chart-label">{c.cmd}</code>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {/* X axis line */}
+                                    <div className="mypage-chart-xaxis" />
+                                </div>
                             </div>
-                            <div className={`mypage-battle-td right ${h.rateChange.startsWith('+') ? 'win' : 'lose'}`}>
-                                {h.rateChange}
-                            </div>
-                        </div>
-                        ))}
-                    </div>
+                        )
+                    })()}
                 </div>
             </div>
         </div>
 
-      {/* Bottom Navigation */}
+        {/* Bottom Navigation */}
         <div className="mypage-bottom-nav">
             <button
-            className={`mypage-nav-btn ${hoveredBtn === 'course' ? 'active' : ''}`}
-            onClick={onCourseSelect}
-            onMouseEnter={() => setHoveredBtn('course')}
-            onMouseLeave={() => setHoveredBtn(null)}
+                className={`mypage-nav-btn ${hoveredBtn === 'course' ? 'active' : ''}`}
+                onClick={onCourseSelect}
+                onMouseEnter={() => setHoveredBtn('course')}
+                onMouseLeave={() => setHoveredBtn(null)}
             >
-            コース選択
+                コース選択
             </button>
             <button
-            className={`mypage-nav-btn ${hoveredBtn === 'title' ? 'active' : ''}`}
-            onClick={onBackToTitle}
-            onMouseEnter={() => setHoveredBtn('title')}
-            onMouseLeave={() => setHoveredBtn(null)}
+                className={`mypage-nav-btn ${hoveredBtn === 'title' ? 'active' : ''}`}
+                onClick={onBackToTitle}
+                onMouseEnter={() => setHoveredBtn('title')}
+                onMouseLeave={() => setHoveredBtn(null)}
             >
-            タイトルに戻る
+                タイトルに戻る
             </button>
         </div>
     </div>

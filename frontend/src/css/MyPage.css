@@ -106,10 +106,14 @@
 .mypage-content {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 20px;
     padding: 20px 24px;
     min-height: 0;
+}
+
+.mypage-panel--full {
+    grid-column: 1 / -1;
 }
 
 /* Panel shared */
@@ -237,58 +241,20 @@
     border-top: 1.5px solid #5a4a38;
 }
 
-/* Battle History */
-.mypage-battle-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.mypage-rate {
-    color: #fff;
-    font-size: 1.4rem;
-    font-weight: 800;
-}
-
-.mypage-wl {
-    color: #a08060;
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.mypage-battle-table {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    font-size: 0.85rem;
-}
-
-.mypage-battle-th {
+/* Empty / Error state */
+.mypage-empty {
     color: #8a7560;
-    font-weight: 700;
-    padding: 6px 0;
-    border-bottom: 1px solid #3a3020;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 32px 0;
 }
 
-.mypage-battle-th.center { text-align: center; }
-.mypage-battle-th.right { text-align: right; }
-
-.mypage-battle-row {
-    display: contents;
+.mypage-error {
+    color: #e85555;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 32px 0;
 }
-
-.mypage-battle-td {
-    color: #c0a880;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(58, 48, 32, 0.5);
-}
-
-.mypage-battle-td.center { text-align: center; }
-.mypage-battle-td.right { text-align: right; }
-.mypage-battle-td.win { color: #4ecb71; font-weight: 700; }
-.mypage-battle-td.lose { color: #e85555; font-weight: 700; }
 
 /* Bottom Navigation */
 .mypage-bottom-nav {

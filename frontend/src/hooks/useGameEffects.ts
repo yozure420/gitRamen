@@ -54,6 +54,7 @@ type UseRamenMovementParams = {
   setMessage: (value: string) => void
   setCustomerAlert: Dispatch<SetStateAction<CustomerAlert | null>>
   finalizeOrderLog: (ramenId: number, result: 'delivered' | 'failed', summary: string) => void
+  onMiss: (commandId: number) => void
 }
 
 export function useRamenMovement({
@@ -67,7 +68,12 @@ export function useRamenMovement({
   setMessage,
   setCustomerAlert,
   finalizeOrderLog,
+  onMiss,
 }: UseRamenMovementParams) {
+  const onMissRef = useRef(onMiss)
+  useEffect(() => {
+    onMissRef.current = onMiss
+  }, [onMiss])
   const finalizeOrderLogRef = useRef(finalizeOrderLog)
   const soundSettingsRef = useRef(soundSettings)
   const resolvedRamenIdsRef = useRef<Set<number>>(new Set())
@@ -113,6 +119,9 @@ export function useRamenMovement({
               }, 1300)
             }
             playSound(outcome.result === 'delivered' ? 'se' : 'miss', soundSettingsRef.current)
+            if (outcome.result === 'failed') {
+              onMissRef.current(ramen.command.id)
+            }
             finalizeOrderLogRef.current(ramen.id, outcome.result, outcome.summary)
             setTimeout(() => {
               setRamens(p => p.filter(r => r.id !== ramen.id))

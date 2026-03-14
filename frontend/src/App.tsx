@@ -83,7 +83,13 @@ function App() {
 
       {/* ゲーム本編画面 */}
 
-      {screen === 'game' && <GmScreen soundSettings={soundSettings} initialCourse={selectedCourse} />}
+      {screen === 'game' && (
+        <GmScreen
+          soundSettings={soundSettings}
+          initialCourse={selectedCourse}
+          onGoToMyPage={() => setScreen('mypage')}
+        />
+      )}
     </>
   )
 }
