@@ -6,7 +6,7 @@ from database import get_db, engine, Base
 from models import User, History, Cmd, Miss
 from pydantic import BaseModel
 from typing import List, Optional
-from routers.auth import router as auth_router
+from routers.auth import router as auth_router, get_current_user
 import random
 
 
@@ -54,6 +54,27 @@ class CheckCommandResponse(BaseModel):
     is_correct: bool
     expected: str
     user_input: str
+
+class MissEntry(BaseModel):
+    command_id: int
+    miss_count: int
+
+class SaveHistoryRequest(BaseModel):
+    course: int
+    score: int = 0
+    misses: List[MissEntry] = []
+
+class MissedCommandResponse(BaseModel):
+    cmd: str
+    count: int
+
+class UserStatsResponse(BaseModel):
+    username: str
+    title: str
+    total_plays: int
+    best_score: int
+    last_play: Optional[str]
+    missed_commands: List[MissedCommandResponse]
 
 # --- エンドポイント ---
 
@@ -110,6 +131,76 @@ async def get_command(command_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Command not found")
     
     return command
+
+@app.post("/api/history", status_code=201)
+async def save_history(
+    request: SaveHistoryRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """ゲーム終了時に結果を保存する。History + Miss レコードを作成し play_count を更新する。"""
+    history = History(user_id=current_user.id, course=str(request.course), score=request.score)
+    db.add(history)
+    db.flush()
+
+    for entry in request.misses:
+        if entry.miss_count > 0:
+            miss = Miss(
+                history_id=history.id,
+                miss_command_id=entry.command_id,
+                miss_count=entry.miss_count,
+            )
+            db.add(miss)
+
+    current_user.play_count += 1
+    db.commit()
+    return {"ok": True}
+
+
+@app.get("/api/users/me/stats", response_model=UserStatsResponse)
+async def get_my_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """マイページ用の統計情報を返す。"""
+    last_history = (
+        db.query(History)
+        .filter(History.user_id == current_user.id)
+        .order_by(History.played_at.desc())
+        .first()
+    )
+    last_play = (
+        last_history.played_at.strftime("%Y/%m/%d") if last_history else None
+    )
+
+    best_score_row = (
+        db.query(func.max(History.score))
+        .filter(History.user_id == current_user.id)
+        .scalar()
+    )
+    best_score = best_score_row if best_score_row is not None else 0
+
+    miss_rows = (
+        db.query(Cmd.command, func.sum(Miss.miss_count).label("total"))
+        .join(Miss, Miss.miss_command_id == Cmd.id)
+        .join(History, History.id == Miss.history_id)
+        .filter(History.user_id == current_user.id)
+        .group_by(Cmd.id)
+        .order_by(func.sum(Miss.miss_count).desc())
+        .limit(10)
+        .all()
+    )
+    missed_commands = [MissedCommandResponse(cmd=row.command, count=row.total) for row in miss_rows]
+
+    return UserStatsResponse(
+        username=current_user.name,
+        title=current_user.title,
+        total_plays=current_user.play_count,
+        best_score=best_score,
+        last_play=last_play,
+        missed_commands=missed_commands,
+    )
+
 
 @app.post("/api/commands/check", response_model=CheckCommandResponse)
 async def check_command(

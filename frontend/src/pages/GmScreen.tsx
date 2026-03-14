@@ -11,9 +11,10 @@ import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 type GmScreenProps = {
   soundSettings: SoundSettings
   initialCourse: number
+  onGoToMyPage: () => void
 }
 
-function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
+function GmScreen({ soundSettings, initialCourse, onGoToMyPage }: GmScreenProps) {
   const {
     inputCommand,
     setInputCommand,
@@ -40,6 +41,7 @@ function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
     laneCount,
     existingBranches,
     resumeGame,
+    retryGame,
   } = useGmScreen({ soundSettings, initialCourse })
 
   useEffect(() => {
@@ -56,6 +58,18 @@ function GmScreen({ soundSettings, initialCourse }: GmScreenProps) {
 
   return (
     <div className="game-container">
+      {isGameOver && (
+        <div className="gameover-overlay">
+          <div className="gameover-box">
+            <h2 className="gameover-title">ゲーム終了</h2>
+            <p className="gameover-score">{score}<span className="gameover-score-unit">点</span></p>
+            <div className="gameover-buttons">
+              <button className="gameover-btn gameover-btn--retry" onClick={retryGame}>もう一度プレイ</button>
+              <button className="gameover-btn gameover-btn--mypage" onClick={onGoToMyPage}>マイページへ</button>
+            </div>
+          </div>
+        </div>
+      )}
       <GmLeftPanel
         score={score}
         timeRemaining={timeRemaining}
