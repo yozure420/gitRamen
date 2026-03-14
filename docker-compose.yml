@@ -9,6 +9,8 @@ services:
     restart: always
     ports:
       - "8000:8000"
+    networks:
+      - gitramen-network
 
   frontend:
     build:
@@ -20,6 +22,8 @@ services:
     depends_on:
       - backend
     restart: always
+    networks:
+      - gitramen-network
 
   nginx:
     image: nginx:alpine
@@ -33,6 +37,14 @@ services:
       - backend
       - frontend
     restart: always
+    networks:
+      - gitramen-network
+    # Nginxが準備完了か確認する設定を追加
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -42,10 +54,17 @@ services:
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     depends_on:
+      nginx:
+        condition: service_started
+    # linksでnginxコンテナへの名前解決を保証
+    links:
       - nginx
-    # cloudflaredがnginxの名前を解決できるように、
-    # 共通のネットワーク（デフォルトで作成されます）に属している必要があります。
+    networks:
+      - gitramen-network
 
-# --- ここを追加 ---
+networks:
+  gitramen-network:
+    driver: bridge
+
 volumes:
   sqlite_data:
