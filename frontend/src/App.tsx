@@ -88,6 +88,7 @@ function App() {
           soundSettings={soundSettings}
           initialCourse={selectedCourse}
           onGoToMyPage={() => setScreen('mypage')}
+          onGoToTitle={() => setScreen('title')}
         />
       )}
     </>

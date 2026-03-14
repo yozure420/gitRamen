@@ -12,9 +12,10 @@ type GmScreenProps = {
   soundSettings: SoundSettings
   initialCourse: number
   onGoToMyPage: () => void
+  onGoToTitle: () => void
 }
 
-function GmScreen({ soundSettings, initialCourse, onGoToMyPage }: GmScreenProps) {
+function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: GmScreenProps) {
   const {
     inputCommand,
     setInputCommand,
@@ -82,6 +83,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage }: GmScreenProps)
         showHelp={showHelp}
         isPaused={isPaused}
         resumeGame={resumeGame}
+        onGoToTitle={onGoToTitle}
       />
 
       <GmCenterPanel

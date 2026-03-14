@@ -12,6 +12,7 @@ type GmLeftPanelProps = {
   showHelp: boolean
   isPaused: boolean
   resumeGame: () => void
+  onGoToTitle: () => void
 }
 
 function GmLeftPanel({
@@ -26,6 +27,7 @@ function GmLeftPanel({
   showHelp,
   isPaused,
   resumeGame,
+  onGoToTitle,
 }: GmLeftPanelProps) {
   const activeRamens = ramens.filter(r => !r.isCompleted)
   const commandBlockCount = laneCount >= 2 ? 2 : 1
@@ -108,8 +110,9 @@ function GmLeftPanel({
             </div>
           </div>
           {isPaused && (
-            <div className="level-section">
+            <div className="level-section" style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button className="level-btn level-btn-active" onClick={resumeGame}>▶ 再開</button>
+              <button className="level-btn level-btn-active" onClick={onGoToTitle}>🏠 タイトル</button>
             </div>
           )}
         </div>
