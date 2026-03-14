@@ -6,9 +6,10 @@ import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand'
 import { createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
 import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
+import { postHistory } from '../api/history'
 
 // ここを変更するだけでゲームの時間変えられます^^//
-const GAME_TIME_LIMIT = 300
+const GAME_TIME_LIMIT = 120
 //-----------------------------------------//
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
@@ -51,6 +52,12 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const laneCountRef = useRef<number>(1)
   const nextRamenIdRef = useRef<number>(1)
   const ramensRef = useRef<Ramen[]>([])
+  const missCountsRef = useRef<Map<number, number>>(new Map())
+
+  const recordMissByCommandId = (commandId: number) => {
+    const prev = missCountsRef.current.get(commandId) ?? 0
+    missCountsRef.current.set(commandId, prev + 1)
+  }
 
   const getLaneRamens = (lane: number) => {
     return selectLaneRamens(ramens, lane)
@@ -97,9 +104,14 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   }
 
   const startOrderFromPull = (): string => {
+    const selectedCommand = availableCommands[Math.floor(Math.random() * availableCommands.length)]
+      if (!selectedCommand) {
+        return '❌ 注文生成に失敗しました'
+      }
     const payload = createLaneAwarePullOrderPayload({
       course,
       ramenId: nextRamenIdRef.current,
+      baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
       existingBranches,
@@ -147,6 +159,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     laneCountRef.current = 1
     nextRamenIdRef.current = 1
     ramensRef.current = []
+    missCountsRef.current = new Map()
 
     try {
       const [commands, catalog] = await Promise.all([
@@ -174,14 +187,17 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setIsGameOver(true)
     setMessage(`⏰ タイムアップ！最終スコア: ${score}点`)
 
-    setTimeout(() => {
-      const retry = window.confirm(`スコア: ${score}点\nもう一度プレイしますか？`)
-      if (retry) {
-        setScore(0)
-        setCommandHistory([])
-        startGame()
-      }
-    }, 1000)
+    const misses = Array.from(missCountsRef.current.entries()).map(([command_id, miss_count]) => ({
+      command_id,
+      miss_count,
+    }))
+    postHistory(course, score, misses).catch(() => {})
+  }
+
+  const retryGame = () => {
+    setScore(0)
+    setCommandHistory([])
+    startGame()
   }
 
   useEffect(() => {
@@ -207,6 +223,10 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setMessage,
     setCustomerAlert,
     finalizeOrderLog,
+    onMiss: (commandId: number) => {
+      const prev = missCountsRef.current.get(commandId) ?? 0
+      missCountsRef.current.set(commandId, prev + 1)
+    },
   })
 
   const handleSubmit: FormOnSubmit = (e) => {
@@ -239,6 +259,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       setExistingBranches,
       setIsPaused,
       setStatusWindow,
+      recordMissByCommandId,
     })
   }
 
@@ -279,5 +300,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     statusWindow,
     resumeGame,
     closeLog,
+    retryGame,
   }
 }

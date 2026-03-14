@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --matcha-bg: #9fb285;
   --matcha-bg-deep: #93a979;
   --wood-light: #e9c692;
@@ -976,4 +976,89 @@
   .message-text {
     font-size: 0.84rem;
   }
+}
+
+/* Game Over Overlay */
+.gameover-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.gameover-box {
+  background: linear-gradient(160deg, #2a1f10 0%, #1a1208 100%);
+  border: 2px solid #e8a735;
+  border-radius: 16px;
+  padding: 48px 60px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(232, 167, 53, 0.15);
+  min-width: 320px;
+}
+
+.gameover-title {
+  margin: 0 0 24px;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #e8a735;
+  letter-spacing: 0.1em;
+}
+
+.gameover-score {
+  margin: 0 0 36px;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.gameover-score-unit {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #c0a060;
+  margin-left: 4px;
+}
+
+.gameover-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gameover-btn {
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.gameover-btn--retry {
+  background: linear-gradient(135deg, #e8a735, #d4922a);
+  color: #fff;
+  border-color: #d4922a;
+}
+
+.gameover-btn--retry:hover {
+  background: linear-gradient(135deg, #f0b840, #e8a735);
+  box-shadow: 0 4px 16px rgba(232, 167, 53, 0.4);
+}
+
+.gameover-btn--mypage {
+  background: transparent;
+  color: #e8a735;
+  border-color: #e8a735;
+}
+
+.gameover-btn--mypage:hover {
+  background: rgba(232, 167, 53, 0.1);
+  box-shadow: 0 4px 16px rgba(232, 167, 53, 0.2);
 }

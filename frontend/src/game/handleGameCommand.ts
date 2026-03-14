@@ -35,6 +35,7 @@ type ExecuteGameCommandParams = {
   setExistingBranches: Dispatch<SetStateAction<string[]>>
   setIsPaused: (value: boolean) => void
   setStatusWindow: Dispatch<SetStateAction<StatusWindowData | null>>
+  recordMissByCommandId: (commandId: number) => void
 }
 
 export function executeGameCommand(params: ExecuteGameCommandParams): void {
@@ -63,6 +64,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setExistingBranches,
     setIsPaused,
     setStatusWindow,
+    recordMissByCommandId,
   } = params
 
   if (!cmd.trim() || isGameOver) return
@@ -144,9 +146,17 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setInputCommand('')
   }
 
+  const recordMiss = (ramen?: Ramen | null) => {
+    const target = ramen ?? activeRamen
+    if (!target?.command?.id) return
+    recordMissByCommandId(target.command.id)
+  }
+
   const rejectOutOfOrder = (stepType: 'add' | 'commit' | 'push') => {
     if (!currentStep) return false
     if (currentStep.type === stepType) return false
+
+    recordMiss(activeRamen)
 
     if (stepType === 'add') {
       setMessage(`❌ まだ add の番ではありません。今は「${currentStep.displayCommand}」です`)
@@ -161,6 +171,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   }
 
   if (cmd.match(/^git clone .+$/i)) {
+    // recordMiss(activeRamen)
     setMessage('⛔ git clone はゲーム開始前の難易度選択専用です')
     setInputCommand('')
     return
@@ -169,6 +180,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   const addMatch = cmd.match(/^git add (.+)$/i)
   if (addMatch) {
     if (!activeRamen) {
+      // recordMiss(activeRamen)
       setMessage('❌ 操作できるラーメンがありません')
       setInputCommand('')
       return
@@ -180,6 +192,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     const nextStep = getNextStepCommand(activeRamen)
 
     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      recordMiss(activeRamen)
       setMessage(`❌ 今必要なのは「${currentStep?.displayCommand ?? ''}」です`)
       setInputCommand('')
       return
@@ -206,6 +219,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
         update: (current) => ({ stagedItems: [...current.stagedItems, item] }),
       })
     } else {
+      recordMiss(activeRamen)
       setMessage(`❌ ${item}という具材はありません`)
       setInputCommand('')
     }
@@ -215,6 +229,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   const commitMatch = cmd.match(/^git commit -m "(.+)"$/i)
   if (commitMatch) {
     if (!activeRamen) {
+      // recordMiss(activeRamen)
       setMessage('❌ 操作できるラーメンがありません')
       setInputCommand('')
       return
@@ -223,6 +238,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     if (rejectOutOfOrder('commit')) return
 
     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      recordMiss(activeRamen)
       setMessage(`❌ 今必要な commit は「${currentStep?.displayCommand ?? ''}」です`)
       setInputCommand('')
       return
@@ -249,18 +265,28 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
     const branchName = checkoutBranchMatch[1].trim()
     if (!branchName) {
+      recordMiss(activeRamen)
       setMessage('❌ ブランチ名を入力してください')
       setInputCommand('')
       return
     }
 
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+    recordMiss(activeRamen)
+    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+    setInputCommand('')
+    return
+  }
+
     if (getBranchLane(branchName) > 0) {
+      recordMiss(activeRamen)
       setMessage(`❌ ${branchName} は既に存在します`)
       setInputCommand('')
       return
     }
 
     if (existingBranches.length >= maxLanes) {
+      recordMiss(activeRamen)
       setMessage(`ℹ️ 既に最大レーン数（${maxLanes}）です。既存ブランチへ checkout してください`)
       setInputCommand('')
       return
@@ -294,16 +320,25 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     const targetLane = getBranchLane(branchName)
 
     if (targetLane <= 0) {
+      recordMiss(activeRamen)
       setMessage(`❌ ${branchName} は存在しません。既存: ${toBranchListText()}`)
       setInputCommand('')
       return
     }
 
     if (!activeRamen) {
+      // recordMiss(activeRamen)
       setMessage('❌ 移動できるラーメンがありません')
       setInputCommand('')
       return
     }
+
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+    recordMiss(activeRamen)
+    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+    setInputCommand('')
+    return
+  }
 
     if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
       const nextStep = getNextStepCommand(activeRamen)
@@ -342,10 +377,18 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   if (branchMatch) {
     const branchName = branchMatch[1].trim()
     if (!branchName) {
+      recordMiss(activeRamen)
       setMessage('❌ ブランチ名を入力してください')
       setInputCommand('')
       return
     }
+
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+    recordMiss(activeRamen)
+    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+    setInputCommand('')
+    return
+  }
 
     if (getBranchLane(branchName) > 0) {
       setMessage(`ℹ️ ${branchName} は既に存在します`)
@@ -488,15 +531,31 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     return
   }
 
-  if (normalizedCmd === 'git push origin main') {
+  // 入力されたコマンドが 'git push origin 〇〇' の形かチェックする
+  const pushMatch = cmd.match(/^git push origin (.+)$/i)
+  if (pushMatch) {
     if (!activeRamen) {
+      // recordMiss(activeRamen)
       setMessage('❌ 配達できるラーメンがありません')
       setInputCommand('')
       return
     }
 
-    const mainLane = getBranchLane('main')
-    const pushedToMainFromOtherLane = mainLane > 0 && activeRamen.currentLane !== mainLane
+    // 入力されたブランチ名
+    const targetBranch = pushMatch[1].trim() 
+    // 今いるブランチ名
+    const currentBranchName = existingBranches[activeRamen.currentLane - 1] || 'main'
+
+    // ブランチ名が違う場合のエラーメッセージを
+    if (normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)) {
+      setMessage(`❌ 今いるのは ${currentBranchName} です。${targetBranch} に push するには、先に ${targetBranch} ブランチに移動してください！`)
+      setInputCommand('')
+      return
+    }
+
+    // すでにブランチの一致チェックを通過しているので、「他レーンからmainに無理やり流した」という判定は false で確定！
+    const pushedToMainFromOtherLane = false
+    // ----------------------
 
     const isCurrentPushStep = currentStep?.type === 'push' && isCurrentStepMatch(activeRamen, normalizedCmd)
 
@@ -515,11 +574,12 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
         ...r,
         speed: pushSpeed,
         isPushed: true,
-        pushedToMainFromOtherLane,
+        pushedToMainFromOtherLane, // ← ここに false が渡るようになります
       }
     }))
 
     if (!activeRamen.isCommitted) {
+      recordMiss(activeRamen)
       setMessage('💢 トッピングはどうした💢 空のまま push してしまった！')
     } else {
       setMessage('🚀 push を実行！ものすごい勢いで流れていく！')
@@ -528,6 +588,8 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setInputCommand('')
     return
   }
+
+
 
   if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
     const nextStep = getNextStepCommand(activeRamen)
@@ -542,10 +604,13 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
   const matchingCmd = availableCommands.find(c => normalizeCommand(c.command) === normalizedCmd)
 
   if (currentStep) {
+    recordMiss(activeRamen)
     setMessage(`❌ 今は「${currentStep.displayCommand}」の番です`)
   } else if (matchingCmd) {
+    recordMiss(activeRamen)
     setMessage('❌ そのコマンドは今じゃない！現在のラーメンのコマンドを入力してください')
   } else {
+    recordMiss(activeRamen)
     setMessage(`❓ 不明なコマンド: ${cmd}`)
   }
 

@@ -286,7 +286,7 @@ export function resolveRuntimeCommandLogic(command: Command): RuntimeCommandLogi
   }
 }
 
-export function createPullOrderPayload(course: number, ramenId: number): PullOrderPayload {
+export function createPullOrderPayload(course: number, ramenId: number, baseCommandId: number): PullOrderPayload {
   const baseRamen = pickRandomBaseRamen()
   const topping = pickRandomTopping()
   const orderText = `${baseRamen}、トッピングは${topping}`
@@ -294,7 +294,8 @@ export function createPullOrderPayload(course: number, ramenId: number): PullOrd
 
   return {
     command: {
-      id: -ramenId,
+      // id: -ramenId,
+      id: baseCommandId,
       command: `git add ${topping}`,
       description: `${baseRamen}に${topping}を追加する注文`,
       game_note: orderText,
@@ -312,18 +313,20 @@ export function createPullOrderPayload(course: number, ramenId: number): PullOrd
 export function createLaneAwarePullOrderPayload(params: {
   course: number
   ramenId: number
+  baseCommandId: number
   laneCount: number
   maxLanes: number
   existingBranches: string[]
 }): PullOrderPayload {
-  const { course, ramenId, laneCount, maxLanes, existingBranches } = params
+  const { course, ramenId, baseCommandId, laneCount, maxLanes, existingBranches } = params
 
   // Random customer-arrival event: the required command is branch creation.
   if (laneCount < maxLanes && Math.random() < 0.35) {
     const newBranchName = pickRandomLaneName()
     return {
       command: {
-        id: -ramenId,
+        // id: -ramenId,
+        id: baseCommandId,
         command: `git branch ${newBranchName}`,
         description: `新規来客レーン ${newBranchName} を開設する注文`,
         game_note: 'お客さんいらっしゃいました！！いらっしゃいませ～！',
@@ -391,7 +394,8 @@ export function createLaneAwarePullOrderPayload(params: {
 
   return {
     command: {
-      id: -ramenId,
+      // id: -ramenId,
+      id: baseCommandId,
       command: addStep.displayCommand,
       description: `${targetBranchName}レーンの注文`,
       game_note: laneOrderText,
