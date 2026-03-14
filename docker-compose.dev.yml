@@ -21,6 +21,15 @@ services:
       - backend
     restart: always
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    depends_on:
+      - nginx
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+  
   nginx:
     image: nginx:alpine
     ports:
@@ -32,12 +41,7 @@ services:
       - backend
       - frontend
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
+
+
+volumes:
+  sqlite_data:
