@@ -9,7 +9,7 @@ import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
 
 // ここを変更するだけでゲームの時間変えられます^^//
-const GAME_TIME_LIMIT = 300
+const GAME_TIME_LIMIT = 120
 //-----------------------------------------//
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
@@ -53,6 +53,11 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const nextRamenIdRef = useRef<number>(1)
   const ramensRef = useRef<Ramen[]>([])
   const missCountsRef = useRef<Map<number, number>>(new Map())
+
+  const recordMissByCommandId = (commandId: number) => {
+    const prev = missCountsRef.current.get(commandId) ?? 0
+    missCountsRef.current.set(commandId, prev + 1)
+  }
 
   const getLaneRamens = (lane: number) => {
     return selectLaneRamens(ramens, lane)
@@ -99,9 +104,14 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   }
 
   const startOrderFromPull = (): string => {
+    const selectedCommand = availableCommands[Math.floor(Math.random() * availableCommands.length)]
+      if (!selectedCommand) {
+        return '❌ 注文生成に失敗しました'
+      }
     const payload = createLaneAwarePullOrderPayload({
       course,
       ramenId: nextRamenIdRef.current,
+      baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
       existingBranches,
@@ -249,6 +259,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       setExistingBranches,
       setIsPaused,
       setStatusWindow,
+      recordMissByCommandId,
     })
   }
 
