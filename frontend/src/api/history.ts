@@ -1,6 +1,6 @@
 import { getToken } from './auth'
 
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export interface MissEntry {
   command_id: number
@@ -29,7 +29,7 @@ export async function postHistory(course: number, score: number, misses: MissEnt
   const token = getToken()
   if (!token) return
 
-  await fetch(`${API_BASE_URL}/api/history`, {
+  await fetch(`${API_BASE_URL}/history`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export async function fetchUserStats(): Promise<UserStats> {
   const token = getToken()
   if (!token) throw new Error('ログインしていません')
 
-  const res = await fetch(`${API_BASE_URL}/api/users/me/stats`, {
+  const res = await fetch(`${API_BASE_URL}/users/me/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 

@@ -9,6 +9,8 @@
 
 // ---- レスポンスの型定義 --------------------------------
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+
 /** POST /api/auth/register, GET /api/auth/me の戻り値 */
 export interface UserResponse {
   id: string
@@ -52,7 +54,7 @@ export async function registerUser(
   name: string,
   password: string,
 ): Promise<UserResponse> {
-  const res = await fetch('/api/auth/register', {
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, password }),
@@ -79,7 +81,7 @@ export async function loginUser(
   name: string,
   password: string,
 ): Promise<TokenResponse> {
-  const res = await fetch('/api/auth/login', {
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, password }),
@@ -102,7 +104,7 @@ export async function fetchCurrentUser(): Promise<UserResponse> {
   const token = getToken()
   if (!token) throw new Error('ログインしていません')
 
-  const res = await fetch('/api/auth/me', {
+  const res = await fetch(`${API_BASE_URL}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
