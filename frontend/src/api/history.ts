@@ -1,7 +1,6 @@
 import { getToken } from './auth'
-import process from 'process'
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export interface MissEntry {
   command_id: number

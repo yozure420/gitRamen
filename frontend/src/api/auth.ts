@@ -1,4 +1,3 @@
-import process from 'process'
 /**
  * auth.ts — 認証関連の API 呼び出しをまとめたモジュール
  *
@@ -10,7 +9,7 @@ import process from 'process'
 
 // ---- レスポンスの型定義 --------------------------------
 
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 /** POST /api/auth/register, GET /api/auth/me の戻り値 */
 export interface UserResponse {
