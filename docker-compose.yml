@@ -23,6 +23,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    container_name: gitramen_nginx
     ports:
       - '80:80'
       - '443:443'
@@ -31,13 +32,20 @@ services:
     depends_on:
       - backend
       - frontend
+    restart: always
 
   cloudflared:
     image: cloudflare/cloudflared:latest
+    container_name: gitramen_cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
+    depends_on:
+      - nginx
+    # cloudflaredがnginxの名前を解決できるように、
+    # 共通のネットワーク（デフォルトで作成されます）に属している必要があります。
+
+# --- ここを追加 ---
+volumes:
+  sqlite_data:
