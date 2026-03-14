@@ -133,14 +133,14 @@ function GmCenterPanel({
       )}
 
       {showLog && (
-        <div className="receipt-overlay" role="dialog" aria-modal="true" aria-label="git log receipt">
-          <div className="receipt-modal">
+        <div className="receipt-overlay" role="dialog" aria-modal="true" aria-label="git log receipt" >
+          <div className="receipt-modal" style={{maxHeight: '425px',}}>
             <div className="receipt-head">
               <div className="receipt-title">{isCompactLog ? 'git log --oneline' : 'git log'}</div>
-              <button type="button" className="receipt-close" onClick={closeLog}>×</button>
+              <button type="button" className="receipt-close" onClick={closeLog} style={{display: 'flex', justifyContent: 'center', alignItems: 'center', }}>×</button>
             </div>
             <div className="receipt-meta">RAMEN GIT KITCHEN / ORDER HISTORY</div>
-            <div className="receipt-body">
+            <div className="receipt-body" >
               {orderLogs.length === 0 && <div className="receipt-row">履歴はまだありません</div>}
               {orderLogs.slice().reverse().map((log, idx) => {
                 const time = log.timestamp.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })

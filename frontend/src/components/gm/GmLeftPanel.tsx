@@ -82,14 +82,14 @@ function GmLeftPanel({
                   具材: {ramen.stagedItems.join(', ')}
                 </div>
               )}
-              <div className={`progress-text ${isActive ? 'progress-text-active' : ''}`}>
+              <div className={`progress-text ${isActive ? 'progress-text-active' : ''}`} style={{textAlign: 'right',}}>
                 進行: {Math.floor(ramen.position)}%
               </div>
             </div>
           )
         })}
         {activeRamens.length === 0 && (
-          <div className="empty-ramen">
+          <div className="empty-ramen" >
             ラーメンを待っています...
           </div>
         )}
