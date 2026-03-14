@@ -112,7 +112,7 @@ function GmLeftPanel({
           {isPaused && (
             <div className="level-section" style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button className="level-btn level-btn-active" onClick={resumeGame}>▶ 再開</button>
-              <button className="level-btn level-btn-active" onClick={onGoToTitle}>🏠 タイトル</button>
+              <button className="level-btn level-btn-active" onClick={onGoToTitle}>タイトル</button>
             </div>
           )}
         </div>
