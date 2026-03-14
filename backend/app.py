@@ -29,7 +29,7 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 # CORS設定（フロントエンドからのアクセスを許可）
 origins = [
     "http://localhost:5173",    # 開発用
-    "https://app.gitramen.com", # 本番用
+    "https://gitramen.com", # 本番用
 ]
 
 app.add_middleware(
