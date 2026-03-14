@@ -91,7 +91,7 @@ async def root():
 async def health():
     return {"status": "ok"}
 
-@app.get("/api/commands/random", response_model=List[CommandResponse])
+@app.get("/commands/random", response_model=List[CommandResponse])
 async def get_random_commands(
     course: int = 1,
     count: int = 3,
@@ -109,7 +109,7 @@ async def get_random_commands(
     random_commands = random.sample(commands, count)
     return random_commands
 
-@app.get("/api/commands/course", response_model=List[CommandResponse])
+@app.get("/commands/course", response_model=List[CommandResponse])
 async def get_commands_by_course(
     course: int = 1,
     db: Session = Depends(get_db)
@@ -127,7 +127,7 @@ async def get_commands_by_course(
 
     return commands
 
-@app.get("/api/commands/{command_id}", response_model=CommandResponse)
+@app.get("/commands/{command_id}", response_model=CommandResponse)
 async def get_command(command_id: int, db: Session = Depends(get_db)):
     """特定のコマンドを取得"""
     command = db.query(Cmd).filter(Cmd.id == command_id).first()
@@ -137,7 +137,7 @@ async def get_command(command_id: int, db: Session = Depends(get_db)):
     
     return command
 
-@app.post("/api/history", status_code=201)
+@app.post("/history", status_code=201)
 async def save_history(
     request: SaveHistoryRequest,
     current_user: User = Depends(get_current_user),
@@ -162,7 +162,7 @@ async def save_history(
     return {"ok": True}
 
 
-@app.get("/api/users/me/stats", response_model=UserStatsResponse)
+@app.get("/users/me/stats", response_model=UserStatsResponse)
 async def get_my_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -207,7 +207,7 @@ async def get_my_stats(
     )
 
 
-@app.post("/api/commands/check", response_model=CheckCommandResponse)
+@app.post("/commands/check", response_model=CheckCommandResponse)
 async def check_command(
     request: CheckCommandRequest,
     db: Session = Depends(get_db)

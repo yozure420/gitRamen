@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN mkdir -p /app/db
-RUN useradd -m myuser
+RUN useradd -m myuser && chown -R myuser:myuser /app/db
 USER myuser
 EXPOSE 8000
 CMD ["gunicorn", "app:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
