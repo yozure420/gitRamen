@@ -9,7 +9,7 @@ import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
 
 // ここを変更するだけでゲームの時間変えられます^^//
-const GAME_TIME_LIMIT = 120
+const GAME_TIME_LIMIT = 3000
 //-----------------------------------------//
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
