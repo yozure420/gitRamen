@@ -1,6 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import type { CustomerAlert, OrderLog, Ramen, StatusWindowData } from '../../types/interface'
 
+/////////////////////////////////////////////////
+
+//フォルダ内のファイルを一括インポートし、リストにする
+
 const ramenAssetModules = import.meta.glob('../../assets/ramen/*.png', {
   eager: true,
   import: 'default',
@@ -16,15 +20,17 @@ const customerImageModules = import.meta.glob('../../assets/human/*.png', {
   import: 'default',
 }) as Record<string, string>
 
+
+/////////////////////////画像とパスを一個の２次元のリストに変換////////////////////////////////
 const assetByName = Object.fromEntries(
   Object.entries({ ...ramenAssetModules, ...toppingAssetModules }).map(([path, url]) => {
-    const name = path.split('/').pop() ?? path
+    const name = path.split('/').pop() ?? path //パスからファイル名を抽出
     return [name, url]
   })
 ) as Record<string, string>
-
+///////////////////////値をとって一個のリストに包括する////////////////////////////////////////////////
 const customerImages = Object.values(customerImageModules)
-
+///////////////////////////////////////////////////////////////////
 const baseRamenImageByKeyword: Record<string, string> = {
   '味噌': 'ramen-miso.png',
   '醤油': 'ramen-shoyu.png',
