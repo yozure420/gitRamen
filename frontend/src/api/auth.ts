@@ -59,17 +59,14 @@ export async function registerUser(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, password }),
   })
-
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    // Pydantic バリデーションエラー（422）は detail が配列になるため先頭の msg を取り出す
     const detail = body.detail
     const message = Array.isArray(detail)
       ? (detail[0]?.msg ?? '登録に失敗しました')
       : (detail ?? '登録に失敗しました')
     throw new Error(message)
   }
-
   return res.json() as Promise<UserResponse>
 }
 
