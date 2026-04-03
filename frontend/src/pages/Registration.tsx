@@ -55,7 +55,7 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
       if (err instanceof Error && err.message === 'Name already registered') {
         setError('このユーザーネームは既に使用されています')
       } else {
-        setError(err instanceof Error ? err.message : '登録に失敗しました')
+        setError('登録に失敗しました')
       }
     } finally {
       setIsLoading(false)
