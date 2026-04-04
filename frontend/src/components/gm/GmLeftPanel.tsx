@@ -1,12 +1,15 @@
 import type { Command, Ramen } from '../../types/interface'
 
+// 必要なすべての情報をまとめる。
 type GmLeftPanelProps = {
   score: number
   timeRemaining: number
   course: number
   laneCount: number
-  existingBranches: string[]
-  courseCommands: Command[]
+  /** ブランチの名前を集めた配列。 */
+  existingBranches: string[] 
+  /** 指定した難易度が使うgit commandを全て集めた配列。 */
+  courseCommands: Command[] 
   ramens: Ramen[]
   activeRamen: Ramen | null
   showHelp: boolean
@@ -29,18 +32,20 @@ function GmLeftPanel({
   resumeGame,
   onGoToTitle,
 }: GmLeftPanelProps) {
+  /** 複数ラーメンが同時に流れてくることを想定している。 */
   const activeRamens = ramens.filter(r => !r.isCompleted)
+  /**レーンの数だけ注文カードの数を増やしている。　ラーメンは常に一つなのでこれはなくてもいいのでは。 */
   const commandBlockCount = laneCount >= 2 ? 2 : 1
+  /**git init とか git cloneとかを除いたすべての対象git commands.*/
   const visibleCourseCommands = courseCommands.filter(cmd => cmd.id !== 1 && cmd.id !== 2)
   const formatLaneLabel = (laneNumber: number): string => {
-    const branchName = existingBranches[laneNumber - 1]
+    const branchName = existingBranches[laneNumber - 1]　// 0-indexedなので-1.
     return branchName ? `${branchName}レーン` : `Lane ${laneNumber}`
   }
 
   return (
     <div className="left-panel">
       <h2 className="panel-title">ラーメン作り中...</h2>
-
       <div className="status-card">
         <div className="status-line">
           スコア: <span className="status-value status-value-success">{score}</span>
@@ -59,6 +64,7 @@ function GmLeftPanel({
           const isActive = activeRamen?.id === ramen.id
           return (
             <div key={ramen.id} className={`command-item ${isActive ? 'command-item-active' : ''}`}>
+              {/* commandBlockCountの数だけカードを生成する。 */}
               {Array.from({ length: commandBlockCount }).map((_, idx) => (
                 <div key={`${ramen.id}-order-block-${idx}`}>
                   <div className={`lane-label ${isActive ? 'lane-label-active' : ''}`}>
@@ -82,14 +88,14 @@ function GmLeftPanel({
                   具材: {ramen.stagedItems.join(', ')}
                 </div>
               )}
-              <div className={`progress-text ${isActive ? 'progress-text-active' : ''}`}>
+              <div className={`progress-text ${isActive ? 'progress-text-active' : ''}`} style={{textAlign: 'right',}}>
                 進行: {Math.floor(ramen.position)}%
               </div>
             </div>
           )
         })}
         {activeRamens.length === 0 && (
-          <div className="empty-ramen">
+          <div className="empty-ramen" >
             ラーメンを待っています...
           </div>
         )}
