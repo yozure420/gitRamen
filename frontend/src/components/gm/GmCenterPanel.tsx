@@ -32,11 +32,11 @@ const assetByName = Object.fromEntries(
 const customerImages = Object.values(customerImageModules)
 ///////////////////////////////////////////////////////////////////
 const baseRamenImageByKeyword: Record<string, string> = {
-  '味噌': 'ramen-miso.png',
-  '醤油': 'ramen-shoyu.png',
-  '豚骨': 'ramen-tonkotsu.png',
-  '家系': 'food-ramen-iekei.png',
-  '台湾': 'ramen-taiwan.png',
+  '味噌': 'a1.png',
+  '醤油': 'a2.png',
+  '豚骨': 'a3.png',
+  '家系': 'a4.png',
+  '台湾': 'a5.png',
   'タンメン': 'food-ramen-tanmen.png',
   'トムヤム': 'food-ramen-tom-yam-kung.png',
   'つけ麺': 'food-tsukemen.png',
@@ -45,14 +45,14 @@ const baseRamenImageByKeyword: Record<string, string> = {
 }
 
 const toppingImageByItem: Record<string, string> = {
-  '煮玉子': 'food-ramen-topping-1-tamago.png',
-  'ネギ': 'food-ramen-topping-2-negi.png',
-  'のり': 'food-ramen-topping-4-nori.png',
-  'チャーシュー': 'food-ramen-topping-5-chashu.png',
-  'コーン': 'food-ramen-topping-6-corn.png',
-  'もやし': 'food-ramen-topping-7-moyashi.png',
-  'メンマ': 'food-ramen-topping-8-menma.png',
-  'ナルト': 'food-ramen-topping-10-naruto.png',
+  '煮玉子': 'b5.png',
+  'ネギ': 'b1.png',
+  'のり': 'b6.png',
+  'チャーシュー': 'b3.png',
+  'コーン': 'b8.png',
+  'もやし': 'b7.png',
+  'メンマ': 'b4.png',
+  'ナルト': 'b9.png',
 }
 
 function resolveBaseRamenImage(ramen: Ramen): string {
