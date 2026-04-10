@@ -376,13 +376,6 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       return
     }
 
-    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
-    recordMiss(activeRamen)
-    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
-    setInputCommand('')
-    return
-  }
-
     if (getBranchLane(branchName) > 0) {
       setMessage(`ℹ️ ${branchName} は既に存在します`)
       setInputCommand('')
@@ -535,7 +528,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     }
 
     // 入力されたブランチ名
-    const targetBranch = pushMatch[1].trim() 
+    const targetBranch = pushMatch[1].trim()
     // 今いるブランチ名
     const currentBranchName = existingBranches[activeRamen.currentLane - 1] || 'main'
 
@@ -581,8 +574,6 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setInputCommand('')
     return
   }
-
-
 
   if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
     const nextStep = getNextStepCommand(activeRamen)
