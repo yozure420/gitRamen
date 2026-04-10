@@ -4,7 +4,7 @@ import type { SoundSettings } from '../../types/interface'
 import { playSound } from '../../lib/Sounds'
 
 type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
-
+// 情報量の定義、ここを減らすべきだ。
 type GmBottomPanelProps = {
   message: string
   activeRamen: Ramen | null

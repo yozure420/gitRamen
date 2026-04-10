@@ -1,5 +1,6 @@
 import type { Command, CommandStep, CommandStepType } from '../types/interface'
 
+/** コマンドを複数組み合わせることで一つのラーメンに対するコマンド群にしたもの。 */
 export type RuntimeCommandLogic = {
   steps: CommandStep[]
 }
@@ -270,6 +271,7 @@ const commandLogicRules: CommandLogicRule[] = [
   },
 ]
 
+// 
 export function resolveRuntimeCommandLogic(command: Command): RuntimeCommandLogic {
   const matchedRule = commandLogicRules.find(rule => rule.commandMatcher.test(command.command))
   if (matchedRule) {
