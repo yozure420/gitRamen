@@ -9,7 +9,7 @@ import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
 
 // ここを変更するだけでゲームの時間変えられます^^//
-const GAME_TIME_LIMIT = 120
+const GAME_TIME_LIMIT = 3000
 //-----------------------------------------//
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
@@ -236,7 +236,8 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const handleSubmit: FormOnSubmit = (e) => {
     e.preventDefault()
 
-    const cmd = inputCommand.trim()
+    const formData = new FormData(e.currentTarget)
+    const cmd = ((formData.get('command') as string) ?? '').trim()
     const normalizedCmd = normalizeCommand(cmd)
     executeGameCommand({
       cmd,

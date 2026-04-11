@@ -360,8 +360,7 @@
   justify-content: center;
   overflow: hidden;
 }
-
-.center-panel::before {
+/* .center-panel::before {
   content: '';
   position: absolute;
   inset: 10% 6% 11%;
@@ -369,8 +368,7 @@
   border-radius: 22px;
   box-shadow: inset 0 0 0 1px rgba(128, 96, 65, 0.18);
   pointer-events: none;
-}
-
+} */
 .lane {
   position: relative;
   height: 118px;
@@ -1061,4 +1059,236 @@
 .gameover-btn--mypage:hover {
   background: rgba(232, 167, 53, 0.1);
   box-shadow: 0 4px 16px rgba(232, 167, 53, 0.2);
+}
+
+/* ============================================================
+   V2 レイアウト（フラッシュゲームサイズ・縦積み）
+   ============================================================ */
+
+/* 背景：画面全体を背景色で塗りつぶす */
+body:has(.game-container-v2) {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 252, 241, 0.34) 0%, rgba(255, 252, 241, 0) 45%),
+    radial-gradient(circle at 82% 78%, rgba(218, 239, 188, 0.32) 0%, rgba(218, 239, 188, 0) 42%),
+    linear-gradient(180deg, var(--matcha-bg) 0%, var(--matcha-bg-deep) 100%);
+}
+
+.game-container-v2 {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 680px;
+  max-width: 100vw;
+  height: min(780px, 80vh);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 288px auto 1fr;
+  color: var(--ink);
+  font-family: 'M PLUS Rounded 1c', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 252, 241, 0.34) 0%, rgba(255, 252, 241, 0) 45%),
+    radial-gradient(circle at 82% 78%, rgba(218, 239, 188, 0.32) 0%, rgba(218, 239, 188, 0) 42%),
+    linear-gradient(180deg, var(--matcha-bg) 0%, var(--matcha-bg-deep) 100%);
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+/* トップバー */
+.game-container-v2 .top-panel {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1.2rem;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.95) 0%, rgba(249, 241, 226, 0.92) 100%);
+  border-bottom: 2px solid rgba(138, 93, 49, 0.28);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.game-container-v2 .top-panel .timeLeft,
+.game-container-v2 .top-panel .score,
+.game-container-v2 .top-panel .ramen-progress {
+  letter-spacing: 0.05em;
+}
+
+.top-panel-pause-btns {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.top-panel-pause-btn {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.top-panel-pause-btn:hover {
+  background: var(--wood-mid);
+  color: var(--paper-strong);
+}
+
+/* レーンエリア（3レーン分を固定確保） */
+.game-container-v2 .center-panel {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* V2 用にレーン高さをコンパクトに */
+.game-container-v2 .lane {
+  height: 80px;
+  padding: 0 52px;
+}
+
+/* 注文パネル外枠（伝票エリア） */
+.game-container-v2 .order-panel {
+  grid-column: 1;
+  grid-row: 4;
+  padding: 0.8rem 1.2rem;
+  background: rgba(210, 195, 168, 0.45);
+  border-top: 2px solid rgba(138, 93, 49, 0.22);
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* 伝票カード */
+.receipt-slip {
+  flex: 1;
+  background: #fffef5;
+  border: 1px solid rgba(143, 107, 67, 0.45);
+  border-radius: 8px;
+  padding: 0.9rem 1.2rem;
+  box-shadow:
+    0 3px 10px rgba(92, 66, 40, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow-y: auto;
+}
+
+.receipt-slip-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px dashed rgba(143, 107, 67, 0.4);
+}
+
+.receipt-slip-lane {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.receipt-slip-branch {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.receipt-slip-branch--new {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-red);
+}
+
+.receipt-slip-waiting {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  padding: 0.4rem 0;
+  letter-spacing: 0.05em;
+}
+
+.receipt-slip-no-topping {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+/* 注文メインタイトル（〇〇ラーメン〇〇トッピング） */
+.receipt-slip-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+/* git branch イベント時のコマンド表示 */
+.receipt-slip-command {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 7px;
+  background: rgba(191, 149, 95, 0.14);
+  border: 1px dashed rgba(136, 101, 64, 0.45);
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.order-panel .toppings {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.topping-name {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: var(--paper-strong);
+  border: 1px solid rgba(153, 111, 67, 0.22);
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+.added-topping-name {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(89, 138, 78, 0.15);
+  border: 1px solid rgba(89, 138, 78, 0.4);
+  font-size: 1rem;
+  color: var(--accent-green);
+  font-weight: 700;
+}
+
+/* インプットバー */
+.game-container-v2 .bottom-panel {
+  grid-column: 1;
+  grid-row: 3;
+  border-top: 2px solid rgba(138, 93, 49, 0.3);
+  padding: 0.65rem 1.2rem;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.95) 0%, rgba(249, 241, 226, 0.92) 100%);
+  margin: 0;
+  max-width: none;
+}
+
+/* 客画像のハイライト（targetLane） */
+.lane-customer-active {
+  filter: drop-shadow(0 0 6px rgba(89, 138, 78, 0.8));
+  transform: scale(1.15);
+  transition: transform 0.2s ease;
 }
