@@ -5,6 +5,9 @@ type GmOrderPanelV2Props = {
     lanes: string[]
     showHelp: boolean
     courseCommands: Command[]
+    isPaused: boolean
+    resumeGame: () => void
+    onGoToTitle: () => void
 }
 
 /**
@@ -31,13 +34,24 @@ function GmOrderPanelV2({
     lanes,
     showHelp,
     courseCommands,
+    isPaused,
+    resumeGame,
+    onGoToTitle,
 }: GmOrderPanelV2Props) {
     if (showHelp) {
         const visibleCommands = courseCommands.filter(cmd => cmd.id !== 1 && cmd.id !== 2)
         return (
             <div className="order-panel">
                 <div className="receipt-slip">
-                    <div className="hint-title">コマンド一覧</div>
+                    <div className="hint-title-row">
+                        <div className="hint-title">コマンド一覧</div>
+                        {isPaused && (
+                            <div className="top-panel-pause-btns">
+                                <button className="top-panel-pause-btn" onClick={resumeGame}>▶ 再開</button>
+                                <button className="top-panel-pause-btn" onClick={onGoToTitle}>タイトルへ戻る</button>
+                            </div>
+                        )}
+                    </div>
                     <div className="course-command-list">
                         {visibleCommands.map(cmd => (
                             <div key={cmd.id} className="course-command-item">
@@ -55,7 +69,7 @@ function GmOrderPanelV2({
         return (
             <div className="order-panel">
                 <div className="receipt-slip">
-                    <div className="receipt-slip-waiting">— 注文待ち —</div>
+                    <div className="receipt-slip-waiting">— git pull で注文を受け取れ！ —</div>
                 </div>
             </div>
         )

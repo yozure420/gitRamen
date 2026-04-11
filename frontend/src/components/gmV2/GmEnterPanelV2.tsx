@@ -8,7 +8,7 @@ type GmBottomPanelV2Props = {
     isLoading: boolean
     isGameOver: boolean
     soundSettings: SoundSettings
-
+    
 }
 
 /** タイプ音を鳴らさないキー */

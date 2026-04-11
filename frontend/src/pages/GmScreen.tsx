@@ -4,7 +4,7 @@ import { useGmScreen } from '../hooks/useGmScreen'
 import GmTopPanelV2 from '../components/gmV2/GmTopPanelV2'
 import GmLanePanelV2 from '../components/gmV2/GmLanePanelV2'
 import GmOrderPanelV2 from '../components/gmV2/GmOrderPanelV2'
-import GmBottomPanelV2 from '../components/gmV2/GmBottomPanelV2'
+import GmBottomPanelV2 from '../components/gmV2/GmEnterPanelV2'
 import type { SoundSettings } from '../types/interface'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
@@ -60,9 +60,6 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
       <GmTopPanelV2
         score={score}
         timeLeft={timeRemaining}
-        isPaused={isPaused}
-        resumeGame={resumeGame}
-        onGoToTitle={onGoToTitle}
         ramen={activeRamen}
       />
       <GmLanePanelV2
@@ -74,6 +71,9 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         lanes={existingBranches}
         showHelp={showHelp}
         courseCommands={courseCommands}
+        isPaused={isPaused}
+        resumeGame={resumeGame}
+        onGoToTitle={onGoToTitle}
       />
       <GmBottomPanelV2
         handleSubmit={handleSubmit}
