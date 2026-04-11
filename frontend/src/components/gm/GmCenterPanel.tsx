@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react'
 import type { CustomerAlert, OrderLog, Ramen, StatusWindowData } from '../../types/interface'
-
+// 各画像をglob（viteの機能）によって一括で採取し、{パス : URL, パス : URL}といったぐあいにプロパティ名と値の関係によって保存する。
 const ramenAssetModules = import.meta.glob('../../assets/ramen/*.png', {
-  eager: true,
+  eager: true,　// 初めに全てをimportし終える。
   import: 'default',
 }) as Record<string, string>
 
@@ -16,21 +16,26 @@ const customerImageModules = import.meta.glob('../../assets/human/*.png', {
   import: 'default',
 }) as Record<string, string>
 
-const assetByName = Object.fromEntries(
+// {fileName : URL, ,,,}となっているオブジェクト。 つまり、パスをファイル名に置き換えたい。
+const assetByName = Object.fromEntries( //　[key, value]をエントリと呼び、これはそれらの配列を{{key : value}}というオブジェクトに変換する。
+  // ... はスプリットといい、 Recordの中身をバラして二つのプロパティをごちゃ混ぜにし、もう一度オブジェクトを作る。
+                                                                        // どっちも受け取る
   Object.entries({ ...ramenAssetModules, ...toppingAssetModules }).map(([path, url]) => {
+    // pathを/によってわけ、その最後の値をpopすることでfile nameを得る。
     const name = path.split('/').pop() ?? path
     return [name, url]
   })
 ) as Record<string, string>
 
+// 客の画像のURLだけ収めている配列。
 const customerImages = Object.values(customerImageModules)
-
+///////////////////////////////////////////////////////////////////
 const baseRamenImageByKeyword: Record<string, string> = {
-  '味噌': 'ramen-miso.png',
-  '醤油': 'ramen-shoyu.png',
-  '豚骨': 'ramen-tonkotsu.png',
-  '家系': 'food-ramen-iekei.png',
-  '台湾': 'ramen-taiwan.png',
+  '味噌': 'a1.png',
+  '醤油': 'a2.png',
+  '豚骨': 'a3.png',
+  '家系': 'a4.png',
+  '台湾': 'a5.png',
   'タンメン': 'food-ramen-tanmen.png',
   'トムヤム': 'food-ramen-tom-yam-kung.png',
   'つけ麺': 'food-tsukemen.png',
@@ -39,25 +44,31 @@ const baseRamenImageByKeyword: Record<string, string> = {
 }
 
 const toppingImageByItem: Record<string, string> = {
-  '煮玉子': 'food-ramen-topping-1-tamago.png',
-  'ネギ': 'food-ramen-topping-2-negi.png',
-  'のり': 'food-ramen-topping-4-nori.png',
-  'チャーシュー': 'food-ramen-topping-5-chashu.png',
-  'コーン': 'food-ramen-topping-6-corn.png',
-  'もやし': 'food-ramen-topping-7-moyashi.png',
-  'メンマ': 'food-ramen-topping-8-menma.png',
-  'ナルト': 'food-ramen-topping-10-naruto.png',
+  '煮玉子': 'b5.png',
+  'ネギ': 'b1.png',
+  'のり': 'b6.png',
+  'チャーシュー': 'b3.png',
+  'コーン': 'b8.png',
+  'もやし': 'b7.png',
+  'メンマ': 'b4.png',
+  'ナルト': 'b9.png',
 }
 
+/**
+ * 受け取ったラーメンに対応するラーメンの画像のURLを返す。
+ * 
+ * @param ramen 
+ * @returns 
+ */
 function resolveBaseRamenImage(ramen: Ramen): string {
   const haystack = [ramen.command.game_note, ramen.command.description]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
 
-  const matchedImage = Object.entries(baseRamenImageByKeyword).find(([keyword]) => {
+  const matchedImage = Object.entries(baseRamenImageByKeyword).find(([keyword]) => { // find: 引数ないのpredicateがtrueなら、trueとなった要素を返す。
     return haystack.includes(keyword.toLowerCase())
-  })?.[1]
+  })?.[1]　
 
   return assetByName[matchedImage ?? 'food-ramen.png'] ?? assetByName['food-ramen.png'] ?? ''
 }
@@ -93,12 +104,14 @@ function GmCenterPanel({
   orderLogs,
   closeLog,
 }: GmCenterPanelProps) {
-  const laneCustomerImages = useMemo(() => {
+  const laneCustomerImages = useMemo(() => {　// 第二引数が変化したら第一引数の計算を行う。
+    // イメージがない場合は、ひとまず枠だけ作る。[null, null, null,,,,]
     if (customerImages.length === 0) {
       return Array.from({ length: laneCount }, () => null)
     }
-
+    //　イメージがる場合、ランダムに画像を選択する関数を定義し、そこからlaneの数だけランダムに画像を選択して配列を作る。
     const pickRandom = () => customerImages[Math.floor(Math.random() * customerImages.length)]
+
     return Array.from({ length: laneCount }, () => pickRandom())
   }, [laneCount])
 
@@ -107,7 +120,7 @@ function GmCenterPanel({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
-        event.preventDefault()
+        event.preventDefault() //本来そのeventによって引き起こされる動作をなくして、代わりに以下の動作を実行させる。
         closeLog()
       }
     }
@@ -116,11 +129,11 @@ function GmCenterPanel({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [showLog, closeLog])
+  }, [showLog, closeLog])　// Logが見えているか、closeLogの参照が変わった時に呼び出される。
 
   return (
     <div className="center-panel">
-      {statusWindow && (
+      {statusWindow && (　//  && は左側の条件が満たされているなら、という意味。
         <div className="status-window-overlay" role="status" aria-live="polite">
           <h4 className="status-window-title">{statusWindow.title}</h4>
           <p className="status-window-phase">{statusWindow.phaseMessage}</p>

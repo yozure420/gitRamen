@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import '../css/GmScreen.css'
 import { useGmScreen } from '../hooks/useGmScreen'
-import GmLeftPanel from '../components/gm/GmLeftPanel'
-import GmCenterPanel from '../components/gm/GmCenterPanel'
-import GmRightPanel from '../components/gm/GmRightPanel'
-import GmBottomPanel from '../components/gm/GmBottomPanel'
+import GmTopPanelV2 from '../components/gmV2/GmTopPanelV2'
+import GmLanePanelV2 from '../components/gmV2/GmLanePanelV2'
+import GmOrderPanelV2 from '../components/gmV2/GmOrderPanelV2'
+import GmBottomPanelV2 from '../components/gmV2/GmEnterPanelV2'
 import type { SoundSettings } from '../types/interface'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
@@ -17,33 +17,18 @@ type GmScreenProps = {
 
 function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: GmScreenProps) {
   const {
-    inputCommand,
-    setInputCommand,
-    ramens,
     score,
-    course,
-    message,
-    showHelp,
-    showLog,
-    orderLogs,
-    isCompactLog,
-    isPaused,
-    customerAlert,
-    statusWindow,
-    closeLog,
     timeRemaining,
     isGameOver,
     isLoading,
     handleSubmit,
-    getLaneRamens,
     activeRamen,
-    availableItems,
-    courseCommands,
-    laneCount,
     existingBranches,
-    resumeGame,
     retryGame,
-    commandHistory,
+    showHelp,
+    courseCommands,
+    isPaused,
+    resumeGame,
   } = useGmScreen({ soundSettings, initialCourse })
 
   useEffect(() => {
@@ -59,7 +44,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
   }, [soundSettings])
 
   return (
-    <div className="game-container">
+    <div className="game-container-v2">
       {isGameOver && (
         <div className="gameover-overlay">
           <div className="gameover-box">
@@ -72,49 +57,29 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
           </div>
         </div>
       )}
-      <GmLeftPanel
+      <GmTopPanelV2
         score={score}
-        timeRemaining={timeRemaining}
-        course={course}
-        laneCount={laneCount}
-        existingBranches={existingBranches}
-        courseCommands={courseCommands}
-        ramens={ramens}
-        activeRamen={activeRamen}
+        timeLeft={timeRemaining}
+        ramen={activeRamen}
+      />
+      <GmLanePanelV2
+        ramen={activeRamen}
+        existingBrancheNames={existingBranches}
+      />
+      <GmOrderPanelV2
+        ramen={activeRamen}
+        lanes={existingBranches}
         showHelp={showHelp}
+        courseCommands={courseCommands}
         isPaused={isPaused}
         resumeGame={resumeGame}
         onGoToTitle={onGoToTitle}
       />
-
-      <GmCenterPanel
-        activeRamen={activeRamen}
-        getLaneRamens={getLaneRamens}
-        laneCount={laneCount}
-        existingBranches={existingBranches}
-        customerAlert={customerAlert}
-        statusWindow={statusWindow}
-        showLog={showLog}
-        isCompactLog={isCompactLog}
-        orderLogs={orderLogs}
-        closeLog={closeLog}
-      />
-
-      <GmRightPanel
-        availableItems={availableItems}
-        activeRamen={activeRamen}
-      />
-
-      <GmBottomPanel
-        message={message}
-        activeRamen={activeRamen}
+      <GmBottomPanelV2
         handleSubmit={handleSubmit}
-        inputCommand={inputCommand}
-        setInputCommand={setInputCommand}
         isLoading={isLoading}
         isGameOver={isGameOver}
         soundSettings={soundSettings}
-        commandHistory={commandHistory}
       />
     </div>
   )

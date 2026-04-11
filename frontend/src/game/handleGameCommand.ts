@@ -276,7 +276,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
     setInputCommand('')
     return
-  }
+    }
 
     if (getBranchLane(branchName) > 0) {
       recordMiss(activeRamen)
@@ -332,7 +332,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       setInputCommand('')
       return
     }
-
+    // ワークフローに沿っているなら、ステップを進める。
     if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
       const nextStep = getNextStepCommand(activeRamen)
       completeCurrentStep(activeRamen, {
@@ -343,7 +343,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       })
       return
     }
-
+    // ワークフローに沿っていなくても、移動したいならさせてやる。
     applyLaneSwitchWithoutStepAdvance(activeRamen, targetLane)
     setMessage(`🔀 ${branchName} (Lane ${targetLane}) へ切り替えました`)
     setInputCommand('')

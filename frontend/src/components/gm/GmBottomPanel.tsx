@@ -16,8 +16,7 @@ import { playSound } from '../../lib/Sounds'
 
 /** form の onSubmit イベントハンドラの型エイリアス */
 type FormOnSubmit = NonNullable<React.ComponentProps<'form'>['onSubmit']>
-
-/** GmBottomPanel に渡す props */
+// 情報量の定義、ここを減らすべきだ。
 type GmBottomPanelProps = {
   message: string // コマンドを実行した結果として表示するメッセージ
   activeRamen: Ramen | null // 現在アクティブなラーメン（null なら未選択）
