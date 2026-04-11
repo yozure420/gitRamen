@@ -53,29 +53,15 @@ const toppingImageByItem: Record<string, string> = {
   'メンマ': 'b4.png',
   'ナルト': 'b9.png',
 }
-<<<<<<< HEAD
 ////////////３つのプロパティを一個のリストにする////////////////////////////////////////
-=======
 
-/**
- * 受け取ったラーメンに対応するラーメンの画像のURLを返す。
- * 
- * @param ramen 
- * @returns 
- */
->>>>>>> 86ad3e585a3d1cf74a68ebad2ad6bde06ee643d4
 function resolveBaseRamenImage(ramen: Ramen): string {
   const haystack = [ramen.command.game_note, ramen.command.description]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
-<<<<<<< HEAD
 //////////////////文字列を検索して、その中で条件にあったやつを表示する/////////////////////
   const matchedImage = Object.entries(baseRamenImageByKeyword).find(([keyword]) => {
-=======
-
-  const matchedImage = Object.entries(baseRamenImageByKeyword).find(([keyword]) => { // find: 引数ないのpredicateがtrueなら、trueとなった要素を返す。
->>>>>>> 86ad3e585a3d1cf74a68ebad2ad6bde06ee643d4
     return haystack.includes(keyword.toLowerCase())
   })?.[1]　
 
@@ -113,13 +99,8 @@ function GmCenterPanel({
   orderLogs,         // 注文履歴のデータ配列
   closeLog,          // 履歴画面を閉じる関数
 }: GmCenterPanelProps) {
-<<<<<<< HEAD
 //////////////客の画像をランダムに決定//////////////////////////////////////////
   const laneCustomerImages = useMemo(() => {
-=======
-  const laneCustomerImages = useMemo(() => {　// 第二引数が変化したら第一引数の計算を行う。
-    // イメージがない場合は、ひとまず枠だけ作る。[null, null, null,,,,]
->>>>>>> 86ad3e585a3d1cf74a68ebad2ad6bde06ee643d4
     if (customerImages.length === 0) {
       return Array.from({ length: laneCount }, () => null)
     }
@@ -143,13 +124,8 @@ function GmCenterPanel({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-<<<<<<< HEAD
   }, [showLog, closeLog])
 ///////////////////////statusWindowはuseGmScreen.tsの中で管理されているフックス/////////////////////////////////////////////////////////
-=======
-  }, [showLog, closeLog])　// Logが見えているか、closeLogの参照が変わった時に呼び出される。
-
->>>>>>> 86ad3e585a3d1cf74a68ebad2ad6bde06ee643d4
   return (
     <div className="center-panel">
       {statusWindow && (　//  && は左側の条件が満たされているなら、という意味。
