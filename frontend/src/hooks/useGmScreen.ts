@@ -232,7 +232,8 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const handleSubmit: FormOnSubmit = (e) => {
     e.preventDefault()
 
-    const cmd = inputCommand.trim()
+    const formData = new FormData(e.currentTarget)
+    const cmd = ((formData.get('command') as string) ?? '').trim()
     const normalizedCmd = normalizeCommand(cmd)
     executeGameCommand({
       cmd,
