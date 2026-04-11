@@ -26,7 +26,7 @@ function TitlePage({ isLoggedIn, onStart, onMyPage, onHowToPlay, onSettings, onL
         <div className="title-bg-gradient" />
         {/* Title */}
         <div className="title-heading-wrapper">
-            <h1 className="title-heading">ぎっとぎとゲーム</h1>
+            <h1 className="title-heading">ぎっとぎとラーメン</h1> {/* タイトルを”ゲーム”⇒”ラーメン”に変更 */}
         </div>
 
         {/* Menu */}

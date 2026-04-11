@@ -22,7 +22,7 @@ type CommandLogicRule = {
 const TOPPING_OPTIONS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト'] as const
 const BASE_RAMEN_OPTIONS = ['味噌ラーメン', '醤油ラーメン', '豚骨ラーメン', '家系ラーメン', '台湾ラーメン'] as const
 const CALL_OPTIONS = ['味噌ラーメン特盛りおまち！', '醤油ラーメン全部のせおまち！', '豚骨ラーメン硬め濃いめおまち！'] as const
-const LANE_NAME_OPTIONS = ['akamaru', 'kiwami', 'sapporo', 'iekei'] as const
+const LANE_NAME_OPTIONS = ['lane'] as const
 const LANE_SWITCH_OPTIONS = ['lane1', 'lane2', 'lane3'] as const
 
 const pickRandomTopping = (): string => {
@@ -324,10 +324,15 @@ export function createLaneAwarePullOrderPayload(params: {
 
   // Random customer-arrival event: the required command is branch creation.
   if (laneCount < maxLanes && Math.random() < 0.35) {
-    const newBranchName = pickRandomLaneName()
+    let newBranchName = pickRandomLaneName()
+    while (existingBranches.includes(newBranchName)) { // 同じ数字のレーンが出た場合は、違う数字のレーンが出るまで繰り返す
+      newBranchName = pickRandomLaneName()
+    }
+    const topping = pickRandomTopping()
+    const baseRamen = pickRandomBaseRamen()
+    const call = `${baseRamen}${topping}入りおまち！`
     return {
       command: {
-        // id: -ramenId,
         id: baseCommandId,
         command: `git branch ${newBranchName}`,
         description: `新規来客レーン ${newBranchName} を開設する注文`,
@@ -335,13 +340,29 @@ export function createLaneAwarePullOrderPayload(params: {
         course,
       },
       runtimeLogic: {
-        steps: [createStep({
-          type: 'command',
-          displayCommand: `git branch ${newBranchName}`,
-          logicLabel: '来客対応',
-          logicDescription: '新しいお客さん用レーンを増設する。',
-          logicExample: `例: git branch ${newBranchName}`,
-        })],
+        steps: [
+          createStep({
+            type: 'command',
+            displayCommand: `git branch ${newBranchName}`,
+            logicLabel: '来客対応',
+            logicDescription: '新しいお客さん用レーンを増設する。',
+            logicExample: `例: git branch ${newBranchName}`,
+          }),
+          createStep({
+            type: 'add',
+            displayCommand: `git add ${topping}`,
+            logicLabel: '具材投入',
+            logicDescription: `具材「${topping}」をステージに載せる。`,
+            logicExample: `例: git add ${topping}`,
+            itemName: topping,
+          }),
+          createStep({
+            type: 'commit',
+            displayCommand: `git commit -m "${call}"`,
+            logicLabel: 'コール',
+            logicDescription: '注文内容を確定する。',
+          }),
+        ],
       },
       orderText: 'お客さんいらっしゃいました！！いらっしゃいませ～！',
       noticeTitle: 'お客さんいらっしゃいました！！いらっしゃいませ～！',

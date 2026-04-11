@@ -332,7 +332,6 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       setInputCommand('')
       return
     }
-
     // ワークフローに沿っているなら、ステップを進める。
     if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
       const nextStep = getNextStepCommand(activeRamen)
