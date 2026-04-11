@@ -50,7 +50,7 @@ const toppingImageByItem: Record<string, string> = {
 }
 
 function resolveBaseRamenImage(ramen: Ramen): string {
-  const haystack = [ramen.displayCommand, ramen.command.game_note, ramen.command.description]
+  const haystack = [ramen.command.game_note, ramen.command.description]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
