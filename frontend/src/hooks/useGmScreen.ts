@@ -138,6 +138,10 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
         details: payload.noticeDetails ?? [],
       })
       setTimeout(() => setStatusWindow(null), 2600)
+
+
+
+      
     }
 
     return `📥 注文受付！「${payload.orderText}」 ${newRamen.currentLane}レーンで調理開始`

@@ -54,20 +54,20 @@ const toppingImageByItem: Record<string, string> = {
   'メンマ': 'food-ramen-topping-8-menma.png',
   'ナルト': 'food-ramen-topping-10-naruto.png',
 }
-
+////////////３つのプロパティを一個のリストにする////////////////////////////////////////
 function resolveBaseRamenImage(ramen: Ramen): string {
   const haystack = [ramen.displayCommand, ramen.command.game_note, ramen.command.description]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
-
+//////////////////文字列を検索して、その中で条件にあったやつを表示する/////////////////////
   const matchedImage = Object.entries(baseRamenImageByKeyword).find(([keyword]) => {
     return haystack.includes(keyword.toLowerCase())
   })?.[1]
 
   return assetByName[matchedImage ?? 'food-ramen.png'] ?? assetByName['food-ramen.png'] ?? ''
 }
-
+/////////////トッピングを検索して、対応するロジックを返す///////
 function resolveToppingImage(item: string): string | null {
   const fileName = toppingImageByItem[item]
   if (!fileName) return null
@@ -88,17 +88,18 @@ type GmCenterPanelProps = {
 }
 
 function GmCenterPanel({
-  activeRamen,
-  getLaneRamens,
-  laneCount,
-  existingBranches,
-  customerAlert,
-  statusWindow,
-  showLog,
-  isCompactLog,
-  orderLogs,
-  closeLog,
+  activeRamen,       // 現在操作中のラーメン
+  getLaneRamens,     // 特定のレーンに流れているラーメンを取得する関数
+  laneCount,         // 表示するレーン（ブランチ）の数
+  existingBranches,  // 存在するGitブランチ名のリスト
+  customerAlert,     // 客からの警告・メッセージ
+  statusWindow,      // 現在のゲーム状態（フェーズ）を表示するウィンドウ
+  showLog,           // git log（履歴）を表示するかどうかのフラグ
+  isCompactLog,      // 履歴を --oneline 形式にするか
+  orderLogs,         // 注文履歴のデータ配列
+  closeLog,          // 履歴画面を閉じる関数
 }: GmCenterPanelProps) {
+//////////////客の画像をランダムに決定//////////////////////////////////////////
   const laneCustomerImages = useMemo(() => {
     if (customerImages.length === 0) {
       return Array.from({ length: laneCount }, () => null)
@@ -107,10 +108,10 @@ function GmCenterPanel({
     const pickRandom = () => customerImages[Math.floor(Math.random() * customerImages.length)]
     return Array.from({ length: laneCount }, () => pickRandom())
   }, [laneCount])
-
+///////////////////////////////////////////////////////////////////////////////////
   useEffect(() => {
     if (!showLog) return
-
+///////Enterキーでログ画面閉じる/////////////////
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
         event.preventDefault()
@@ -123,7 +124,7 @@ function GmCenterPanel({
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [showLog, closeLog])
-
+///////////////////////statusWindowはuseGmScreen.tsの中で管理されているフックス/////////////////////////////////////////////////////////
   return (
     <div className="center-panel">
       {statusWindow && (
@@ -137,7 +138,7 @@ function GmCenterPanel({
           </div>
         </div>
       )}
-
+////////////////レシートログ画面///////////////////////////////////////////
       {showLog && (
         <div className="receipt-overlay" role="dialog" aria-modal="true" aria-label="git log receipt">
           <div className="receipt-modal">
@@ -162,7 +163,7 @@ function GmCenterPanel({
           </div>
         </div>
       )}
-
+///////////////////////////////レシートやラーメンの描画///////////////////////////////////////////////
       {Array.from({ length: laneCount }, (_, i) => i + 1).map(laneNum => {
         const laneRamens = getLaneRamens(laneNum)
         const branchName = existingBranches[laneNum - 1] ?? `lane${laneNum}`
