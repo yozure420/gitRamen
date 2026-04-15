@@ -70,7 +70,7 @@ function resolveBaseRamenImage(ramen: Ramen): string {
   
     const matchedImage = Object.entries(keywordToRamenImage).find(([keyword]) => {
       return haystack.includes(keyword.toLowerCase())
-    })?.[1]　
+    })?.[1]
   
     return fileNameToRamenImage[matchedImage ?? 'ramen-pixel.png'] ?? fileNameToRamenImage['ramen-pixel.png'] ?? ''
 }

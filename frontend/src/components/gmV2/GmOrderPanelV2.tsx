@@ -20,7 +20,7 @@ function resolveOrderTitle(ramen: Ramen): string {
     if (!commitStep) {
         return ramen.command.game_note ?? ramen.displayCommand
     }
-    const match = commitStep.displayCommand.match(/^git commit -m "(.+)入りおまち！"$/)
+    const match = commitStep.displayCommand.match(/^git commit -m "(.+)"$/)
     return match ? match[1] : commitStep.displayCommand
 }
 
