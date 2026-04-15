@@ -11,7 +11,7 @@ function GmStart({ onStart }: GmStartProps) {
   const [command, setCommand] = useState('')
   const [status, setStatus] = useState<StartStatus>('AWAITING_ENTRY')
   const [message, setMessage] = useState('修行: git clone easy / git clone normal、独立: git init')
-
+/////全角を半角に、連続したスペースを一つに、前後の空白を削除、小文字に統一する正規表現
   const normalize = (input: string) => {
     return input
       .replace(/\u3000/g, ' ')
@@ -19,11 +19,9 @@ function GmStart({ onStart }: GmStartProps) {
       .trim()
       .toLowerCase()
   }
-
+  const normalized = normalize(command) //inputされた文字列を正規表現で整えて新たに変数に入れ直す
   const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = (e) => {
     e.preventDefault()
-
-    const normalized = normalize(command)
 
     if (status === 'AWAITING_ENTRY') {
       if (normalized === 'git clone easy') {

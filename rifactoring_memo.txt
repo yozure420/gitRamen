@@ -1,5 +1,6 @@
 リファクタリング済のファイル
-
+TitlePage.tsx
 App.tsx
 main.tsx
 HowToPlay.tsx
+GmStart.tsx
