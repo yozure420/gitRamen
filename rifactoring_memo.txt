@@ -1,0 +1,5 @@
+リファクタリング済のファイル
+
+App.tsx
+main.tsx
+HowToPlay.tsx
