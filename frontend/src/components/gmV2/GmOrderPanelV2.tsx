@@ -12,7 +12,7 @@ type GmOrderPanelV2Props = {
 
 /**
  * commitステップの displayCommand から注文タイトルを生成する。
- * "git commit -m "XXXラーメンYYY入りおまち！"" → "XXXラーメンYYY"
+ * "git commit -m "XXXラーメンYYY"
  * 上記形式でない場合は commitCommand をそのまま返す。
  */
 function resolveOrderTitle(ramen: Ramen): string {
