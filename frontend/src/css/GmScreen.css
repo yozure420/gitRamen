@@ -1210,7 +1210,7 @@ body:has(.game-container-v2) {
 }
 
 .receipt-slip-lane {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--ink);
   font-family: 'JetBrains Mono', 'Consolas', monospace;
@@ -1242,7 +1242,7 @@ body:has(.game-container-v2) {
 
 /* 注文メインタイトル（〇〇ラーメン〇〇トッピング） */
 .receipt-slip-title {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--ink);
   line-height: 1.3;
@@ -1252,11 +1252,12 @@ body:has(.game-container-v2) {
 /* git branch イベント時のコマンド表示 */
 .receipt-slip-command {
   display: inline-block;
+  align-self: flex-start;
   margin-top: 0.2rem;
-  padding: 0.3rem 0.65rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 7px;
-  background: rgba(191, 149, 95, 0.14);
-  border: 1px dashed rgba(136, 101, 64, 0.45);
+  background: var(--paper-strong);
+  border: 1px solid rgba(153, 111, 67, 0.22);
   font-family: 'JetBrains Mono', 'Consolas', monospace;
   font-size: 0.95rem;
   color: var(--ink);
@@ -1271,10 +1272,11 @@ body:has(.game-container-v2) {
 
 .topping-name {
   padding: 0.4rem 0.8rem;
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--paper-strong);
   border: 1px solid rgba(153, 111, 67, 0.22);
   font-size: 1rem;
+  font-weight: 700;
   color: var(--ink-soft);
 }
 

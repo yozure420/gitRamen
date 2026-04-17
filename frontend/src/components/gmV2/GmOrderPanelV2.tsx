@@ -109,9 +109,6 @@ function GmOrderPanelV2({
                     <span className="receipt-slip-branch">{targetLaneName}</span>
                 </div>
                 <div className="receipt-slip-title">{orderTitle}</div>
-                {commitStep && (
-                    <div className="receipt-slip-command">{commitStep.displayCommand}</div>
-                )}
                 {toppingNames.length > 0 && (
                     <div className="toppings">
                         {toppingNames.map((toppingName) => (
@@ -123,6 +120,9 @@ function GmOrderPanelV2({
                             </div>
                         ))}
                     </div>
+                )}
+                {commitStep && (
+                    <div className="receipt-slip-command">{commitStep.displayCommand}</div>
                 )}
             </div>
         </div>
