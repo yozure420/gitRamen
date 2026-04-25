@@ -44,6 +44,13 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
   }, [soundSettings])
 
   return (
+    <>
+    <button
+      className="title-back-btn"
+      onClick={onGoToTitle}
+    >
+      タイトルへ戻る
+    </button>
     <div className="game-container-v2">
       {isGameOver && (
         <div className="gameover-overlay">
@@ -82,6 +89,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         soundSettings={soundSettings}
       />
     </div>
+    </>
   )
 }
 
