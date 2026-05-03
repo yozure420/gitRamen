@@ -449,15 +449,17 @@
   filter: drop-shadow(0 0 9px rgba(237, 177, 92, 0.62)) drop-shadow(0 4px 8px rgba(48, 32, 18, 0.46));
 }
 
-.ramen-toppings {
-  position: absolute;
-  right: -7px;
-  bottom: -8px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 2px;
-  max-width: 44px;
+.ramen-topping-image {
+  position: absolute; /* 重ねるために絶対配置にする */
+  width: 40px;        /* 具材のサイズ（お好みで調整） */
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  
+  /* デフォルトの位置（真ん中付近） */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .ramen-topping-image {
