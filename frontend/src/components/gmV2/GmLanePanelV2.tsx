@@ -41,19 +41,19 @@ const customerImages = Object.values(prunePathToName(customerAssetModules))
 
 /** ラーメンについて、日本語キーワードと画像名を対応させたオブジェクト。 */
 const keywordToRamenImage: Record<string, string> = {
-    '仮キーワード': 'ramen-pixel.png'
+    '仮キーワード': 'a1.png'
 }
 
 /** トッピングについて、日本語キーワード(ネギ）と画像名(foo.png)を対応させたオブジェクト。 */
 const keywordToToppingImage: Record<string, string> = {
-    '煮玉子': 'food-ramen-topping-1-tamago.png',
-    'ネギ': 'food-ramen-topping-2-negi.png',
+    '煮玉子': 'b5.png',
+    'ネギ': 'b1.png',
     'のり': 'food-ramen-topping-4-nori.png',
     'チャーシュー': 'food-ramen-topping-5-chashu.png',
-    'コーン': 'food-ramen-topping-6-corn.png',
-    'もやし': 'food-ramen-topping-7-moyashi.png',
-    'メンマ': 'food-ramen-topping-8-menma.png',
-    'ナルト': 'food-ramen-topping-10-naruto.png',
+    'コーン': 'b8.png',
+    'もやし': 'b7.png',
+    'メンマ': 'b4.png',
+    'ナルト': 'b9.png',
 }
 
 /**
@@ -72,7 +72,7 @@ function resolveBaseRamenImage(ramen: Ramen): string {
       return haystack.includes(keyword.toLowerCase())
     })?.[1]
   
-    return fileNameToRamenImage[matchedImage ?? 'ramen-pixel.png'] ?? fileNameToRamenImage['ramen-pixel.png'] ?? ''
+    return fileNameToRamenImage[matchedImage ?? 'a1.png'] ?? fileNameToRamenImage['a1.png'] ?? ''
 }
 
 /**
