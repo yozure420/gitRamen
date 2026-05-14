@@ -5,6 +5,7 @@ import { GmTopPanelV2, GmLanePanelV2, GmOrderPanelV2, GmBottomPanelV2 } from '..
 import type { SoundSettings } from '../types/interface'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
+
 type GmScreenProps = {
   soundSettings: SoundSettings
   initialCourse: number
@@ -26,6 +27,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
     courseCommands,
     isPaused,
     resumeGame,
+    commandHistory,
   } = useGmScreen({ soundSettings, initialCourse })
 
   useEffect(() => {
@@ -77,6 +79,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         isLoading={isLoading}
         isGameOver={isGameOver}
         soundSettings={soundSettings}
+        commandHistory={commandHistory}
       />
     </div>
   )
