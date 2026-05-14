@@ -41,7 +41,11 @@ const customerImages = Object.values(prunePathToName(customerAssetModules))
 
 /** ラーメンについて、日本語キーワードと画像名を対応させたオブジェクト。 */
 const keywordToRamenImage: Record<string, string> = {
-    '仮キーワード': 'ramen-pixel.png'
+    '味噌': 'a1.png',
+    '醤油': 'a2.png',
+    '豚骨': 'a3.png',
+    '家系': 'a4.png',
+    '台湾': 'a5.png'
 }
 
 /** トッピングについて、日本語キーワード(ネギ）と画像名(foo.png)を対応させたオブジェクト。 */
