@@ -449,27 +449,37 @@
   filter: drop-shadow(0 0 9px rgba(237, 177, 92, 0.62)) drop-shadow(0 4px 8px rgba(48, 32, 18, 0.46));
 }
 
+/* ============================================================
+   具材（トッピング）の表示設定
+   ============================================================ */
+
+/* 1. 具材を包む透明な箱（どんぶりと全く同じサイズ・位置にする） */
+.ramen-toppings {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* クリックの邪魔にならないように */
+  z-index: 5; /* どんぶりより上に確実に出す */
+}
+
+/* 2. 具材の画像本体（どんぶりの真ん中に大きく乗せる） */
 .ramen-topping-image {
-  position: absolute; /* 重ねるために絶対配置にする */
-  width: 40px;        /* 具材のサイズ（お好みで調整） */
+  position: absolute;
+  /* 👇 サイズを大幅にアップ！（お好みで変更OK） */
+  width: 40px;  
   height: 40px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
   
-  /* デフォルトの位置（真ん中付近） */
-  top: 50%;
+  /* 👇 どんぶりのど真ん中に配置する魔法の3行 */
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
+  
+  /* 少し影をつけて立体感を出す */
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
 }
-
-.ramen-topping-image {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(48, 32, 18, 0.47);
-}
-
 .ramen-command-badge {
   position: absolute;
   top: -41px;
