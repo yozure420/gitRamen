@@ -76,7 +76,7 @@ function GmBottomPanelV2({
   }
 
   return (
-    <form onSubmit={onSubmitForm} className="command-form bottom-panel">
+    <form onSubmit={onSubmitForm} className="command-form bottom-panel" autoComplete="off">
       <div className="command-input-wrapper">
         <span className="prompt">&gt;</span>
         <input
@@ -102,6 +102,7 @@ function GmBottomPanelV2({
           spellCheck={false}
           autoFocus
           disabled={isLoading || isGameOver}
+          autoComplete="off"
         />
       </div>
     </form>
