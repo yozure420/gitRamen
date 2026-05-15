@@ -1212,6 +1212,13 @@ body:has(.game-container-v2) {
 .receipt-slip-no-topping { font-size: 0.9rem; color: var(--ink-soft); }
 .receipt-slip-title { font-size: 1.5rem; font-weight: 700; color: var(--ink); line-height: 1.3; letter-spacing: 0.02em; }
 .receipt-slip-command { display: inline-block; margin-top: 0.2rem; padding: 0.3rem 0.65rem; border-radius: 7px; background: rgba(191, 149, 95, 0.14); border: 1px dashed rgba(136, 101, 64, 0.45); font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 0.95rem; color: var(--ink); }
+/* 追加: コマンド成功時に緑色にするスタイル */
+.receipt-slip-command-completed {
+  background: rgba(89, 138, 78, 0.15);
+  border: 1px solid rgba(89, 138, 78, 0.4);
+  color: var(--accent-green);
+  font-weight: 700;
+}
 .order-panel .toppings { display: flex; flex-direction: row; flex-wrap: wrap; gap: 0.5rem; }
 .topping-name { padding: 0.4rem 0.8rem; border-radius: 8px; background: var(--paper-strong); border: 1px solid rgba(153, 111, 67, 0.22); font-size: 1rem; color: var(--ink-soft); }
 .added-topping-name { padding: 0.4rem 0.8rem; border-radius: 8px; background: rgba(89, 138, 78, 0.15); border: 1px solid rgba(89, 138, 78, 0.4); font-size: 1rem; color: var(--accent-green); font-weight: 700; }
