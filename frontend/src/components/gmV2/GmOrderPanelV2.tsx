@@ -69,69 +69,61 @@ function GmOrderPanelV2({
     )
   }
 
-  if (isBranchEvent(ramen)) {
-    const branchCommand = ramen.steps[0]?.displayCommand ?? ''
-    const newBranchName = branchCommand.replace(/^git branch\s+/i, '').trim() || branchCommand
-    const isCompleted = ramen.currentStepIndex > 0
-
-    return (
-      <div className="order-panel">
-        <div className="receipt-slip">
-          <div className="receipt-slip-header">
-            <span className="receipt-slip-lane">新規来客</span>
-            <span className="receipt-slip-branch receipt-slip-branch--new">{newBranchName}</span>
-          </div>
-          <div className={`receipt-slip-command ${isCompleted ? 'receipt-slip-command-completed' : ''}`}>
-            1. {branchCommand}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  const isBranch = isBranchEvent(ramen)
   const targetLaneName = lanes[ramen.targetLane - 1] ?? `Lane ${ramen.targetLane}`
-  const toppingNames = ramen.steps
-    .filter(step => step.type === 'add' && step.itemName)
-    .map(step => step.itemName as string)
-  const isStaged = (topping: string) => ramen.stagedItems.includes(topping)
-
   const orderTitle = resolveOrderTitle(ramen)
+
+  // 新規来客の時はブランチ名を抽出
+  let newBranchName = ""
+  if (isBranch) {
+    const branchCommand = ramen.steps[0]?.displayCommand ?? ''
+    newBranchName = branchCommand.replace(/^git branch\s+/i, '').trim() || branchCommand
+  }
 
   return (
     <div className="order-panel">
       <div className="receipt-slip">
         <div className="receipt-slip-header">
-          <span className="receipt-slip-lane">レーン {ramen.targetLane}</span>
-          <span className="receipt-slip-branch">{targetLaneName}</span>
+          {/* ブランチ作成時と通常時でヘッダーの表示を切り替え */}
+          {isBranch ? (
+            <>
+              <span className="receipt-slip-lane">新規来客</span>
+              <span className="receipt-slip-branch receipt-slip-branch--new">{newBranchName}</span>
+            </>
+          ) : (
+            <>
+              <span className="receipt-slip-lane">レーン {ramen.targetLane}</span>
+              <span className="receipt-slip-branch">{targetLaneName}</span>
+            </>
+          )}
         </div>
+
+        {/* 注文のタイトル（〇〇ラーメン〇〇入りおまち！） */}
         <div className="receipt-slip-title">{orderTitle}</div>
 
-        {/* 👇 全てのコマンド（add含む）を番号付きで順番通りに表示！ */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '4px' }}>
+          
+          {/* 1. すべてのコマンド（branch, add, commit, status等）を共通でループ表示！ */}
           {ramen.steps.map((step, idx) => {
-            const isCompleted = step.type === 'commit' ? ramen.isCommitted : ramen.currentStepIndex > idx
+            const isCompleted = step.type === 'commit' 
+              ? ramen.isCommitted 
+              : ramen.currentStepIndex > idx;
+
             return (
               <div key={idx} className={`receipt-slip-command ${isCompleted ? 'receipt-slip-command-completed' : ''}`}>
                 <span style={{ opacity: 0.5, marginRight: '6px' }}>{idx + 1}.</span>
                 {step.displayCommand}
               </div>
-            )
+            );
           })}
-        </div>
 
-        {/* トッピングの丸いバッジ（おまけ表示） */}
-        {toppingNames.length > 0 && (
-          <div className="toppings" style={{ marginTop: '2px' }}>
-            {toppingNames.map((toppingName) => (
-              <div
-                key={toppingName}
-                className={isStaged(toppingName) ? 'added-topping-name' : 'topping-name'}
-              >
-                {toppingName}
-              </div>
-            ))}
+          {/* 2. 最後に必ず git push origin main を1つだけ表示！ */}
+          <div className={`receipt-slip-command ${ramen.isPushed ? 'receipt-slip-command-completed' : ''}`}>
+            <span style={{ opacity: 0.5, marginRight: '6px' }}>{ramen.steps.length + 1}.</span>
+            git push origin main
           </div>
-        )}
+          
+        </div>
       </div>
     </div>
   )
