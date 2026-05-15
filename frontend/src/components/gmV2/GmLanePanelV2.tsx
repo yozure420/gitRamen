@@ -41,14 +41,14 @@ const keywordToRamenImage: Record<string, string> = {
 }
 
 const keywordToToppingImage: Record<string, string> = {
-  '煮玉子': 'food-ramen-topping-1-tamago.png',
-  'ネギ': 'food-ramen-topping-2-negi.png',
-  'のり': 'food-ramen-topping-4-nori.png',
-  'チャーシュー': 'food-ramen-topping-5-chashu.png',
-  'コーン': 'food-ramen-topping-6-corn.png',
-  'もやし': 'food-ramen-topping-7-moyashi.png',
-  'メンマ': 'food-ramen-topping-8-menma.png',
-  'ナルト': 'food-ramen-topping-10-naruto.png',
+  '煮玉子': 'b5.png',
+  'ネギ': 'b1.png',
+  'のり': 'b6.png',
+  'チャーシュー': 'b3.png',
+  'コーン': 'b8.png',
+  'もやし': 'b7.png',
+  'メンマ': 'b4.png',
+  'ナルト': 'b9.png',
 }
 
 function resolveBaseRamenImage(ramen: Ramen): string {
