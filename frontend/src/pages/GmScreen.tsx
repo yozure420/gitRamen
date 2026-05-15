@@ -26,6 +26,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
     courseCommands,
     isPaused,
     resumeGame,
+    commandHistory, // 👇 修正: 履歴データを取り出す
   } = useGmScreen({ soundSettings, initialCourse })
 
   useEffect(() => {
@@ -77,6 +78,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         isLoading={isLoading}
         isGameOver={isGameOver}
         soundSettings={soundSettings}
+        commandHistory={commandHistory} // 
       />
     </div>
   )
