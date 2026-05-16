@@ -3,6 +3,7 @@ import './css/App.css'
 import { GmStart, GmScreen, TitlePage, MyPage, HowToPlay, Settings, Login, Registration } from './pages/importFile';
 import type { SoundSettings } from './types/interface'
 import { getToken, removeToken } from './api/auth'
+import { DEFAULT_SOUND } from './types/interface'
 
 type Screen = 'title' | 'mypage' | 'howto' | 'settings' | 'game' | 'start' | 'register' | 'login'
 
@@ -10,12 +11,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('title')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => getToken() !== null)
   const [selectedCourse, setSelectedCourse] = useState(1)
-  const [soundSettings, setSoundSettings] = useState<SoundSettings>({
-    bgm: true,
-    se: true,
-    type: true,
-    miss: true,
-  })
+  const [soundSettings, setSoundSettings] = useState<SoundSettings>(DEFAULT_SOUND)
 
   return (
     <>
