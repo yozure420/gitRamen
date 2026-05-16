@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import '../css/GmScreen.css'
 import { useGmScreen } from '../hooks/useGmScreen'
 import { GmTopPanelV2, GmLanePanelV2, GmOrderPanelV2, GmBottomPanelV2 } from '../components/gmV2';
+import { ResumePanels } from '../components/ResumePanels'
 import type { SoundSettings } from '../types/interface'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
@@ -41,6 +42,8 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
   }, [soundSettings])
 
   return (
+    <>
+    <ResumePanels />
     <div className="game-container-v2">
       {isGameOver && (
         <div className="gameover-overlay">
@@ -79,6 +82,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         soundSettings={soundSettings}
       />
     </div>
+    </>
   )
 }
 
