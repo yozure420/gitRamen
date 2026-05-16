@@ -1294,3 +1294,47 @@ body:has(.game-container-v2) {
   transform: scale(1.15);
   transition: transform 0.2s ease;
 }
+
+/* ── Resume side panels ─────────────────────────────────────── */
+.resume-panel {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 220px;
+  height: min(780px, 80vh);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
+.resume-panel--left {
+  right: calc(50% + 340px + 16px);
+}
+
+.resume-panel--right {
+  left: calc(50% + 340px + 16px);
+}
+
+.resume-panel__card {
+  flex: 1;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+  background: var(--paper-strong);
+}
+
+.resume-panel__card img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .resume-panel {
+    display: none;
+  }
+}
