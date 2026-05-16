@@ -24,12 +24,10 @@ function TitlePage({ isLoggedIn, onStart, onMyPage, onHowToPlay, onSettings, onL
     <div className="title-container">
         <div className="title-bg-texture" />
         <div className="title-bg-gradient" />
-        {/* Title */}
         <div className="title-heading-wrapper">
-            <h1 className="title-heading">ぎっとぎとラーメン</h1> {/* タイトルを”ゲーム”⇒”ラーメン”に変更 */}
+            <h1 className="title-heading">ぎっとぎとラーメン</h1>
         </div>
 
-        {/* Menu */}
         <nav className="title-menu">
         {menuItems.map((item) => (
             <button
@@ -44,7 +42,6 @@ function TitlePage({ isLoggedIn, onStart, onMyPage, onHowToPlay, onSettings, onL
         ))}
         </nav>
 
-        {/* Login / Register / MyPage */}
         <div className="title-auth">
             {isLoggedIn ? (
                 <>

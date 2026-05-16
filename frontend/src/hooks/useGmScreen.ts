@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
 import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
-import { createLaneAwarePullOrderPayload } from '../game/commandLogic'
-import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand'
-import { createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
+// 👇 修正: 本番用の工場（LaneAware）をインポート
+import { createLaneAwarePullOrderPayload } from '../game/commandLogic/index'
+import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand/index'
+import { createRamenEntry } from '../game/gameEngin/ramenFactory'
+import { selectActiveRamen, selectLaneRamens } from '../game/gameEngin/ramenSelectors'
 import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
@@ -108,14 +110,16 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       if (!selectedCommand) {
         return '❌ 注文生成に失敗しました'
       }
+      
+    // 👇 修正: 本番用の LaneAware 工場を使用する！
     const payload = createLaneAwarePullOrderPayload({
-      course,
-      ramenId: nextRamenIdRef.current,
+      course: course,
       baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
-      existingBranches,
+      existingBranches: existingBranches
     })
+
     const newRamen = createRamenEntry({
       id: nextRamenIdRef.current,
       command: payload.command,
