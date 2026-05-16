@@ -12,25 +12,27 @@ const sounds = {
 // Dedicated BGM source (add file under public/sounds/game-bgm.mp3 when available)
 const bgm = new Audio('/sounds/game-bgm.mp3')
 bgm.loop = true
-bgm.volume = 0.25
 
 // 設定に応じて再生
 export function playSound(key: 'type' | 'miss' | 'se', settings: SoundSettings) {
-    if (!settings[key]) return
+    const vol = settings[key]
+    if (vol <= 0) return
     const audio = sounds[key]
+    audio.volume = vol / 100
     audio.currentTime = 0
     audio.play().catch(() => {})
 }
 
-// 設定無視で再生（試聴用）
-export function previewSound(key: 'type' | 'miss' | 'se') {
+export function previewSound(key: 'type' | 'miss' | 'se', volume?: number) {
     const audio = sounds[key]
+    audio.volume = volume !== undefined ? volume / 100 : 0.5
     audio.currentTime = 0
     audio.play().catch(() => {})
 }
 
 export function startGameBgm(settings: SoundSettings) {
-    if (!settings.bgm) return
+    if (settings.bgm <= 0) return
+    bgm.volume = settings.bgm / 100
     bgm.play().catch(() => {})
 }
 
