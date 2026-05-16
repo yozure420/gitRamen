@@ -1144,9 +1144,28 @@ body:has(.game-container-v2) {
   letter-spacing: 0.05em;
 }
 
-.top-panel-pause-btns { display: flex; gap: 0.5rem; align-items: center; }
-.top-panel-pause-btn { padding: 0.3rem 0.8rem; font-size: 0.8rem; font-weight: 700; font-family: inherit; border: 2px solid var(--wood-dark); border-radius: 6px; background: var(--paper-strong); color: var(--ink); cursor: pointer; transition: background 0.15s, color 0.15s; }
-.top-panel-pause-btn:hover { background: var(--wood-mid); color: var(--paper-strong); }
+.top-panel-pause-btns {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.top-panel-pause-btn {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.top-panel-pause-btn:hover {
+  background: var(--wood-mid);
+  color: var(--paper-strong);
+  border-color: #d4922a;
+}
 
 .game-container-v2 .center-panel {
   grid-column: 1;
