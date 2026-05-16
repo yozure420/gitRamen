@@ -193,6 +193,18 @@
   color: #4a361e;
 }
 
+.lane-branch-label {
+  position: absolute;
+  left: 40px;
+  top: 15%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 2;
+}
+
 .command-text {
   margin-top: 0.35rem;
   border-radius: 8px;

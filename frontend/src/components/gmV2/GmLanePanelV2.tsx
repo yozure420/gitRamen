@@ -58,11 +58,11 @@ function resolveBaseRamenImage(ramen: Ramen): string {
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
-  
+
   const matchedImage = Object.entries(keywordToRamenImage).find(([keyword]) => {
     return haystack.includes(keyword.toLowerCase())
   })?.[1]
-  
+
   return fileNameToRamenImage[matchedImage ?? 'ramen-pixel.png'] ?? fileNameToRamenImage['ramen-pixel.png'] ?? ''
 }
 
@@ -100,6 +100,9 @@ function GmLanePanelV2({
         const clampedPosition = ramen ? 10 + (Math.min(100, Math.max(0, ramen.position)) / 100) * 80 : 10
         return (
           <div key={laneIdx} className="lane">
+            <span className="lane-branch-label">
+              {existingBrancheNames[laneIdx - 1]}
+            </span>
             {isRamenHere && (
               <div
                 className={`ramen-icon ${ramen.isPushReady ? 'ramen-icon-push-ready' : ''}`}
