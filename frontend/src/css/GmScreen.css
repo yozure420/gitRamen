@@ -1084,7 +1084,7 @@
 .title-back-btn {
   position: fixed;
   top: 16px;
-  left: calc(50% - 340px);
+  left: calc(40.8% - 340px);
   padding: 0.4rem 0.9rem;
   border-radius: 12px;
   border: 2px solid var(--wood-dark);
@@ -1094,6 +1094,7 @@
   cursor: pointer;
   transition: background 0.15s;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.45);
+  z-index: 11;
 }
 
 .title-back-btn:hover {
@@ -1111,7 +1112,7 @@ body:has(.game-container-v2) {
 
 .game-container-v2 {
   position: fixed;
-  top: 50%;
+  top: 0%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 680px;
@@ -1294,10 +1295,10 @@ body:has(.game-container-v2) {
 /* ── Resume side panels ─────────────────────────────────────── */
 .resume-panel {
   position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
+  top: calc(max(2.5vh, 50% - 475px) + 40px);  /* game-container上端 + top-panelの高さ分 */
+  bottom: max(2.5vh, calc(50% - 475px));        /* game-container下端と一致 */
+  /* height は削除（top と bottom で自動決定） */
   width: 220px;
-  height: min(780px, 80vh);
   display: flex;
   flex-direction: column;
   gap: 12px;

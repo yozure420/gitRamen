@@ -44,6 +44,12 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
 
   return (
     <>
+    <button
+      className="title-back-btn"
+      onClick={onGoToTitle}
+    >
+      タイトルへ戻る
+    </button>
     <ResumePanels />
     <div className="game-container-v2">
       {isGameOver && (
