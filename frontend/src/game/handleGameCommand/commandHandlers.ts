@@ -25,7 +25,7 @@ export function handleCloneCommand(ctx: GameCommandContext): boolean {
 }
 
 export function handleAddCommand(ctx: GameCommandContext): boolean {
-  const addMatch = ctx.cmd.match(/^git add (.+)$/i)
+  const addMatch = ctx.cmd.match(/^git\s+add\s+(.+)$/i)
   if (!addMatch) return false
 
   if (!ctx.activeRamen) {
@@ -48,9 +48,7 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
 
   if (item === '.') {
     ctx.completeCurrentStep(ctx.activeRamen, {
-      message: nextStep
-        ? `✅ 全マシ全のせ！ 次: ${nextStep}`
-        : '✅ 全マシ全のせ！',
+      message: nextStep ? `✅ 全マシ全のせ！ 次: ${nextStep}` : '✅ 全マシ全のせ！',
       update: () => ({ stagedItems: [...ctx.availableItems] }),
     })
     return true
@@ -64,9 +62,7 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
     }
 
     ctx.completeCurrentStep(ctx.activeRamen, {
-      message: nextStep
-        ? `✅ ${item}を追加しました。次: ${nextStep}`
-        : `✅ ${item}を追加しました`,
+      message: nextStep ? `✅ ${item}を追加しました。次: ${nextStep}` : `✅ ${item}を追加しました`,
       update: (current) => ({ stagedItems: [...current.stagedItems, item] }),
     })
     return true
@@ -79,7 +75,7 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
 }
 
 export function handleCommitCommand(ctx: GameCommandContext): boolean {
-  const commitMatch = ctx.cmd.match(/^git commit -m "(.+)"$/i)
+  const commitMatch = ctx.cmd.match(/^git\s+commit\s+-m\s*"([^"]+)"\s*$/i)
   if (!commitMatch) return false
 
   if (!ctx.activeRamen) {
@@ -90,26 +86,29 @@ export function handleCommitCommand(ctx: GameCommandContext): boolean {
 
   if (ctx.rejectOutOfOrder('commit')) return true
 
-  if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
+  const callText = commitMatch[1]
+  const expectedCmd = ctx.currentStep?.displayCommand ?? ''
+  const expectedMatch = expectedCmd.match(/-m\s*"([^"]+)"/i)
+  const expectedMessage = expectedMatch ? expectedMatch[1] : ''
+
+  if (callText !== expectedMessage) {
     ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage(`❌ 今必要な commit は「${ctx.currentStep?.displayCommand ?? ''}」です`)
+    ctx.setMessage(`❌ メッセージが違います。正解は "${expectedMessage}" です`)
     ctx.clearInput()
     return true
   }
 
-  const callText = commitMatch[1]
   const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
   ctx.completeCurrentStep(ctx.activeRamen, {
-    message: nextStep
-      ? `🍜 ${callText} 次: ${nextStep}`
-      : `🍜 ${callText}`,
+    message: nextStep ? `🍜 ${callText} 次: ${nextStep}` : `🍜 ${callText}`,
     update: () => ({ isCommitted: true }),
   })
   return true
 }
 
 export function handlePushCommand(ctx: GameCommandContext): boolean {
-  const pushMatch = ctx.cmd.match(/^git push origin (.+)$/i)
+  // git push / git push origin branch / git push -u origin branch の全パターンを柔軟に解析
+  const pushMatch = ctx.cmd.match(/^git\s+push(?:\s+(-u))?(?:\s+origin\s+([^\s]+))?\s*$/i)
   if (!pushMatch) return false
 
   if (!ctx.activeRamen) {
@@ -118,44 +117,50 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
-  const targetBranch = pushMatch[1].trim()
+  if (!ctx.activeRamen.isCommitted) {
+    ctx.recordMiss(ctx.activeRamen)
+    ctx.setMessage('❌ まだコミットされていません！先に git commit を行ってください')
+    ctx.clearInput()
+    return true
+  }
+
+  const hasUpstreamOption = !!pushMatch[1]
+  let targetBranch = pushMatch[2] ? pushMatch[2].trim() : ''
+
+  // プレイヤーが今物理的にいるレーンのブランチ名を取得
   const currentBranchName = ctx.existingBranches[ctx.activeRamen.currentLane - 1] || 'main'
 
+  // 👇 修正：もしブランチ名が省略されていたら、今いるブランチ(currentBranchName)を自動セット！
+  if (!targetBranch) {
+    targetBranch = currentBranchName
+  }
+
+  // push先と、今いるブランチ（checkout先）が一致しているか厳しくチェック
   if (normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)) {
     ctx.setMessage(`❌ 今いるのは ${currentBranchName} です。${targetBranch} に push するには、先に ${targetBranch} ブランチに移動してください！`)
     ctx.clearInput()
     return true
   }
 
-  const pushedToMainFromOtherLane = false
-  const isCurrentPushStep = ctx.currentStep?.type === 'push' && ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)
+  const targetLaneName = ctx.existingBranches[ctx.activeRamen.targetLane - 1] || 'main'
+  const pushedToMainFromOtherLane = (normalizeCommand(targetBranch) === 'main' && normalizeCommand(targetLaneName) !== 'main')
 
-  if (isCurrentPushStep) {
-    ctx.completeCurrentStep(ctx.activeRamen, {
-      scoreDelta: 0,
-      message: '🚀 push 完了！お客さんのところへ急げーー！！',
-      update: () => ({ speed: ctx.pushSpeed, isPushed: true, pushedToMainFromOtherLane }),
-    })
-    return true
-  }
-
+  // 内部の手順に囚われず、コミットされていれば確実にクリアさせる
   ctx.setRamens(prev => prev.map(r => {
     if (r.id !== ctx.activeRamen?.id) return r
     return {
       ...r,
+      currentStepIndex: r.steps.length,
       speed: ctx.pushSpeed,
       isPushed: true,
       pushedToMainFromOtherLane,
     }
   }))
 
-  if (!ctx.activeRamen.isCommitted) {
-    ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage('💢 トッピングはどうした💢 空のまま push してしまった！')
-  } else {
-    ctx.setMessage('🚀 push を実行！ものすごい勢いで流れていく！')
-  }
-
+  ctx.setMessage(hasUpstreamOption 
+    ? `🚀 [Upstream] push 完了！追跡ブランチを設定しました！`
+    : '🚀 push 完了！お客さんのところへ急げーー！！'
+  )
   ctx.clearInput()
   return true
 }

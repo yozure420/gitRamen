@@ -1,3 +1,4 @@
+import React, { useEffect, useRef } from 'react'
 import type { Command, Ramen } from "../../types/interface"
 
 type GmOrderPanelV2Props = {
@@ -20,7 +21,7 @@ function resolveOrderTitle(ramen: Ramen): string {
 }
 
 function isBranchEvent(ramen: Ramen): boolean {
-  return ramen.command.game_note?.includes('お客さんいらっしゃいました') ?? false
+  return ramen.steps.some(s => s.displayCommand.startsWith('git branch'))
 }
 
 function GmOrderPanelV2({
@@ -32,6 +33,18 @@ function GmOrderPanelV2({
   resumeGame,
   onGoToTitle,
 }: GmOrderPanelV2Props) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // オートスクロール（進捗が変わるたびに下へスクロール）
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }, [ramen?.currentStepIndex, ramen?.isCommitted, ramen?.isPushed])
+
   if (showHelp) {
     const visibleCommands = courseCommands.filter(cmd => cmd.id !== 1 && cmd.id !== 2)
     return (
@@ -76,15 +89,20 @@ function GmOrderPanelV2({
   // 新規来客の時はブランチ名を抽出
   let newBranchName = ""
   if (isBranch) {
-    const branchCommand = ramen.steps[0]?.displayCommand ?? ''
-    newBranchName = branchCommand.replace(/^git branch\s+/i, '').trim() || branchCommand
+    const branchCommand = ramen.steps.find(s => s.displayCommand.startsWith('git branch'))?.displayCommand ?? ''
+    newBranchName = branchCommand.replace(/^git branch\s+/i, '').trim()
   }
+
+  // 👇 プッシュ先を賢く判定（新規来客なら新しい名前、既存ならターゲットのレーン名）
+  const pushBranchName = isBranch ? newBranchName : targetLaneName
+
+  // 万が一、裏側のプログラムが push ステップを作ってしまっていても重複しないように除外する
+  const displaySteps = ramen.steps.filter(step => step.type !== 'push')
 
   return (
     <div className="order-panel">
-      <div className="receipt-slip">
+      <div className="receipt-slip" ref={scrollContainerRef}>
         <div className="receipt-slip-header">
-          {/* ブランチ作成時と通常時でヘッダーの表示を切り替え */}
           {isBranch ? (
             <>
               <span className="receipt-slip-lane">新規来客</span>
@@ -98,16 +116,13 @@ function GmOrderPanelV2({
           )}
         </div>
 
-        {/* 注文のタイトル（〇〇ラーメン〇〇入りおまち！） */}
         <div className="receipt-slip-title">{orderTitle}</div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '4px' }}>
-
-          {/* 1. すべてのコマンド（branch, add, commit, status等）を共通でループ表示！ */}
-          {ramen.steps.map((step, idx) => {
-            const isCompleted = step.type === 'commit'
-              ? ramen.isCommitted
-              : ramen.currentStepIndex > idx;
+          
+          {/* 1. 通常のステップ（status, branch, add, commit等）をループ表示 */}
+          {displaySteps.map((step, idx) => {
+            const isCompleted = step.type === 'commit' ? ramen.isCommitted : ramen.currentStepIndex > idx
 
             return (
               <div key={idx} className={`receipt-slip-command ${isCompleted ? 'receipt-slip-command-completed' : ''}`}>
@@ -117,10 +132,10 @@ function GmOrderPanelV2({
             );
           })}
 
-          {/* 2. 最後に必ず git push origin main を1つだけ表示！ */}
+          {/* 👇 2. 最後に必ず `git push origin 〇〇` を確実に追加表示する！ */}
           <div className={`receipt-slip-command ${ramen.isPushed ? 'receipt-slip-command-completed' : ''}`}>
-            <span style={{ opacity: 0.5, marginRight: '6px' }}>{ramen.steps.length + 1}.</span>
-            git push origin main
+            <span style={{ opacity: 0.5, marginRight: '6px' }}>{displaySteps.length + 1}.</span>
+            git push origin {pushBranchName}
           </div>
 
         </div>
