@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
 import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
-// 👇 修正: 本番用の工場（LaneAware）をインポート
 import { createLaneAwarePullOrderPayload } from '../game/commandLogic/index'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand/index'
 import { createRamenEntry } from '../game/gameEngin/ramenFactory'
@@ -10,9 +9,7 @@ import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
 
-// ここを変更するだけでゲームの時間変えられます^^//
 const GAME_TIME_LIMIT = 3000
-//-----------------------------------------//
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
 const MAX_LANES = 3
@@ -47,9 +44,20 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const [laneCount, setLaneCount] = useState(1)
   const [existingBranches, setExistingBranches] = useState<string[]>(['main'])
 
+  // 👇 追加: プレイヤーの現在のレーン位置（直前の状態）を追跡する内部状態
+  const [currentWorkingLane, setCurrentWorkingLane] = useState(1)
+
   useEffect(() => { laneCountRef.current = laneCount }, [laneCount])
   useEffect(() => { nextRamenIdRef.current = nextRamenId }, [nextRamenId])
   useEffect(() => { ramensRef.current = ramens }, [ramens])
+
+  // activeRamen が変わったら、最新の現在地を記憶しておく
+  const activeRamen = selectActiveRamen(ramens)
+  useEffect(() => {
+    if (activeRamen) {
+      setCurrentWorkingLane(activeRamen.currentLane)
+    }
+  }, [activeRamen?.currentLane])
 
   const laneCountRef = useRef<number>(1)
   const nextRamenIdRef = useRef<number>(1)
@@ -107,18 +115,19 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
 
   const startOrderFromPull = (): string => {
     const selectedCommand = availableCommands[Math.floor(Math.random() * availableCommands.length)]
-      if (!selectedCommand) {
-        return '❌ 注文生成に失敗しました'
-      }
+    if (!selectedCommand) {
+      return '❌ 注文生成に失敗しました'
+    }
       
-    // 👇 修正: 本番用の LaneAware 工場を使用する！
+    // 👇 修正：現在のレーン位置（currentWorkingLane）を工場へ渡す！
     const payload = createLaneAwarePullOrderPayload({
       course: course,
       baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
-      existingBranches: existingBranches
-    })
+      existingBranches: existingBranches,
+      currentLane: currentWorkingLane // 👈 現在地を送信
+    } as any)
 
     const newRamen = createRamenEntry({
       id: nextRamenIdRef.current,
@@ -128,6 +137,9 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       speed: RAMEN_SPEED,
       targetLaneOverride: payload.targetLaneOverride,
     })
+
+    // 👇 修正：どんぶりを main にワープさせず、プレイヤーの「現在の位置」から出現させる！
+    newRamen.currentLane = currentWorkingLane
 
     setRamens(prev => [...prev, newRamen])
     ramensRef.current = [...ramensRef.current, newRamen]
@@ -144,7 +156,8 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       setTimeout(() => setStatusWindow(null), 2600)
     }
 
-    return `📥 注文受付！「${payload.orderText}」 ${newRamen.currentLane}レーンで調理開始`
+    const currentBranchName = existingBranches[currentWorkingLane - 1] || 'main'
+    return `📥 注文受付！「${payload.orderText}」 現在の ${currentBranchName} レーンで調理準備`
   }
 
   const startGame = async () => {
@@ -155,6 +168,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setNextRamenId(1)
     setLaneCount(1)
     setExistingBranches(['main'])
+    setCurrentWorkingLane(1) // ゲーム開始時は main
     setShowLog(false)
     setIsCompactLog(false)
     setIsPaused(false)
@@ -178,7 +192,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
 
       setAvailableCommands(commands)
       setCourseCommands(catalog)
-      setMessage(`🎮 コース ${course} スタート！まずは git pull で注文を受けてください（git log で履歴確認可）`)
+      setMessage(`🎮 コース ${course} スタート！まずは git pull で注文を受けてください`)
     } catch (error) {
       console.error('Failed to load commands:', error)
       setMessage('❌ サーバーに接続できません')
@@ -274,8 +288,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setScore(0)
     setCommandHistory([])
   }
-
-  const activeRamen = getActiveRamen()
 
   return {
     inputCommand,

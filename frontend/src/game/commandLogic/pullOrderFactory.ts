@@ -29,13 +29,27 @@ function createLaneSetupStep(targetLane: number): CommandStep | null {
       logicExample: '例: git log --oneline',
     }),
   }
-
   return setupStepByLane[targetLane]
+}
+
+function createPushStep(branchName: string): CommandStep {
+  return createStep({
+    type: 'push',
+    displayCommand: `git push origin ${branchName}`,
+    logicLabel: '配達完了',
+    logicDescription: '調理したラーメンをプッシュしてお客さんに届ける。',
+  })
 }
 
 export function createPullOrderPayload(course: number, _ramenId: number, baseCommandId: number): PullOrderPayload {
   const { baseRamen, topping, call } = createRamenOrderMeta()
   const orderText = `${baseRamen}、トッピングは${topping}`
+  const workflow = createAddCommitWorkflow({
+    addCommand: `git add ${topping}`,
+    addItem: topping,
+    commitCommand: `git commit -m "${call}"`,
+  })
+  workflow.steps.push(createPushStep('main'))
 
   return {
     command: {
@@ -45,17 +59,16 @@ export function createPullOrderPayload(course: number, _ramenId: number, baseCom
       game_note: orderText,
       course,
     },
-    runtimeLogic: createAddCommitWorkflow({
-      addCommand: `git add ${topping}`,
-      addItem: topping,
-      commitCommand: `git commit -m "${call}"`,
-    }),
+    runtimeLogic: workflow,
     orderText,
   }
 }
 
-export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrderParams): PullOrderPayload {
-  const { course, baseCommandId, laneCount, maxLanes, existingBranches } = params
+// 👇 拡張パラメータの型定義（TSエラー防止）
+type ExtendedParams = CreateLaneAwarePullOrderParams & { currentLane?: number }
+
+export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrderPayload {
+  const { course, baseCommandId, laneCount, maxLanes, existingBranches, currentLane = 1 } = params
 
   // 新規来客（ブランチ作成イベント）
   if (laneCount < maxLanes && Math.random() < LANE_ARRIVAL_PROBABILITY) {
@@ -63,14 +76,14 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
     while (existingBranches.includes(newBranchName)) {
       newBranchName = pickRandomLaneName()
     }
-    const { baseRamen, topping, call } = createRamenOrderMeta() // 👈 何ラーメンかを最初から取得
+    const { baseRamen, topping, call } = createRamenOrderMeta()
     
     return {
       command: {
         id: baseCommandId,
         command: `git branch ${newBranchName}`,
         description: `新規来客レーン ${newBranchName} を開設する注文`,
-        game_note: `${baseRamen}${topping}入りおまち！`, // 👈 ここにラーメン名をセットして画像を安定させる！
+        game_note: `${baseRamen}${topping}入りおまち！`,
         course,
       },
       runtimeLogic: {
@@ -81,7 +94,6 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
             logicLabel: '来客対応',
             logicDescription: '新しいお客さん用レーンを増設する。',
           }),
-          // 👇 ここに git checkout を追加！
           createStep({
             type: 'command',
             displayCommand: `git checkout ${newBranchName}`,
@@ -101,6 +113,7 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
             logicLabel: 'コール',
             logicDescription: '注文内容を確定する。',
           }),
+          createPushStep(newBranchName)
         ],
       },
       orderText: `${newBranchName}レーンご案内！${baseRamen}${topping}入り`,
@@ -116,28 +129,44 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
   const { baseRamen, topping, call } = createRamenOrderMeta()
   const laneOrderText = `${targetBranchName}レーン: ${baseRamen}、トッピングは${topping}`
 
-  const addStep = createStep({
+  const steps: CommandStep[] = []
+
+  // 1. 準備ステップ (git status や git log --oneline)
+  const maybeSetupStep = createLaneSetupStep(targetLane)
+  if (maybeSetupStep) steps.push(maybeSetupStep)
+
+  // 👇 修正：目的地のレーン（targetLane）と、現在プレイヤーがいるレーン（currentLane）が異なる場合のみ checkout 指示を挟む！
+  if (targetLane !== currentLane) {
+    steps.push(createStep({
+      type: 'command',
+      displayCommand: `git checkout ${targetBranchName}`,
+      logicLabel: 'レーン移動',
+      logicDescription: `現在地から ${targetBranchName} レーンに移動する。`,
+    }))
+  }
+
+  // 2. 具材投入・確定・配達
+  steps.push(createStep({
     type: 'add',
     displayCommand: `git add ${topping}`,
     logicLabel: `${targetBranchName}レーン調理`,
     logicDescription: `${targetBranchName}レーン注文の具材「${topping}」を投入。`,
     itemName: topping,
-  })
+  }))
 
-  const commitStep = createStep({
+  steps.push(createStep({
     type: 'commit',
     displayCommand: `git commit -m "${call}"`,
     logicLabel: `${targetBranchName}レーン確定`,
     logicDescription: `${targetBranchName}レーン注文をコミットで確定する。`,
-  })
+  }))
 
-  const maybeSetupStep = createLaneSetupStep(targetLane)
-  const steps = maybeSetupStep ? [maybeSetupStep, addStep, commitStep] : [addStep, commitStep]
+  steps.push(createPushStep(targetBranchName))
 
   return {
     command: {
       id: baseCommandId,
-      command: addStep.displayCommand,
+      command: steps[0].displayCommand,
       description: `${targetBranchName}レーンの注文`,
       game_note: laneOrderText,
       course,

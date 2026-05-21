@@ -1,7 +1,7 @@
 import type { GameCommandContext } from './types'
 
 export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
-  const checkoutBranchMatch = ctx.cmd.match(/^git checkout -b (.+)$/i)
+  const checkoutBranchMatch = ctx.cmd.match(/^git\s+(?:checkout|switch)\s+-b\s+(.+)$/i)
   if (!checkoutBranchMatch) return false
 
   if (!ctx.activeRamen) {
@@ -39,9 +39,14 @@ export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
-  const nextBranches = [...ctx.existingBranches, branchName]
-  const nextLane = nextBranches.length
-  ctx.setExistingBranches(nextBranches)
+  const nextLane = ctx.existingBranches.length + 1
+  
+  // 👇 修正1: 以前の状態を確実に引き継ぎ、mainを先頭に固定して配列を更新する！
+  ctx.setExistingBranches(prev => {
+    // 万が一prevが空だったりmainが無かったりした場合のフェイルセーフ
+    const safePrev = prev.length > 0 && prev[0] === 'main' ? prev : ['main', ...prev.filter(b => b !== 'main')]
+    return [...safePrev, branchName]
+  })
   ctx.setLaneCount(nextLane)
 
   const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
@@ -55,8 +60,11 @@ export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
 }
 
 export function handleSwitchCheckoutCommand(ctx: GameCommandContext): boolean {
-  const switchMatch = ctx.cmd.match(/^git (switch|checkout) (.+)$/i)
+  const switchMatch = ctx.cmd.match(/^git\s+(switch|checkout)\s+(.+)$/i)
   if (!switchMatch) return false
+  
+  // -b オプションは上のハンドラーで処理するので弾く
+  if (switchMatch[2].trim().startsWith('-b')) return false
 
   const branchName = switchMatch[2].trim()
   const targetLane = ctx.getBranchLane(branchName)
@@ -111,7 +119,7 @@ export function handleBranchListCommand(ctx: GameCommandContext): boolean {
 }
 
 export function handleBranchCreateCommand(ctx: GameCommandContext): boolean {
-  const branchMatch = ctx.cmd.match(/^git branch (.+)$/i)
+  const branchMatch = ctx.cmd.match(/^git\s+branch\s+(.+)$/i)
   if (!branchMatch) return false
 
   const branchName = branchMatch[1].trim()
@@ -141,9 +149,13 @@ export function handleBranchCreateCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
-  const nextBranches = [...ctx.existingBranches, branchName]
-  const nextLane = nextBranches.length
-  ctx.setExistingBranches(nextBranches)
+  const nextLane = ctx.existingBranches.length + 1
+  
+  // 👇 修正2: ここも確実にmainを先頭にして配列を更新する！
+  ctx.setExistingBranches(prev => {
+    const safePrev = prev.length > 0 && prev[0] === 'main' ? prev : ['main', ...prev.filter(b => b !== 'main')]
+    return [...safePrev, branchName]
+  })
   ctx.setLaneCount(nextLane)
 
   if (ctx.activeRamen && ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
