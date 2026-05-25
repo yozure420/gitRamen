@@ -137,7 +137,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       targetLaneOverride: payload.targetLaneOverride,
     })
 
-    // 👇 修正ポイント: オブジェクトを確実に展開して上書きすることで、どんぶりを前回の現在地に正しく出現させる！
     const newRamen = {
       ...baseRamen,
       currentLane: currentWorkingLane
@@ -251,13 +250,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const handleSubmit: FormOnSubmit = (e) => {
     e.preventDefault()
 
-    if (!!statusWindow || showLog) {
-      setStatusWindow(null)
-      setShowLog(false)
-      setInputCommand('')
-      return
-    }
-
     const formData = new FormData(e.currentTarget)
     const cmd = ((formData.get('command') as string) ?? '').trim()
     const normalizedCmd = normalizeCommand(cmd)
@@ -290,10 +282,12 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     })
   }
 
+  // 👇 修正ポイント：ここです！入力欄が disabled でも、画面全体で Enter と Esc をキャッチしてパッと閉じるようにしました！
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (statusWindow || showLog) {
+      if (statusWindow || showLog) {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          e.preventDefault() // デフォルトの動作（スクロールなど）を防ぐ
           setStatusWindow(null)
           setShowLog(false)
         }
