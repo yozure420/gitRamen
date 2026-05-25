@@ -75,7 +75,8 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
 }
 
 export function handleCommitCommand(ctx: GameCommandContext): boolean {
-  const commitMatch = ctx.cmd.match(/^git\s+commit\s+-m\s*"([^"]+)"\s*$/i)
+  // 👇 修正1: 中身の文字列の長さを問わないように * に変更し、前後のスペースも許容
+  const commitMatch = ctx.cmd.match(/^git\s+commit\s+-m\s*"([^"]*)"\s*$/i)
   if (!commitMatch) return false
 
   if (!ctx.activeRamen) {
@@ -86,18 +87,16 @@ export function handleCommitCommand(ctx: GameCommandContext): boolean {
 
   if (ctx.rejectOutOfOrder('commit')) return true
 
-  const callText = commitMatch[1]
-  const expectedCmd = ctx.currentStep?.displayCommand ?? ''
-  const expectedMatch = expectedCmd.match(/-m\s*"([^"]+)"/i)
-  const expectedMessage = expectedMatch ? expectedMatch[1] : ''
-
-  if (callText !== expectedMessage) {
+  // 👇 修正2: 「醤油」問題などの文字コードバグで詰まるのを防ぐため、
+  // 今のステップの種類が本当に 'commit' であれば、中身のテキストは問わず無条件で確定成功（クリア）にします！
+  if (ctx.currentStep?.type !== 'commit') {
     ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage(`❌ メッセージが違います。正解は "${expectedMessage}" です`)
+    ctx.setMessage(`❌ 今必要なのは「${ctx.currentStep?.displayCommand ?? ''}」です`)
     ctx.clearInput()
     return true
   }
 
+  const callText = commitMatch[1] || '無言コミット'
   const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
   ctx.completeCurrentStep(ctx.activeRamen, {
     message: nextStep ? `🍜 ${callText} 次: ${nextStep}` : `🍜 ${callText}`,
@@ -107,19 +106,11 @@ export function handleCommitCommand(ctx: GameCommandContext): boolean {
 }
 
 export function handlePushCommand(ctx: GameCommandContext): boolean {
-  // git push / git push origin branch / git push -u origin branch の全パターンを柔軟に解析
   const pushMatch = ctx.cmd.match(/^git\s+push(?:\s+(-u))?(?:\s+origin\s+([^\s]+))?\s*$/i)
   if (!pushMatch) return false
 
   if (!ctx.activeRamen) {
     ctx.setMessage('❌ 配達できるラーメンがありません')
-    ctx.clearInput()
-    return true
-  }
-
-  if (!ctx.activeRamen.isCommitted) {
-    ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage('❌ まだコミットされていません！先に git commit を行ってください')
     ctx.clearInput()
     return true
   }
@@ -130,22 +121,45 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
   // プレイヤーが今物理的にいるレーンのブランチ名を取得
   const currentBranchName = ctx.existingBranches[ctx.activeRamen.currentLane - 1] || 'main'
 
-  // 👇 修正：もしブランチ名が省略されていたら、今いるブランチ(currentBranchName)を自動セット！
   if (!targetBranch) {
     targetBranch = currentBranchName
   }
 
-  // push先と、今いるブランチ（checkout先）が一致しているか厳しくチェック
-  if (normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)) {
-    ctx.setMessage(`❌ 今いるのは ${currentBranchName} です。${targetBranch} に push するには、先に ${targetBranch} ブランチに移動してください！`)
+  const targetLaneName = ctx.existingBranches[ctx.activeRamen.targetLane - 1] || 'main'
+  
+  // 👇 修正3: エラーによるブロックを廃止！ミス条件（未コミット、または現在地と違う宛先へのプッシュ）を判定
+  const isEarlyPush = !ctx.activeRamen.isCommitted
+  const isWrongBranch = normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)
+  
+  // 誤配達フラグ（本来の目的地と違う、または間違った場所に無理やりプッシュした）
+  const pushedToMainFromOtherLane = (normalizeCommand(targetBranch) === 'main' && normalizeCommand(targetLaneName) !== 'main') || isWrongBranch
+
+  if (isEarlyPush || isWrongBranch) {
+    // ミス（ペナルティ）を記録
+    ctx.recordMiss(ctx.activeRamen)
+
+    // 👇 強制射出！エラーで止めず、失敗作としてレーンに流して画面をクリアする
+    ctx.setRamens(prev => prev.map(r => {
+      if (r.id !== ctx.activeRamen?.id) return r
+      return {
+        ...r,
+        currentStepIndex: r.steps.length, // ステップを最後まで進める
+        speed: ctx.pushSpeed,
+        isPushed: true,
+        pushedToMainFromOtherLane,
+      }
+    }))
+
+    if (isEarlyPush) {
+      ctx.setMessage('💥 クレーム発生！！ コミット（調理確定）せずに生煮えのまま push してしまった！')
+    } else {
+      ctx.setMessage(`💥 誤配！！ ${currentBranchName} にいるのに ${targetBranch} ブランチ宛に push してしまった！`)
+    }
     ctx.clearInput()
     return true
   }
 
-  const targetLaneName = ctx.existingBranches[ctx.activeRamen.targetLane - 1] || 'main'
-  const pushedToMainFromOtherLane = (normalizeCommand(targetBranch) === 'main' && normalizeCommand(targetLaneName) !== 'main')
-
-  // 内部の手順に囚われず、コミットされていれば確実にクリアさせる
+  // 👇 すべての条件をクリアしている正規のプッシュ（大成功）
   ctx.setRamens(prev => prev.map(r => {
     if (r.id !== ctx.activeRamen?.id) return r
     return {
@@ -153,7 +167,7 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
       currentStepIndex: r.steps.length,
       speed: ctx.pushSpeed,
       isPushed: true,
-      pushedToMainFromOtherLane,
+      pushedToMainFromOtherLane: false,
     }
   }))
 
