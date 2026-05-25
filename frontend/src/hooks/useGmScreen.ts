@@ -43,15 +43,14 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const [nextRamenId, setNextRamenId] = useState(1)
   const [laneCount, setLaneCount] = useState(1)
   const [existingBranches, setExistingBranches] = useState<string[]>(['main'])
-
-  // 👇 追加: プレイヤーの現在のレーン位置（直前の状態）を追跡する内部状態
   const [currentWorkingLane, setCurrentWorkingLane] = useState(1)
+
+  const isEffectivePaused = isPaused || !!statusWindow || showLog
 
   useEffect(() => { laneCountRef.current = laneCount }, [laneCount])
   useEffect(() => { nextRamenIdRef.current = nextRamenId }, [nextRamenId])
   useEffect(() => { ramensRef.current = ramens }, [ramens])
 
-  // activeRamen が変わったら、最新の現在地を記憶しておく
   const activeRamen = selectActiveRamen(ramens)
   useEffect(() => {
     if (activeRamen) {
@@ -105,6 +104,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const resumeGame = () => {
     setShowLog(false)
     setShowHelp(false)
+    setStatusWindow(null)
     setIsPaused(false)
     setMessage('▶ ゲーム再開！')
   }
@@ -119,17 +119,16 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       return '❌ 注文生成に失敗しました'
     }
       
-    // 👇 修正：現在のレーン位置（currentWorkingLane）を工場へ渡す！
     const payload = createLaneAwarePullOrderPayload({
       course: course,
       baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
       existingBranches: existingBranches,
-      currentLane: currentWorkingLane // 👈 現在地を送信
+      currentLane: currentWorkingLane
     } as any)
 
-    const newRamen = createRamenEntry({
+    const baseRamen = createRamenEntry({
       id: nextRamenIdRef.current,
       command: payload.command,
       steps: payload.runtimeLogic.steps,
@@ -138,8 +137,11 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       targetLaneOverride: payload.targetLaneOverride,
     })
 
-    // 👇 修正：どんぶりを main にワープさせず、プレイヤーの「現在の位置」から出現させる！
-    newRamen.currentLane = currentWorkingLane
+    // 👇 修正ポイント: オブジェクトを確実に展開して上書きすることで、どんぶりを前回の現在地に正しく出現させる！
+    const newRamen = {
+      ...baseRamen,
+      currentLane: currentWorkingLane
+    }
 
     setRamens(prev => [...prev, newRamen])
     ramensRef.current = [...ramensRef.current, newRamen]
@@ -153,7 +155,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
         phaseMessage: payload.orderText,
         details: payload.noticeDetails ?? [],
       })
-      setTimeout(() => setStatusWindow(null), 2600)
     }
 
     const currentBranchName = existingBranches[currentWorkingLane - 1] || 'main'
@@ -168,7 +169,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setNextRamenId(1)
     setLaneCount(1)
     setExistingBranches(['main'])
-    setCurrentWorkingLane(1) // ゲーム開始時は main
+    setCurrentWorkingLane(1)
     setShowLog(false)
     setIsCompactLog(false)
     setIsPaused(false)
@@ -225,7 +226,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   useGameTimer({
     isLoading,
     isGameOver,
-    isPaused,
+    isPaused: isEffectivePaused, 
     setTimeRemaining,
     onTimeout: gameOver,
   })
@@ -233,7 +234,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   useRamenMovement({
     isLoading,
     isGameOver,
-    isPaused,
+    isPaused: isEffectivePaused,
     course,
     soundSettings,
     setRamens,
@@ -249,6 +250,13 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
 
   const handleSubmit: FormOnSubmit = (e) => {
     e.preventDefault()
+
+    if (!!statusWindow || showLog) {
+      setStatusWindow(null)
+      setShowLog(false)
+      setInputCommand('')
+      return
+    }
 
     const formData = new FormData(e.currentTarget)
     const cmd = ((formData.get('command') as string) ?? '').trim()
@@ -281,6 +289,19 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       recordMissByCommandId,
     })
   }
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (statusWindow || showLog) {
+          setStatusWindow(null)
+          setShowLog(false)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [statusWindow, showLog])
 
   const handleLevelChange = (newCourse: number) => {
     if (isLoading) return

@@ -1335,3 +1335,253 @@ body:has(.game-container-v2) {
     display: none;
   }
 }
+/* =========================================
+   ゲーム全体の一時中断（ポーズ）視覚エフェクト
+   ========================================= */
+.game-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(40, 35, 30, 0.6); /* 暖かみのある暗転 */
+  backdrop-filter: blur(4px); /* 背景のゲーム画面をボカして中断感を強調 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeInEffect 0.2s ease-out forwards;
+}
+
+/* モーダルが開いている間、後ろのゲームコンテナの明度を落とす */
+.game-container-v2--paused {
+  filter: brightness(0.8);
+  pointer-events: none;
+}
+
+/* =========================================
+   本物の注文票・伝票風UI (git status)
+   ========================================= */
+.status-slip-box-v2 {
+  background-color: #fefcf3; /* 画像の温かみのあるクリーム色 */
+  border: 1px solid #e1d7c1;
+  border-radius: 4px;
+  padding: 30px 32px 20px 32px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  color: #5c4638; /* 画像通りの焦げ茶色の文字 */
+  font-family: 'Courier New', Courier, monospace, sans-serif;
+  width: 460px;
+  position: relative;
+  animation: scaleUpEffect 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+/* 伝票上部の木製クリップボード風のワンポイント装飾 */
+.slip-clip {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 20px;
+  background: #795548;
+  border-radius: 4px 4px 0 0;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+}
+
+.status-slip-title-v2 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 12px 0;
+  color: #3e2723;
+  letter-spacing: 2px;
+}
+
+.slip-dashed-line {
+  border-top: 2px dashed #d2b48c; /* 画像通りの綺麗に抜ける破線 */
+  margin: 12px 0;
+}
+
+.status-slip-phase-v2 {
+  margin: 16px 0;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  font-weight: bold;
+}
+
+.status-slip-details-v2 {
+  background: rgba(210, 180, 140, 0.15);
+  padding: 14px 18px;
+  border-radius: 6px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #4e342e;
+}
+
+.status-slip-item-v2 {
+  margin: 0;
+}
+
+.slip-footer-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.5;
+  margin: 12px 0 0 0;
+}
+
+/* =========================================
+   リアル長物レシートUI (git log)
+   ========================================= */
+.log-receipt-box-v2 {
+  background-color: #fefcf3; /* レシートの紙の質感 */
+  border: 1px solid #e1d7c1;
+  border-radius: 2px;
+  width: 580px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  color: #4a3b32;
+  font-family: 'Courier New', Courier, monospace, sans-serif;
+  padding: 24px 0 14px 0;
+  position: relative;
+  animation: scaleUpEffect 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+.log-receipt-header-v2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px 14px 30px;
+}
+
+.log-receipt-title-v2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #3e2723;
+  font-weight: bold;
+}
+
+/* 画像通りのバツボタンデザイン */
+.log-receipt-close-v2 {
+  background-color: #b96b52;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.1s, background-color 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.log-receipt-close-v2:hover {
+  background-color: #a05a45;
+  transform: scale(1.05);
+}
+
+.log-receipt-divider-v2 {
+  border-top: 2px dashed #d2b48c; /* レシートの切り取り用ミシン目風破線 */
+  margin: 0 30px;
+}
+
+.log-receipt-body-v2 {
+  padding: 20px 30px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.log-receipt-subtitle-v2 {
+  color: #8c7b70;
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.log-receipt-empty-v2 {
+  color: #8c7b70;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 40px 0;
+}
+
+.log-receipt-list-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --oneline の行表示 */
+.log-receipt-oneline-v2 {
+  display: flex;
+  gap: 20px;
+  font-size: 1.05rem;
+  padding: 4px 0;
+  border-bottom: 1px dotted rgba(210, 180, 140, 0.4);
+}
+.log-hash-v2 {
+  color: #b96b52;
+  font-weight: bold;
+}
+.log-msg-v2 {
+  color: #4a3b32;
+}
+
+/* 通常 log のコミットブロック表示 */
+.log-receipt-full-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(210, 180, 140, 0.5);
+}
+.log-hash-full-v2 {
+  color: #b96b52;
+  font-weight: bold;
+  font-size: 1.05rem;
+}
+.log-date-v2 {
+  color: #8c7b70;
+  font-size: 0.95rem;
+}
+.log-msg-full-v2 {
+  margin-top: 6px;
+  padding-left: 16px;
+}
+.log-msg-summary-v2 {
+  margin: 0 0 6px 0;
+  font-weight: bold;
+  font-size: 1.05rem;
+}
+.log-msg-note-v2 {
+  margin: 0;
+  color: #665a53;
+  font-size: 0.95rem;
+  background: rgba(0,0,0,0.03);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.receipt-footer-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.5;
+  margin: 10px 0 0 0;
+}
+
+/* =========================================
+   アニメーション
+   ========================================= */
+@keyframes fadeInEffect {
+  from { background: rgba(0, 0, 0, 0); backdrop-filter: blur(0px); }
+  to { background: rgba(40, 35, 30, 0.6); backdrop-filter: blur(4px); }
+}
+
+@keyframes scaleUpEffect {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
