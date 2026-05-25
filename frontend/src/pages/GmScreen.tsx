@@ -13,7 +13,6 @@ type GmScreenProps = {
   onGoToTitle: () => void
 }
 
-// 👇 追加: 本物のGit(SHA-1)っぽいリアルなハッシュ値をIDから生成する関数
 const getCommitHash = (id: number, isShort: boolean) => {
   const salts = [
     '3f786850e387550fdab836ed7e6dc881de23001b',
@@ -112,13 +111,11 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
               <p className="log-receipt-empty-v2">履歴はまだありません</p>
             ) : (
               <div className="log-receipt-list-v2">
-                {/* 👇 修正: 配列をリバースして最新を上に。そして gameNote (コミットメッセージ) を表示！ */}
                 {[...orderLogs].reverse().map((log, idx) => (
                   <div key={idx} className="log-receipt-item-v2">
                     {isCompactLog ? (
                       <div className="log-receipt-oneline-v2">
                         <span className="log-hash-v2">{getCommitHash(log.ramenId, true)}</span>
-                        {/* エラーメッセージではなく、実際のコミットメッセージ（コール）を表示 */}
                         <span className="log-msg-v2">{log.gameNote || log.summary}</span>
                       </div>
                     ) : (
@@ -172,6 +169,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         isGameOver={isGameOver}
         soundSettings={soundSettings}
         commandHistory={commandHistory}
+        isDisabledInput={isUiLayerOpen}
       />
     </div>
     </>

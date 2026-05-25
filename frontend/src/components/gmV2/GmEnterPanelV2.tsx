@@ -7,8 +7,8 @@ type GmBottomPanelV2Props = {
   isLoading: boolean
   isGameOver: boolean
   soundSettings: SoundSettings
-  // ↓ ここを追加: 履歴データを受け取る
   commandHistory: CommandHistory[] 
+  isDisabledInput?: boolean // 👇 追加: モーダルが開いているかどうかのフラグ
 }
 
 /** タイプ音を鳴らさないキー */
@@ -22,18 +22,20 @@ function GmBottomPanelV2({
   isLoading,
   isGameOver,
   soundSettings,
-  commandHistory, // 受け取る
+  commandHistory,
+  isDisabledInput = false, // 👇 追加: 初期値はfalse
 }: GmBottomPanelV2Props) {
   const [text, setText] = useState('')
   const [historyIndex, setHistoryIndex] = useState(-1) // 履歴の何番目を見ているか
 
   const inputRef = useRef<HTMLInputElement | null>(null)
   
+  // 👇 修正: モーダルが閉じた（isDisabledInputがfalseになった）瞬間にも、自動で入力欄にフォーカスを戻す親切設計！
   useEffect(() => {
-    if (!isLoading && !isGameOver) {
+    if (!isLoading && !isGameOver && !isDisabledInput) {
       inputRef.current?.focus()
     }
-  }, [isGameOver, isLoading])
+  }, [isGameOver, isLoading, isDisabledInput])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // タイプ音の再生
@@ -90,18 +92,21 @@ function GmBottomPanelV2({
           }}
           onKeyDown={handleKeyDown}
           onBlur={() => {
-            if (!isLoading && !isGameOver) {
+            // 👇 修正: モーダル表示中でない場合のみフォーカスをロックする
+            if (!isLoading && !isGameOver && !isDisabledInput) {
               inputRef.current?.focus()
             }
           }}
           className="command-input"
-          placeholder="注文を捌け！"
+          // 👇 修正: モーダル表示中はプレースホルダーを切り替えてプレイヤーに知らせる
+          placeholder={isDisabledInput ? "確認中... (Enterで戻る)" : "注文を捌け！"}
           inputMode="text"
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
           autoFocus
-          disabled={isLoading || isGameOver}
+          // 👇 修正: isDisabledInput も disabled の条件に追加！
+          disabled={isLoading || isGameOver || isDisabledInput}
           autoComplete="off"
         />
       </div>
