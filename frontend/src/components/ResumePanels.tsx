@@ -1,4 +1,4 @@
-const LEFT_IMAGES = ['/resumes/yushiroResume.png', '/resumes/duckResume.png']
+const LEFT_IMAGES = ['/resumes/yushiroResume.png', '/resumes/duckResume2.png']
 const RIGHT_IMAGES = ['/resumes/taotaoResume.png', '/resumes/yozureResume.png']
 
 function ResumePanel({ images, side }: { images: string[]; side: 'left' | 'right' }) {
