@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
 import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
-import { createPullOrderPayload } from '../game/commandLogic/index'
+// 👇 修正: 本番用の工場（LaneAware）をインポート
+import { createLaneAwarePullOrderPayload } from '../game/commandLogic/index'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand/index'
 import { createRamenEntry } from '../game/gameEngin/ramenFactory'
 import { selectActiveRamen, selectLaneRamens } from '../game/gameEngin/ramenSelectors'
@@ -109,7 +110,16 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       if (!selectedCommand) {
         return '❌ 注文生成に失敗しました'
       }
-    const payload = createPullOrderPayload(course, nextRamenIdRef.current, selectedCommand.id)
+      
+    // 👇 修正: 本番用の LaneAware 工場を使用する！
+    const payload = createLaneAwarePullOrderPayload({
+      course: course,
+      baseCommandId: selectedCommand.id,
+      laneCount: laneCountRef.current,
+      maxLanes: MAX_LANES,
+      existingBranches: existingBranches
+    })
+
     const newRamen = createRamenEntry({
       id: nextRamenIdRef.current,
       command: payload.command,
@@ -132,10 +142,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
         details: payload.noticeDetails ?? [],
       })
       setTimeout(() => setStatusWindow(null), 2600)
-
-
-
-      
     }
 
     return `📥 注文受付！「${payload.orderText}」 ${newRamen.currentLane}レーンで調理開始`

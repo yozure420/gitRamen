@@ -57,19 +57,20 @@ export function createPullOrderPayload(course: number, _ramenId: number, baseCom
 export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrderParams): PullOrderPayload {
   const { course, baseCommandId, laneCount, maxLanes, existingBranches } = params
 
-  // Random customer-arrival event: the required command is branch creation.
+  // 新規来客（ブランチ作成イベント）
   if (laneCount < maxLanes && Math.random() < LANE_ARRIVAL_PROBABILITY) {
     let newBranchName = pickRandomLaneName()
     while (existingBranches.includes(newBranchName)) {
       newBranchName = pickRandomLaneName()
     }
-    const { topping, call } = createRamenOrderMeta()
+    const { baseRamen, topping, call } = createRamenOrderMeta() // 👈 何ラーメンかを最初から取得
+    
     return {
       command: {
         id: baseCommandId,
         command: `git branch ${newBranchName}`,
         description: `新規来客レーン ${newBranchName} を開設する注文`,
-        game_note: NEW_CUSTOMER_NOTICE,
+        game_note: `${baseRamen}${topping}入りおまち！`, // 👈 ここにラーメン名をセットして画像を安定させる！
         course,
       },
       runtimeLogic: {
@@ -79,14 +80,19 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
             displayCommand: `git branch ${newBranchName}`,
             logicLabel: '来客対応',
             logicDescription: '新しいお客さん用レーンを増設する。',
-            logicExample: `例: git branch ${newBranchName}`,
+          }),
+          // 👇 ここに git checkout を追加！
+          createStep({
+            type: 'command',
+            displayCommand: `git checkout ${newBranchName}`,
+            logicLabel: 'レーン移動',
+            logicDescription: '作成した新しいレーンに移動する。',
           }),
           createStep({
             type: 'add',
             displayCommand: `git add ${topping}`,
             logicLabel: '具材投入',
             logicDescription: `具材「${topping}」をステージに載せる。`,
-            logicExample: `例: git add ${topping}`,
             itemName: topping,
           }),
           createStep({
@@ -97,13 +103,14 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
           }),
         ],
       },
-      orderText: NEW_CUSTOMER_NOTICE,
-      noticeTitle: NEW_CUSTOMER_NOTICE,
+      orderText: `${newBranchName}レーンご案内！${baseRamen}${topping}入り`,
+      noticeTitle: '新規来客',
       noticeDetails: [`必要コマンド: git branch ${newBranchName}`],
       targetLaneOverride: 'startLane',
     }
   }
 
+  // 既存レーンの注文
   const targetLane = Math.floor(Math.random() * laneCount) + 1
   const targetBranchName = existingBranches[targetLane - 1] ?? `lane${targetLane}`
   const { baseRamen, topping, call } = createRamenOrderMeta()
@@ -114,7 +121,6 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
     displayCommand: `git add ${topping}`,
     logicLabel: `${targetBranchName}レーン調理`,
     logicDescription: `${targetBranchName}レーン注文の具材「${topping}」を投入。`,
-    logicExample: `例: git add ${topping}`,
     itemName: topping,
   })
 
