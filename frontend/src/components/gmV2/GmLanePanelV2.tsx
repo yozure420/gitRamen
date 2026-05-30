@@ -49,6 +49,7 @@ const keywordToToppingImage: Record<string, string> = {
   'もやし': 'b7.png',
   'メンマ': 'b4.png',
   'ナルト': 'b9.png',
+  'バター': 'b2.png',
 }
 
 function resolveBaseRamenImage(ramen: Ramen): string {
