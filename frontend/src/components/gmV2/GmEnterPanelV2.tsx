@@ -3,7 +3,7 @@ import type { SoundSettings, CommandHistory } from '../../types/interface'
 import { playSound } from '../../lib/Sounds'
 
 type GmBottomPanelV2Props = {
-  handleSubmit: React.SubmitEventHandler<HTMLFormElement>
+  handleSubmit: React.FormEventHandler<HTMLFormElement>
   isLoading: boolean
   isGameOver: boolean
   soundSettings: SoundSettings

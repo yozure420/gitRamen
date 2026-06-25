@@ -53,14 +53,16 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                         </button>
                     </div>
                     <div className="settings-list">
-                        {items.map((item) => (
-                            <div key={item.key} className="settings-row">
+                        {items.map((item) => {
+                            const key = item.key
+                            return (
+                            <div key={key} className="settings-row">
                                 <span className="settings-label">{item.label}</span>
                                 <div className="settings-controls">
-                                    {hasPreview(item.key) && (
+                                    {hasPreview(key) && (
                                         <button
-                                            className={`settings-preview-btn ${playingKey === item.key ? 'settings-preview-btn--playing' : ''}`}
-                                            onClick={() => handlePreview(item.key)}
+                                            className={`settings-preview-btn ${playingKey === key ? 'settings-preview-btn--playing' : ''}`}
+                                            onClick={() => handlePreview(key)}
                                             title="試聴"
                                         >
                                             ▶
@@ -71,15 +73,16 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                                         className="settings-volume-slider"
                                         min={0}
                                         max={100}
-                                        value={soundSettings[item.key]}
-                                        onChange={(e) => handleVolume(item.key, Number(e.target.value))}
+                                        value={soundSettings[key]}
+                                        onChange={(e) => handleVolume(key, Number(e.target.value))}
                                     />
                                     <span className="settings-volume-value">
-                                        {soundSettings[item.key]}
+                                        {soundSettings[key]}
                                     </span>
                                 </div>
                             </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </section>
             </div>
