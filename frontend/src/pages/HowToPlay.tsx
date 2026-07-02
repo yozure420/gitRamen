@@ -1,10 +1,9 @@
 import '../css/HowToPlay.css'
+import { useNavigate } from 'react-router-dom'
 
-interface HowToPlayProps {
-    onBack: () => void
-}
+function HowToPlay() {
+    const navigate = useNavigate()
 
-function HowToPlay({onBack}: HowToPlayProps) {
     return (
         <div className="howto-container">
             <header className="howto-header">
@@ -78,7 +77,7 @@ function HowToPlay({onBack}: HowToPlayProps) {
             </div>
 
             <div className="howto-footer">
-                <button className="howto-back-btn" onClick={onBack}>
+                <button className="howto-back-btn" onClick={() => navigate(-1)}>
                     タイトルに戻る
                 </button>
             </div>

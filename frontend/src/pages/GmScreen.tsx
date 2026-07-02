@@ -1,17 +1,11 @@
 import { useEffect } from 'react'
 import '../css/GmScreen.css'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useGmScreen } from '../hooks/useGmScreen'
 import { GmTopPanelV2, GmLanePanelV2, GmOrderPanelV2, GmBottomPanelV2 } from '../components/gmV2';
 import { ResumePanels } from '../components/ResumePanels'
-import type { SoundSettings } from '../types/interface'
+import { useSoundSettings } from '../context/SoundContext'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
-
-type GmScreenProps = {
-  soundSettings: SoundSettings
-  initialCourse: number
-  onGoToMyPage: () => void
-  onGoToTitle: () => void
-}
 
 const getCommitHash = (id: number, isShort: boolean) => {
   const salts = [
@@ -27,7 +21,12 @@ const getCommitHash = (id: number, isShort: boolean) => {
   return isShort ? full.substring(0, 7) : full;
 };
 
-function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: GmScreenProps) {
+function GmScreen() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { soundSettings } = useSoundSettings()
+  const initialCourse: number = (location.state as { course?: number } | null)?.course ?? 1
+
   const {
     score,
     timeRemaining,
@@ -67,13 +66,13 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
     <>
     <button
       className="title-back-btn"
-      onClick={onGoToTitle}
+      onClick={() => navigate('/')}
     >
       タイトルへ戻る
     </button>
     <ResumePanels />
 
-    {/* 📊 伝票モーダル (git status) */}
+    {/* 伝票モーダル (git status) */}
     {statusWindow && (
       <div className="game-modal-backdrop">
         <div className="status-slip-box-v2">
@@ -92,7 +91,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
       </div>
     )}
 
-    {/* 🧾 レシートモーダル (git log / --oneline) */}
+    {/* レシートモーダル (git log / --oneline) */}
     {showLog && (
       <div className="game-modal-backdrop" onClick={closeLog}>
         <div className="log-receipt-box-v2" onClick={(e) => e.stopPropagation()}>
@@ -103,10 +102,10 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
             <button className="log-receipt-close-v2" onClick={closeLog}>✕</button>
           </div>
           <div className="log-receipt-divider-v2"></div>
-          
+
           <div className="log-receipt-body-v2">
             <div className="log-receipt-subtitle-v2">RAMEN GIT KITCHEN / ORDER HISTORY RECEIPT</div>
-            
+
             {orderLogs.length === 0 ? (
               <p className="log-receipt-empty-v2">履歴はまだありません</p>
             ) : (
@@ -146,7 +145,7 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
             <p className="gameover-score">{score}<span className="gameover-score-unit">点</span></p>
             <div className="gameover-buttons">
               <button className="gameover-btn gameover-btn--retry" onClick={retryGame}>もう一度プレイ</button>
-              <button className="gameover-btn gameover-btn--mypage" onClick={onGoToMyPage}>マイページへ</button>
+              <button className="gameover-btn gameover-btn--mypage" onClick={() => navigate('/mypage')}>マイページへ</button>
             </div>
           </div>
         </div>
@@ -161,7 +160,6 @@ function GmScreen({ soundSettings, initialCourse, onGoToMyPage, onGoToTitle }: G
         courseCommands={courseCommands}
         isPaused={isPaused}
         resumeGame={resumeGame}
-        onGoToTitle={onGoToTitle}
       />
       <GmBottomPanelV2
         handleSubmit={handleSubmit}

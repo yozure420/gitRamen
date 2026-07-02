@@ -1,20 +1,18 @@
 import '../css/GmStart.css'
 import { useState } from 'react'
-
-interface GmStartProps {
-  onStart: (course: number) => void
-}
+import { useNavigate } from 'react-router-dom'
 
 type StartStatus = 'AWAITING_ENTRY' | 'AWAITING_REMOTE'
 
-function GmStart({ onStart }: GmStartProps) {
+function GmStart() {
+  const navigate = useNavigate()
   const [command, setCommand] = useState('')
   const [status, setStatus] = useState<StartStatus>('AWAITING_ENTRY')
   const [message, setMessage] = useState('修行: git clone easy / git clone normal、独立: git init')
 
   const normalize = (input: string) => {
     return input
-      .replace(/\u3000/g, ' ')
+      .replace(/　/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase()
@@ -27,11 +25,10 @@ function GmStart({ onStart }: GmStartProps) {
     if (status === 'AWAITING_ENTRY') {
       if (normalized === 'git clone easy') {
         setMessage('初級で開始します')
-        onStart(1)
+        navigate('/game', { state: { course: 1 } })
         return
       }
 
-      // 👇 修正ポイント: 文字列の先頭に error: を付与して赤文字判定の対象にする
       if (normalized === 'git clone normal') {
         setMessage('error: 中級コースは現在開発中です')
         setCommand('')
@@ -66,7 +63,6 @@ function GmStart({ onStart }: GmStartProps) {
     setCommand('')
   }
 
-  // メッセージが "error:" または "開発中"、"無効なコマンド" を含んでいる場合は赤文字にする
   const isErrorMessage = message.includes('error:') || message.includes('開発中') || message.includes('無効なコマンド')
 
   return (
