@@ -1,26 +1,15 @@
 import { useState } from 'react'
 import '../css/Login.css'
+import { useNavigate } from 'react-router-dom'
 import { loginUser, saveToken } from '../api/auth'
-// ログイン画面が必要とする外部コールバック
-interface LoginProps {
-  /** ログイン成功時に呼ばれる */
-  onLogin: () => void
-  /** 「新規登録はこちら」押下時に呼ばれる */
-  onGoToRegister: () => void
-}
 
-function Login({ onLogin, onGoToRegister }: LoginProps) {
+function Login() {
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  /** API エラーや入力ミス時にフォーム下部に表示するメッセージ */
   const [error, setError] = useState('')
-  /** API 通信中は二重送信を防ぐためボタンを無効化する */
   const [isLoading, setIsLoading] = useState(false)
 
-  /**
-   * フォーム送信ハンドラ。
-   * バックエンドの POST /api/auth/login を呼び、成功時に JWT を保存して遷移する。
-   */
   const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
     setError('')
@@ -34,20 +23,19 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
     try {
       const data = await loginUser(username, password)
       saveToken(data.access_token)
-      onLogin()
+      navigate('/')
     } catch (err) {
-      // バックエンドが返すエラーメッセージ（例: "Invalid name or password"）を表示
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
     } finally {
       setIsLoading(false)
     }
   }
+
   return (
     <div className="login-container">
       <div className="login-box">
         <h1 className="login-title">ログイン</h1>
         <form onSubmit={handleSubmit} className="login-form">
-          {/* ユーザーネーム入力 */}
           <div className="login-field">
             <label htmlFor="login-username" className="login-label">
               ユーザーネーム
@@ -63,7 +51,6 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
               autoComplete="username"
             />
           </div>
-          {/* パスワード入力 */}
           <div className="login-field">
             <label htmlFor="login-password" className="login-label">
               パスワード
@@ -78,16 +65,14 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
               autoComplete="current-password"
             />
           </div>
-          {/* API エラー・入力ミス時のエラーメッセージ */}
           {error && <p className="login-error">{error}</p>}
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? '送信中...' : 'ログイン'}
           </button>
         </form>
-        {/* 新規登録への導線 */}
         <p className="login-footer">
           アカウントをお持ちでない方は{' '}
-          <button type="button" onClick={onGoToRegister} className="login-link-button">
+          <button type="button" onClick={() => navigate('/register')} className="login-link-button">
             新規登録はこちら
           </button>
         </p>
@@ -95,4 +80,5 @@ function Login({ onLogin, onGoToRegister }: LoginProps) {
     </div>
   )
 }
+
 export default Login

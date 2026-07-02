@@ -1,38 +1,21 @@
 import { useState } from 'react'
 import '../css/Registration.css'
+import { useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/auth'
 
-// 新規登録画面が必要とする外部コールバック
-interface RegistrationProps {
-  /** 登録完了時に呼ばれる。呼び出し元でログイン画面へ遷移させる */
-  onRegister: () => void
-  /** 「ログインに戻る」押下時に呼ばれる */
-  onGoToLogin: () => void
-}
-
-function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
+function Registration() {
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  /** API エラーやバリデーションエラー時にフォーム下部に表示するメッセージ */
   const [error, setError] = useState('')
-  /** API 通信中は二重送信を防ぐためボタンを無効化する */
   const [isLoading, setIsLoading] = useState(false)
 
-  /**
-   * パスワード不一致エラーメッセージ。
-   * 確認用パスワードが入力されていて、かつ一致しない場合のみ表示する。
-   * (入力中に早期にエラーを出さないよう、confirmPassword が空のときは非表示)
-   */
   const passwordMismatchError =
     confirmPassword.length > 0 && password !== confirmPassword
       ? 'パスワードが一致しません'
       : ''
 
-  /**
-   * フォーム送信ハンドラ。
-   * バックエンドの POST /api/auth/register を呼び、成功時にログイン画面へ遷移する。
-   */
   const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
     setError('')
@@ -50,7 +33,7 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
     setIsLoading(true)
     try {
       await registerUser(username, password)
-      onRegister()
+      navigate('/login')
     } catch (err) {
       if (err instanceof Error && err.message === 'Name already registered') {
         setError('このユーザーネームは既に使用されています')
@@ -68,7 +51,6 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
         <h1 className="registration-title">新規登録</h1>
 
         <form onSubmit={handleSubmit} className="registration-form">
-          {/* ユーザーネーム入力 */}
           <div className="registration-field">
             <label htmlFor="reg-username" className="registration-label">
               ユーザーネーム
@@ -85,7 +67,6 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
             />
           </div>
 
-          {/* パスワード入力（1回目） */}
           <div className="registration-field">
             <label htmlFor="reg-password" className="registration-label">
               パスワード
@@ -102,7 +83,6 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
             <p className="registration-hint">※ 8文字以上で入力してください</p>
           </div>
 
-          {/* パスワード確認入力（2回目）＋不一致エラー */}
           <div className="registration-field">
             <label htmlFor="reg-confirm-password" className="registration-label">
               パスワード（確認）
@@ -116,13 +96,11 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
               placeholder="password (confirm)"
               autoComplete="new-password"
             />
-            {/* エラーメッセージ: パスワード不一致のときのみ表示 */}
             {passwordMismatchError && (
               <p className="registration-error">{passwordMismatchError}</p>
             )}
           </div>
 
-          {/* API エラー・入力ミス時のエラーメッセージ */}
           {error && <p className="registration-api-error">{error}</p>}
 
           <button type="submit" className="registration-button" disabled={isLoading}>
@@ -130,12 +108,11 @@ function Registration({ onRegister, onGoToLogin }: RegistrationProps) {
           </button>
         </form>
 
-        {/* ログイン画面への導線 */}
         <p className="registration-footer">
           既にアカウントをお持ちの方は{' '}
           <button
             type="button"
-            onClick={onGoToLogin}
+            onClick={() => navigate('/login')}
             className="registration-link-button"
           >
             ログインに戻る

@@ -1,23 +1,21 @@
 import '../css/Settings.css'
 import { previewSound } from '../lib/Sounds'
-import type { SoundSettings } from '../types/interface'
-import { useState } from 'react'
 import { DEFAULT_SOUND } from '../types/interface'
-
-type SettingsProps = {
-    soundSettings: SoundSettings
-    onChangeSoundSettings: (settings: SoundSettings) => void
-    onBack: () => void
-}
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useSoundSettings } from '../context/SoundContext'
+import type { SoundSettings } from '../types/interface'
 
 type PreviewKey = 'se' | 'type' | 'miss'
 const previewKeys: PreviewKey[] = ['se', 'type', 'miss']
 
-function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProps) {
+function Settings() {
+    const navigate = useNavigate()
+    const { soundSettings, setSoundSettings } = useSoundSettings()
     const [playingKey, setPlayingKey] = useState<string | null>(null)
 
     const handleVolume = (key: keyof SoundSettings, value: number) => {
-        onChangeSoundSettings({ ...soundSettings, [key]: value })
+        setSoundSettings({ ...soundSettings, [key]: value })
     }
 
     const handlePreview = (key: PreviewKey) => {
@@ -47,7 +45,7 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                         <h2 className="settings-section-title">サウンド</h2>
                         <button
                             className="settings-reset-btn"
-                            onClick={() => onChangeSoundSettings(DEFAULT_SOUND)}
+                            onClick={() => setSoundSettings(DEFAULT_SOUND)}
                         >
                             初期値に戻す
                         </button>
@@ -60,7 +58,7 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                                     {hasPreview(item.key) && (
                                         <button
                                             className={`settings-preview-btn ${playingKey === item.key ? 'settings-preview-btn--playing' : ''}`}
-                                            onClick={() => handlePreview(item.key)}
+                                            onClick={() => handlePreview(item.key as PreviewKey)}
                                             title="試聴"
                                         >
                                             ▶
@@ -84,7 +82,7 @@ function Settings({ soundSettings, onChangeSoundSettings, onBack }: SettingsProp
                 </section>
             </div>
             <div className="settings-footer">
-                <button className="settings-back-btn" onClick={onBack}>
+                <button className="settings-back-btn" onClick={() => navigate(-1)}>
                     タイトルに戻る
                 </button>
             </div>

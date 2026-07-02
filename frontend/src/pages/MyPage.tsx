@@ -1,15 +1,12 @@
 import '../css/MyPage.css'
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ramenImage from '../assets/ramen/ramen.png'
 import { fetchUserStats } from '../api/history'
 import type { UserStats } from '../api/history'
 
-interface MyPageProps {
-    onCourseSelect: () => void
-    onBackToTitle: () => void
-}
-
-function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
+function MyPage() {
+    const navigate = useNavigate()
     const [hoveredBtn, setHoveredBtn] = useState<string | null>(null)
     const [stats, setStats] = useState<UserStats | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -117,7 +114,7 @@ function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
         <div className="mypage-bottom-nav">
             <button
                 className={`mypage-nav-btn ${hoveredBtn === 'course' ? 'active' : ''}`}
-                onClick={onCourseSelect}
+                onClick={() => navigate('/start')}
                 onMouseEnter={() => setHoveredBtn('course')}
                 onMouseLeave={() => setHoveredBtn(null)}
             >
@@ -125,7 +122,7 @@ function MyPage({ onCourseSelect, onBackToTitle }: MyPageProps) {
             </button>
             <button
                 className={`mypage-nav-btn ${hoveredBtn === 'title' ? 'active' : ''}`}
-                onClick={onBackToTitle}
+                onClick={() => navigate('/')}
                 onMouseEnter={() => setHoveredBtn('title')}
                 onMouseLeave={() => setHoveredBtn(null)}
             >
