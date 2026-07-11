@@ -110,7 +110,6 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       }
     const payload = createLaneAwarePullOrderPayload({
       course,
-      ramenId: nextRamenIdRef.current,
       baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
