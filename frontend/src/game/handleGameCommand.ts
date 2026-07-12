@@ -362,7 +362,11 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       rejectWithMiss('❌ ブランチ名を入力してください')
       return true
     }
-    if (!activeRamen || !isCurrentStepMatch(activeRamen, normalizedCmd)) {
+    if (!activeRamen) {
+      notify('❌ 操作できるラーメンがありません')
+      return true
+    }
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
       rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
       return true
     }
