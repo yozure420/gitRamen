@@ -13,7 +13,7 @@ export interface SoundSettings {
     miss: boolean
 }
 
-export type CommandStepType = 'add' | 'commit' | 'push' | 'command'
+export type CommandStepType = 'add' | 'commit' | 'push' | 'command' | 'stash' | 'stash_pop' | 'reset_soft'
 
 export interface CommandStep {
     id: string
@@ -43,6 +43,7 @@ export interface Ramen {
     stagedItems: string[] // 追加: git addで追加した具材
     isCommitted: boolean // 追加: git commitしたか
     isPushed: boolean // push実行済みか
+    isStashed: boolean // 追加: git stashで退避されているか
     pushedToMainFromOtherLane: boolean // 別レーンから origin main に push したか
     commandsExecuted: number // 実行済みコマンド数
     pushThreshold: number    // pushReadyになるまでのコマンド数（2か3）
