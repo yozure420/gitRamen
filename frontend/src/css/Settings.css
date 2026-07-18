@@ -93,63 +93,76 @@
     color: #fff;
 }
 
-/* Toggle switch */
-.settings-toggle {
-    position: relative;
-    width: 72px;
-    height: 34px;
-    border: none;
-    border-radius: 17px;
+.settings-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(138, 93, 49, 0.25);
+    outline: none;
     cursor: pointer;
-    padding: 0;
-    transition: background 0.25s ease;
-    display: flex;
-    align-items: center;
 }
 
-.settings-toggle.on {
-    background: linear-gradient(135deg, #e8a735, #d4922a);
-}
-
-.settings-toggle.off {
-    background: #c0b8a8;
-}
-
-.settings-toggle-knob {
-    position: absolute;
-    top: 3px;
-    width: 28px;
-    height: 28px;
-    background: #fff;
+.settings-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    transition: left 0.25s ease;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    background: var(--wood-dark, #ba8248);
+    border: 2px solid var(--paper-strong, #fffaf0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
 }
 
-.settings-toggle.on .settings-toggle-knob {
-    left: 41px;
+.settings-volume-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--wood-dark, #ba8248);
+    border: 2px solid var(--paper-strong, #fffaf0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
 }
 
-.settings-toggle.off .settings-toggle-knob {
-    left: 3px;
+.settings-volume-value {
+    min-width: 2rem;
+    text-align: right;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink, #2b241c);
 }
 
-.settings-toggle-text {
-    width: 100%;
-    text-align: center;
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.05em;
+/* セクションヘッダー（タイトルとリセットボタンを横並び） */
+.settings-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+.settings-section-header .settings-section-title {
+    margin: 0;
+}
+
+/* 初期値に戻すボタン */
+.settings-reset-btn {
+    background: transparent;
+    border: 2px solid #e8a735;
+    border-radius: 8px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.72rem;
+    font-family: inherit;
+    font-weight: 600;
+    color: #e8a735;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.settings-reset-btn:hover {
+    background: linear-gradient(135deg, #e8a735, #d4922a);
+    border: 2px solid #d4922a;
     color: #fff;
-    pointer-events: none;
-}
-
-.settings-toggle.on .settings-toggle-text {
-    padding-right: 24px;
-}
-
-.settings-toggle.off .settings-toggle-text {
-    padding-left: 24px;
 }
 
 /* Footer */

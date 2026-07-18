@@ -5,6 +5,9 @@ COMPOSE := docker compose
 up:
 	$(COMPOSE) up -d
 
+dev-up:
+	$(COMPOSE) -f docker-compose.dev.yml up -d
+
 prod-up:
 	$(COMPOSE) --profile prod up -d
 

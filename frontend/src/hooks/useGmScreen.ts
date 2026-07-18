@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
 import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
-import { createLaneAwarePullOrderPayload } from '../game/commandLogic'
-import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand'
-import { createRamenEntry, selectActiveRamen, selectLaneRamens } from '../game/gameEngine'
+import { createLaneAwarePullOrderPayload } from '../game/commandLogic/index'
+import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand/index'
+import { createRamenEntry } from '../game/gameEngin/ramenFactory'
+import { selectActiveRamen, selectLaneRamens } from '../game/gameEngin/ramenSelectors'
 import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
 
-// ここを変更するだけでゲームの時間変えられます^^//
-const GAME_TIME_LIMIT = 120
-//-----------------------------------------//
+const GAME_TIME_LIMIT = 3000
 const RAMEN_SPEED = 0.12
 const PUSH_SPEED = 5.0
 const MAX_LANES = 3
@@ -44,10 +43,20 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const [nextRamenId, setNextRamenId] = useState(1)
   const [laneCount, setLaneCount] = useState(1)
   const [existingBranches, setExistingBranches] = useState<string[]>(['main'])
+  const [currentWorkingLane, setCurrentWorkingLane] = useState(1)
+
+  const isEffectivePaused = isPaused || !!statusWindow || showLog
 
   useEffect(() => { laneCountRef.current = laneCount }, [laneCount])
   useEffect(() => { nextRamenIdRef.current = nextRamenId }, [nextRamenId])
   useEffect(() => { ramensRef.current = ramens }, [ramens])
+
+  const activeRamen = selectActiveRamen(ramens)
+  useEffect(() => {
+    if (activeRamen) {
+      setCurrentWorkingLane(activeRamen.currentLane)
+    }
+  }, [activeRamen?.currentLane])
 
   const laneCountRef = useRef<number>(1)
   const nextRamenIdRef = useRef<number>(1)
@@ -95,6 +104,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const resumeGame = () => {
     setShowLog(false)
     setShowHelp(false)
+    setStatusWindow(null)
     setIsPaused(false)
     setMessage('▶ ゲーム再開！')
   }
@@ -105,17 +115,20 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
 
   const startOrderFromPull = (): string => {
     const selectedCommand = availableCommands[Math.floor(Math.random() * availableCommands.length)]
-      if (!selectedCommand) {
-        return '❌ 注文生成に失敗しました'
-      }
+    if (!selectedCommand) {
+      return '❌ 注文生成に失敗しました'
+    }
+      
     const payload = createLaneAwarePullOrderPayload({
       course,
       baseCommandId: selectedCommand.id,
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
-      existingBranches,
-    })
-    const newRamen = createRamenEntry({
+      existingBranches: existingBranches,
+      currentLane: currentWorkingLane
+    } as any)
+
+    const baseRamen = createRamenEntry({
       id: nextRamenIdRef.current,
       command: payload.command,
       steps: payload.runtimeLogic.steps,
@@ -123,6 +136,11 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       speed: RAMEN_SPEED,
       targetLaneOverride: payload.targetLaneOverride,
     })
+
+    const newRamen = {
+      ...baseRamen,
+      currentLane: currentWorkingLane
+    }
 
     setRamens(prev => [...prev, newRamen])
     ramensRef.current = [...ramensRef.current, newRamen]
@@ -136,10 +154,10 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
         phaseMessage: payload.orderText,
         details: payload.noticeDetails ?? [],
       })
-      setTimeout(() => setStatusWindow(null), 2600)
     }
 
-    return `📥 注文受付！「${payload.orderText}」 ${newRamen.currentLane}レーンで調理開始`
+    const currentBranchName = existingBranches[currentWorkingLane - 1] || 'main'
+    return `📥 注文受付！「${payload.orderText}」 現在の ${currentBranchName} レーンで調理準備`
   }
 
   const startGame = async () => {
@@ -150,6 +168,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     setNextRamenId(1)
     setLaneCount(1)
     setExistingBranches(['main'])
+    setCurrentWorkingLane(1)
     setShowLog(false)
     setIsCompactLog(false)
     setIsPaused(false)
@@ -173,7 +192,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
 
       setAvailableCommands(commands)
       setCourseCommands(catalog)
-      setMessage(`🎮 コース ${course} スタート！まずは git pull で注文を受けてください（git log で履歴確認可）`)
+      setMessage(`🎮 コース ${course} スタート！まずは git pull で注文を受けてください`)
     } catch (error) {
       console.error('Failed to load commands:', error)
       setMessage('❌ サーバーに接続できません')
@@ -206,7 +225,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   useGameTimer({
     isLoading,
     isGameOver,
-    isPaused,
+    isPaused: isEffectivePaused, 
     setTimeRemaining,
     onTimeout: gameOver,
   })
@@ -214,7 +233,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   useRamenMovement({
     isLoading,
     isGameOver,
-    isPaused,
+    isPaused: isEffectivePaused,
     course,
     soundSettings,
     setRamens,
@@ -231,7 +250,8 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const handleSubmit: FormOnSubmit = (e) => {
     e.preventDefault()
 
-    const cmd = inputCommand.trim()
+    const formData = new FormData(e.currentTarget)
+    const cmd = ((formData.get('command') as string) ?? '').trim()
     const normalizedCmd = normalizeCommand(cmd)
     executeGameCommand({
       cmd,
@@ -262,14 +282,27 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     })
   }
 
+  // 👇 修正ポイント：ここです！入力欄が disabled でも、画面全体で Enter と Esc をキャッチしてパッと閉じるようにしました！
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (statusWindow || showLog) {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          e.preventDefault() // デフォルトの動作（スクロールなど）を防ぐ
+          setStatusWindow(null)
+          setShowLog(false)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [statusWindow, showLog])
+
   const handleLevelChange = (newCourse: number) => {
     if (isLoading) return
     setCourse(newCourse)
     setScore(0)
     setCommandHistory([])
   }
-
-  const activeRamen = getActiveRamen()
 
   return {
     inputCommand,
