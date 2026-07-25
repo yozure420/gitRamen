@@ -1,40 +1,37 @@
 import '../css/GmStart.css'
 import { useState } from 'react'
-
-interface GmStartProps {
-  onStart: (course: number) => void
-}
+import { useNavigate } from 'react-router-dom'
 
 type StartStatus = 'AWAITING_ENTRY' | 'AWAITING_REMOTE'
 
-function GmStart({ onStart }: GmStartProps) {
+function GmStart() {
+  const navigate = useNavigate()
   const [command, setCommand] = useState('')
   const [status, setStatus] = useState<StartStatus>('AWAITING_ENTRY')
   const [message, setMessage] = useState('修行: git clone easy / git clone normal、独立: git init')
 
   const normalize = (input: string) => {
     return input
-      .replace(/\u3000/g, ' ')
+      .replace(/　/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase()
   }
+  const normalized = normalize(command)
 
   const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = (e) => {
     e.preventDefault()
 
-    const normalized = normalize(command)
-
     if (status === 'AWAITING_ENTRY') {
       if (normalized === 'git clone easy') {
-        setMessage('🟢 初級で開始します')
-        onStart(1)
+        setMessage('初級で開始します')
+        navigate('/game', { state: { course: 1 } })
         return
       }
 
       if (normalized === 'git clone normal') {
-        setMessage('🔵 中級で開始します')
-        onStart(2)
+        setMessage('error: 中級コースは現在開発中です')
+        setCommand('')
         return
       }
 
@@ -45,26 +42,28 @@ function GmStart({ onStart }: GmStartProps) {
         return
       }
 
-      setMessage('❌ まだそのコマンドは使えません。git clone easy / git clone normal / git init を入力してください')
+      setMessage('無効なコマンドです。git clone easy / git clone normal / git init を入力してください')
       setCommand('')
       return
     }
 
     if (normalized === 'git remote add high') {
-      setMessage('🟠 上級で開始します')
-      onStart(3)
+      setMessage('error: 上級コースは現在開発中です')
+      setCommand('')
       return
     }
 
     if (normalized === 'git remote add god') {
-      setMessage('💀 超上級で開始します')
-      onStart(4)
+      setMessage('error: 超上級コースは現在開発中です')
+      setCommand('')
       return
     }
 
-    setMessage('❌ まだそのコマンドは使えません。git remote add high / git remote add god を入力してください')
+    setMessage('無効なコマンドです。git remote add high / git remote add god を入力してください')
     setCommand('')
   }
+
+  const isErrorMessage = message.includes('error:') || message.includes('開発中') || message.includes('無効なコマンド')
 
   return (
     <div className="gmstart-container">
@@ -72,7 +71,9 @@ function GmStart({ onStart }: GmStartProps) {
         <h1 className="start-message">
           {status === 'AWAITING_ENTRY' ? 'コマンドでルートを選択' : '独立ルート: リモート設定'}
         </h1>
-        <p className="start-submessage">{message}</p>
+        <p className={`start-submessage ${isErrorMessage ? 'start-submessage--error' : ''}`}>
+          {message}
+        </p>
         <form onSubmit={handleSubmit} className="terminal-form">
           <div className="terminal-input-wrapper">
             <span className="terminal-prompt">$</span>

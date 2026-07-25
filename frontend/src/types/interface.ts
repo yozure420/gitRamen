@@ -7,11 +7,13 @@ export interface Command {
 }
 
 export interface SoundSettings {
-    bgm: boolean
-    se: boolean
-    type: boolean
-    miss: boolean
+    bgm: number // 0~100
+    se: number // 0~100
+    type: number // 0~100
+    miss: number // 0~100
 }
+
+export const DEFAULT_SOUND: SoundSettings = { bgm: 50, se: 50, type: 50, miss: 50 }
 
 export type CommandStepType = 'add' | 'commit' | 'push' | 'command'
 

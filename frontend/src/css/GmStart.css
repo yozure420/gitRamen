@@ -198,3 +198,8 @@
     font-size: 1rem;
   }
 }
+/* 開発中・エラーメッセージ用の赤文字スタイル */
+.start-submessage--error {
+    color: #e06c75 !important; /* ターミナル等でよく使われる、視認性の良い赤色 */
+    font-weight: bold;
+}

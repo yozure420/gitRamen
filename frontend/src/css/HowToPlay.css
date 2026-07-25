@@ -9,13 +9,13 @@
 }
 
 .howto-header {
-    padding-left: 32px;
+    padding: 24px 0 16px 32px;
     border-bottom: 2px solid rgba(45, 36, 24, 0.1);
     flex-shrink: 0;
     color: #2d2418;
 }
 
-.howto-title {
+.howto-header h1 {
     margin: 0;
     font-size: 1.8rem;
     font-weight: 900;
@@ -80,13 +80,18 @@
     gap: 10px;
 }
 
+/* 修正ポイント: flex から grid に変更し、コマンドの長さに左右されず位置を完全に揃える */
 .howto-cmd-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 240px 1fr;
     align-items: center;
-    gap: 16px;
     padding: 10px 14px;
     background: rgba(232, 167, 53, 0.08);
     border-radius: 6px;
+}
+
+.howto-cmd-name {
+    flex-shrink: 0;
 }
 
 .howto-cmd {
@@ -94,8 +99,6 @@
     font-size: 0.9rem;
     font-weight: 600;
     color: #b8751e;
-    width: 120px;
-    flex-shrink: 0;
 }
 
 .howto-cmd-desc {

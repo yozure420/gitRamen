@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gitramen_backend
+    volumes:
+      - ./backend:/app
+      - sqlite_data_dev:/app/db
+    restart: always
+    networks:
+      - gitramen-network
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    image: oven/bun:1-alpine
+    container_name: gitramen_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - gitramen-network
+    command: sh -c "bun install && bun run dev"
+
+networks:
+  gitramen-network:
+    driver: bridge
+
+volumes:
+  sqlite_data_dev:
