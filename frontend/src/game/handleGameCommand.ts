@@ -209,7 +209,7 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
   /** git add <具材> … 具材をステージに載せる */
   const handleAdd = (): boolean => {
-    const addMatch = cmd.match(/^git add (.+)$/i)
+    const addMatch = cmd.match(/^git\s+add\s+(.+)$/i)
     if (!addMatch) return false
 
     if (!activeRamen) {
@@ -218,19 +218,23 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     }
     if (rejectOutOfOrder('add')) return true
 
-    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
-      rejectWithMiss(`❌ 今必要なのは「${currentStep?.displayCommand ?? ''}」です`)
-      return true
-    }
-
     const item = addMatch[1].trim()
 
+    // git add . は全マシ全のせ（expectedInputs に依存しないので先に判定）
     if (item === '.') {
       completeCurrentStep(activeRamen, {
         message: appendNextHint('✅ 全マシ全のせ！', activeRamen, ' '),
         update: () => ({ stagedItems: [...availableItems] }),
       })
-    } else if (availableItems.includes(item)) {
+      return true
+    }
+
+    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      rejectWithMiss(`❌ 今必要なのは「${currentStep?.displayCommand ?? ''}」です`)
+      return true
+    }
+
+    if (availableItems.includes(item)) {
       if (activeRamen.stagedItems.includes(item)) {
         notify(`⚠️ ${item}は既に追加されています`)
         return true
@@ -241,13 +245,15 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       })
     } else {
       rejectWithMiss(`❌ ${item}という具材はありません`)
+      return true
     }
     return true
   }
 
   /** git commit -m "..." … 注文内容を確定する */
   const handleCommit = (): boolean => {
-    const commitMatch = cmd.match(/^git commit -m "(.+)"$/i)
+    // 半角 " に加え、全角クォート（\u201C \u201D \uFF02）も許容する
+    const commitMatch = cmd.match(/^git\s+commit\s+-m\s*["\u201C\u201D\uFF02](.+)["\u201C\u201D\uFF02]\s*$/i)
     if (!commitMatch) return false
 
     if (!activeRamen) {
@@ -271,7 +277,8 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
   /** git checkout -b <branch> … 新規レーンを作成して同時に切り替える */
   const handleCheckoutNewBranch = (): boolean => {
-    const match = cmd.match(/^git checkout -b (.+)$/i)
+    // git checkout -b / git switch -b / git switch -c に対応
+    const match = cmd.match(/^git\s+(?:checkout\s+-b|switch\s+(?:-b|-c))\s+(.+)$/i)
     if (!match) return false
 
     if (!activeRamen) {
@@ -281,19 +288,15 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
     const branchName = match[1].trim()
     if (!branchName) {
-      rejectWithMiss('❌ ブランチ名を入力してください')
-      return true
-    }
-    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
-      rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+      notify('❌ ブランチ名を入力してください')
       return true
     }
     if (getBranchLane(branchName) > 0) {
-      rejectWithMiss(`❌ ${branchName} は既に存在します`)
+      notify(`❌ ${branchName} は既に存在します`)
       return true
     }
     if (existingBranches.length >= maxLanes) {
-      rejectWithMiss(`ℹ️ 既に最大レーン数（${maxLanes}）です。既存ブランチへ checkout してください`)
+      notify(`ℹ️ 既に最大レーン数（${maxLanes}）です。既存ブランチへ checkout してください`)
       return true
     }
 
@@ -302,19 +305,32 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setExistingBranches(nextBranches)
     setLaneCount(nextLane)
 
-    completeCurrentStep(activeRamen, {
-      message: appendNextHint(`🆕 ${branchName} を作成して Lane ${nextLane} へ切替`, activeRamen),
-      update: () => ({ currentLane: nextLane }),
-    })
+    // ステップ一致なら進行＋得点、不一致でもブランチ作成＋切替は実行
+    if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      completeCurrentStep(activeRamen, {
+        message: appendNextHint(`🆕 ${branchName} を作成して Lane ${nextLane} へ切替`, activeRamen),
+        update: () => ({ currentLane: nextLane }),
+      })
+    } else {
+      setRamens(prev => prev.map(r => {
+        if (r.id !== activeRamen.id) return r
+        return { ...r, currentLane: nextLane }
+      }))
+      notify(`🆕 ${branchName} を作成して Lane ${nextLane} へ切り替えました`)
+    }
     return true
   }
 
   /** git switch|checkout <branch> … 既存レーンへ切り替える */
   const handleSwitchLane = (): boolean => {
-    const match = cmd.match(/^git (switch|checkout) (.+)$/i)
+    const match = cmd.match(/^git\s+(switch|checkout)\s+(.+)$/i)
     if (!match) return false
 
-    const branchName = match[2].trim()
+    // -b / -c オプションは handleCheckoutNewBranch で処理するので弾く
+    const arg = match[2].trim()
+    if (arg.startsWith('-b') || arg.startsWith('-c')) return false
+
+    const branchName = arg
     const targetLane = getBranchLane(branchName)
 
     if (targetLane <= 0) {
@@ -325,15 +341,20 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
       notify('❌ 移動できるラーメンがありません')
       return true
     }
-    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
-      rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
-      return true
-    }
 
-    completeCurrentStep(activeRamen, {
-      message: appendNextHint(`🔀 ${branchName} (Lane ${targetLane}) へ切替`, activeRamen),
-      update: () => ({ currentLane: targetLane }),
-    })
+    // ステップ一致なら進行＋得点、不一致でもレーン切替は実行
+    if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      completeCurrentStep(activeRamen, {
+        message: appendNextHint(`🔀 ${branchName} (Lane ${targetLane}) へ切替`, activeRamen),
+        update: () => ({ currentLane: targetLane }),
+      })
+    } else {
+      setRamens(prev => prev.map(r => {
+        if (r.id !== activeRamen.id) return r
+        return { ...r, currentLane: targetLane }
+      }))
+      notify(`🔀 ${branchName} (Lane ${targetLane}) へ切り替えました`)
+    }
     return true
   }
 
@@ -354,20 +375,16 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
 
   /** git branch <name> … 新規レーンを開設する（切り替えはしない） */
   const handleCreateBranch = (): boolean => {
-    const match = cmd.match(/^git branch (.+)$/i)
+    const match = cmd.match(/^git\s+branch\s+(.+)$/i)
     if (!match) return false
 
     const branchName = match[1].trim()
     if (!branchName) {
-      rejectWithMiss('❌ ブランチ名を入力してください')
+      notify('❌ ブランチ名を入力してください')
       return true
     }
     if (!activeRamen) {
       notify('❌ 操作できるラーメンがありません')
-      return true
-    }
-    if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
-      rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
       return true
     }
     if (getBranchLane(branchName) > 0) {
@@ -384,9 +401,14 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
     setExistingBranches(nextBranches)
     setLaneCount(nextLane)
 
-    completeCurrentStep(activeRamen, {
-      message: appendNextHint(`🆕 ${branchName} (Lane ${nextLane}) を開設`, activeRamen),
-    })
+    // ステップ一致なら進行＋得点、不一致でもブランチ作成は実行（切替はしない）
+    if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+      completeCurrentStep(activeRamen, {
+        message: appendNextHint(`🆕 ${branchName} (Lane ${nextLane}) を開設`, activeRamen),
+      })
+    } else {
+      notify(`🆕 ${branchName} (Lane ${nextLane}) を開設しました`)
+    }
     return true
   }
 
