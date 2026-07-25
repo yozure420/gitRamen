@@ -1,7 +1,9 @@
 import type { GameCommandContext } from './types'
+import { normalizeCommand } from './helpers'
 
 export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
-  const checkoutBranchMatch = ctx.cmd.match(/^git\s+(?:checkout|switch)\s+-b\s+(.+)$/i)
+  // checkout -b / switch -b / switch -c を受け付ける（#37）
+  const checkoutBranchMatch = ctx.cmd.match(/^git\s+(?:checkout\s+-b|switch\s+(?:-b|-c))\s+(.+)$/i)
   if (!checkoutBranchMatch) return false
 
   if (!ctx.activeRamen) {
@@ -18,12 +20,12 @@ export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
-  if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
-    ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage(`❌ 今は「${ctx.currentStep?.displayCommand ?? ''}」の番です`)
-    ctx.clearInput()
-    return true
-  }
+  // if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
+  //   ctx.recordMiss(ctx.activeRamen)
+  //   ctx.setMessage(`❌ 今は「${ctx.currentStep?.displayCommand ?? ''}」の番です`)
+  //   ctx.clearInput()
+  //   return true
+  // }
 
   if (ctx.getBranchLane(branchName) > 0) {
     ctx.recordMiss(ctx.activeRamen)
@@ -40,7 +42,7 @@ export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
   }
 
   const nextLane = ctx.existingBranches.length + 1
-  
+
   // 👇 修正1: 以前の状態を確実に引き継ぎ、mainを先頭に固定して配列を更新する！
   ctx.setExistingBranches(prev => {
     // 万が一prevが空だったりmainが無かったりした場合のフェイルセーフ
@@ -49,6 +51,13 @@ export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
   })
   ctx.setLaneCount(nextLane)
 
+  // 表記（checkout -b / switch -c）が違っても、ブランチ名が一致していれば同じ操作なので正解扱い
+  const stepCreateMatch = ctx.currentStep?.displayCommand.match(/^git\s+(?:checkout\s+-b|switch\s+(?:-b|-c))\s+(.+)$/i)
+  const matchesStep =
+    ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd) ||
+    (!!stepCreateMatch && normalizeCommand(stepCreateMatch[1].trim()) === normalizeCommand(branchName))
+
+  if (matchesStep) {
   const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
   ctx.completeCurrentStep(ctx.activeRamen, {
     message: nextStep
@@ -57,16 +66,23 @@ export function handleCheckoutCreateCommand(ctx: GameCommandContext): boolean {
     update: () => ({ currentLane: nextLane }),
   })
   return true
+  }
+
+  // ステップ対象外でも作成＋切替は成功させる（ステップは進めない・ミスなし）
+  ctx.applyLaneSwitchWithoutStepAdvance(ctx.activeRamen, nextLane)
+  ctx.setMessage(`🆕 ${branchName} を作成して Lane ${nextLane} へ切り替えました`)
+  ctx.clearInput()
+  return true
 }
 
 export function handleSwitchCheckoutCommand(ctx: GameCommandContext): boolean {
   const switchMatch = ctx.cmd.match(/^git\s+(switch|checkout)\s+(.+)$/i)
   if (!switchMatch) return false
-  
-  // -b オプションは上のハンドラーで処理するので弾く
-  if (switchMatch[2].trim().startsWith('-b')) return false
 
+  // -b オプションは上のハンドラーで処理するので弾く
   const branchName = switchMatch[2].trim()
+  if (branchName.startsWith('-b') || branchName.startsWith('-c')) return false
+
   const targetLane = ctx.getBranchLane(branchName)
 
   if (targetLane <= 0) {
@@ -130,14 +146,22 @@ export function handleBranchCreateCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
-  if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
-    ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage(`❌ 今は「${ctx.currentStep?.displayCommand ?? ''}」の番です`)
-    ctx.clearInput()
-    return true
-  }
+  // if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
+  //   ctx.recordMiss(ctx.activeRamen)
+  //   ctx.setMessage(`❌ 今は「${ctx.currentStep?.displayCommand ?? ''}」の番です`)
+  //   ctx.clearInput()
+  //   return true
+  // }
 
   if (ctx.getBranchLane(branchName) > 0) {
+    // 詰み防止: switch -c 等で先に作成済みでも、ステップがこのブランチの作成なら完了扱い
+    if (ctx.activeRamen && ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
+      const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
+      ctx.completeCurrentStep(ctx.activeRamen, {
+        message: nextStep ? `🌿 ${branchName} は作成済み。次: ${nextStep}` : `🌿 ${branchName} は作成済み`,
+      })
+      return true
+    }
     ctx.setMessage(`ℹ️ ${branchName} は既に存在します`)
     ctx.clearInput()
     return true
@@ -150,7 +174,7 @@ export function handleBranchCreateCommand(ctx: GameCommandContext): boolean {
   }
 
   const nextLane = ctx.existingBranches.length + 1
-  
+
   // 👇 修正2: ここも確実にmainを先頭にして配列を更新する！
   ctx.setExistingBranches(prev => {
     const safePrev = prev.length > 0 && prev[0] === 'main' ? prev : ['main', ...prev.filter(b => b !== 'main')]
