@@ -1,6 +1,6 @@
 import type { CommandStep } from '../../types/interface'
 import { pickRandomBaseRamen, pickRandomLaneName, pickRandomTopping } from './randomCatalog'
-import { LANE_ARRIVAL_PROBABILITY, NEW_CUSTOMER_NOTICE, NEW_ORDER_NOTICE } from './constants'
+import { LANE_ARRIVAL_PROBABILITY, NEW_ORDER_NOTICE } from './constants'
 import { createAddCommitWorkflow, createStep } from './stepFactory'
 import type { CreateLaneAwarePullOrderParams, PullOrderPayload } from './types'
 
