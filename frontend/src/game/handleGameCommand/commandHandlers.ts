@@ -39,12 +39,12 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
   const item = addMatch[1].trim()
   const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
 
-  if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
-    ctx.recordMiss(ctx.activeRamen)
-    ctx.setMessage(`❌ 今必要なのは「${ctx.currentStep?.displayCommand ?? ''}」です`)
-    ctx.clearInput()
-    return true
-  }
+  // if (!ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
+  //   ctx.recordMiss(ctx.activeRamen)
+  //   ctx.setMessage(`❌ 今必要なのは「${ctx.currentStep?.displayCommand ?? ''}」です`)
+  //   ctx.clearInput()
+  //   return true
+  // }
 
   if (item === '.') {
     ctx.completeCurrentStep(ctx.activeRamen, {
@@ -76,7 +76,7 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
 
 export function handleCommitCommand(ctx: GameCommandContext): boolean {
   // 👇 修正1: 中身の文字列の長さを問わないように * に変更し、前後のスペースも許容
-  const commitMatch = ctx.cmd.match(/^git\s+commit\s+-m\s*"([^"]*)"\s*$/i)
+  const commitMatch = ctx.cmd.match(/^git\s+commit\s+-m\s*["“”＂]([^"“”＂]*)["“”＂]\s*$/i)
   if (!commitMatch) return false
 
   if (!ctx.activeRamen) {
@@ -126,11 +126,11 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
   }
 
   const targetLaneName = ctx.existingBranches[ctx.activeRamen.targetLane - 1] || 'main'
-  
+
   // 👇 修正3: エラーによるブロックを廃止！ミス条件（未コミット、または現在地と違う宛先へのプッシュ）を判定
   const isEarlyPush = !ctx.activeRamen.isCommitted
   const isWrongBranch = normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)
-  
+
   // 誤配達フラグ（本来の目的地と違う、または間違った場所に無理やりプッシュした）
   const pushedToMainFromOtherLane = (normalizeCommand(targetBranch) === 'main' && normalizeCommand(targetLaneName) !== 'main') || isWrongBranch
 
@@ -171,7 +171,7 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
     }
   }))
 
-  ctx.setMessage(hasUpstreamOption 
+  ctx.setMessage(hasUpstreamOption
     ? `🚀 [Upstream] push 完了！追跡ブランチを設定しました！`
     : '🚀 push 完了！お客さんのところへ急げーー！！'
   )

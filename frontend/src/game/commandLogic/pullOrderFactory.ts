@@ -1,6 +1,6 @@
 import type { CommandStep } from '../../types/interface'
 import { pickRandomBaseRamen, pickRandomLaneName, pickRandomTopping } from './randomCatalog'
-import { LANE_ARRIVAL_PROBABILITY, NEW_CUSTOMER_NOTICE, NEW_ORDER_NOTICE } from './constants'
+import { LANE_ARRIVAL_PROBABILITY, NEW_ORDER_NOTICE } from './constants'
 import { createAddCommitWorkflow, createStep } from './stepFactory'
 import type { CreateLaneAwarePullOrderParams, PullOrderPayload } from './types'
 
@@ -77,7 +77,7 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
       newBranchName = pickRandomLaneName()
     }
     const { baseRamen, topping, call } = createRamenOrderMeta()
-    
+
     return {
       command: {
         id: baseCommandId,
@@ -97,6 +97,7 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
           createStep({
             type: 'command',
             displayCommand: `git checkout ${newBranchName}`,
+            expectedInputs: [`git checkout ${newBranchName}`, `git switch ${newBranchName}`],
             logicLabel: 'レーン移動',
             logicDescription: '作成した新しいレーンに移動する。',
           }),
@@ -140,6 +141,7 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
     steps.push(createStep({
       type: 'command',
       displayCommand: `git checkout ${targetBranchName}`,
+      expectedInputs: [`git checkout ${targetBranchName}`, `git switch ${targetBranchName}`],
       logicLabel: 'レーン移動',
       logicDescription: `現在地から ${targetBranchName} レーンに移動する。`,
     }))

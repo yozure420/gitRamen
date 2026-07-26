@@ -1,0 +1,1124 @@
+diff --git a/frontend/src/game/commandLogic.ts b/frontend/src/game/commandLogic.ts
+index 2ce497c..99c8486 100644
+--- a/frontend/src/game/commandLogic.ts
++++ b/frontend/src/game/commandLogic.ts
+@@ -13,16 +13,9 @@ export type PullOrderPayload = {
+   targetLaneOverride?: number | 'startLane'
+ }
+ 
+-type CommandLogicRule = {
+-  commandMatcher: RegExp
+-  buildRuntimeLogic: (command: Command) => RuntimeCommandLogic
+-}
+-
+ const TOPPING_OPTIONS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト'] as const
+ const BASE_RAMEN_OPTIONS = ['味噌ラーメン', '醤油ラーメン', '豚骨ラーメン', '家系ラーメン', '台湾ラーメン'] as const
+-const CALL_OPTIONS = ['味噌ラーメン特盛りおまち！', '醤油ラーメン全部のせおまち！', '豚骨ラーメン硬め濃いめおまち！'] as const
+ const LANE_NAME_OPTIONS = ['akamaru', 'kiwami', 'sapporo', 'iekei'] as const
+-const LANE_SWITCH_OPTIONS = ['lane1', 'lane2', 'lane3'] as const
+ 
+ const pickRandomTopping = (): string => {
+   const index = Math.floor(Math.random() * TOPPING_OPTIONS.length)
+@@ -34,24 +27,12 @@ const pickRandomBaseRamen = (): string => {
+   return BASE_RAMEN_OPTIONS[index]
+ }
+ 
+-const pickRandomCall = (): string => {
+-  const index = Math.floor(Math.random() * CALL_OPTIONS.length)
+-  return CALL_OPTIONS[index]
+-}
+-
+ const pickRandomLaneName = (): string => {
+   const suffix = Math.floor(Math.random() * 90) + 10
+   const index = Math.floor(Math.random() * LANE_NAME_OPTIONS.length)
+   return `${LANE_NAME_OPTIONS[index]}-${suffix}`
+ }
+ 
+-const pickRandomLaneSwitch = (): string => {
+-  const index = Math.floor(Math.random() * LANE_SWITCH_OPTIONS.length)
+-  return LANE_SWITCH_OPTIONS[index]
+-}
+-
+-const createCheckoutLaneCommand = (lane: string): string => `git checkout ${lane}`
+-
+ const createStep = (params: {
+   type: CommandStepType
+   displayCommand: string
+@@ -83,236 +64,8 @@ const createStep = (params: {
+   }
+ }
+ 
+-const createAddCommitWorkflow = (params: {
+-  addCommand: string
+-  addItem?: string
+-  commitCommand: string
+-}): RuntimeCommandLogic => {
+-  const { addCommand, addItem, commitCommand } = params
+-
+-  return {
+-    steps: [
+-      createStep({
+-        type: 'add',
+-        displayCommand: addCommand,
+-        logicLabel: '具材投入',
+-        logicDescription: 'まず git add で具材をステージに載せる。',
+-        logicExample: `例: ${addCommand}`,
+-        itemName: addItem,
+-      }),
+-      createStep({
+-        type: 'commit',
+-        displayCommand: commitCommand,
+-        logicLabel: 'コール',
+-        logicDescription: '次に git commit で注文内容を確定する。',
+-      }),
+-    ],
+-  }
+-}
+-
+-const createSetupThenStandardWorkflow = (params: {
+-  setupCommand: string
+-  setupLabel: string
+-  setupDescription: string
+-  setupExample?: string
+-}): RuntimeCommandLogic => {
+-  const { setupCommand, setupLabel, setupDescription, setupExample } = params
+-
+-  return {
+-    steps: [
+-      createStep({
+-        type: 'command',
+-        displayCommand: setupCommand,
+-        logicLabel: setupLabel,
+-        logicDescription: setupDescription,
+-        logicExample: setupExample ?? `例: ${setupCommand}`,
+-      }),
+-      createStep({
+-        type: 'add',
+-        displayCommand: 'git add .',
+-        logicLabel: '変更をステージング',
+-        logicDescription: '準備後の変更をまとめてステージングする。',
+-        logicExample: '例: git add .',
+-      }),
+-      createStep({
+-        type: 'commit',
+-        displayCommand: 'git commit -m "変更を記録"',
+-        logicLabel: 'コミット',
+-        logicDescription: '変更をコミットして履歴に残す。',
+-      }),
+-    ],
+-  }
+-}
+-
+-const commandLogicRules: CommandLogicRule[] = [
+-  {
+-    // git add 系は add -> commit のセットフローへ変換する
+-    commandMatcher: /^git add(?: <file>| .+)$/i,
+-    buildRuntimeLogic: () => {
+-      const topping = pickRandomTopping()
+-      const displayCommand = `git add ${topping}`
+-      const call = pickRandomCall()
+-      return createAddCommitWorkflow({
+-        addCommand: displayCommand,
+-        addItem: topping,
+-        commitCommand: `git commit -m "${call}"`,
+-      })
+-    },
+-  },
+-  {
+-    // git commit 系も add -> commit のセットフローへ変換する
+-    commandMatcher: /^git commit -m ".+"$/i,
+-    buildRuntimeLogic: () => {
+-      const topping = pickRandomTopping()
+-      const call = pickRandomCall()
+-      return createAddCommitWorkflow({
+-        addCommand: `git add ${topping}`,
+-        addItem: topping,
+-        commitCommand: `git commit -m "${call}"`,
+-      })
+-    },
+-  },
+-  {
+-    // push は単独注文として扱う
+-    commandMatcher: /^git push origin main$/i,
+-    buildRuntimeLogic: () => {
+-      return {
+-        steps: [createStep({
+-          type: 'push',
+-          displayCommand: 'git push origin main',
+-          logicLabel: '配膳',
+-          logicDescription: 'git push でお客さんへ届ける。',
+-        })],
+-      }
+-    },
+-  },
+-  {
+-    // git status は厨房状態の確認コマンド
+-    commandMatcher: /^git status$/i,
+-    buildRuntimeLogic: () => {
+-      return {
+-        steps: [createStep({
+-          type: 'command',
+-          displayCommand: 'git status',
+-          logicLabel: '厨房状況確認',
+-          logicDescription: '現在の調理状況を確認する。',
+-        })],
+-      }
+-    },
+-  },
+-  {
+-    // git branch（一覧表示）後に add -> commit -> push へ連鎖
+-    commandMatcher: /^git branch$/i,
+-    buildRuntimeLogic: () => {
+-      return createSetupThenStandardWorkflow({
+-        setupCommand: 'git branch',
+-        setupLabel: 'レーン一覧確認',
+-        setupDescription: '現在のレーン一覧を確認する。',
+-      })
+-    },
+-  },
+-  {
+-    // git branch <name> を具体名に差し替える
+-    commandMatcher: /^git branch <.+>$/i,
+-    buildRuntimeLogic: () => {
+-      const laneName = pickRandomLaneName()
+-      const displayCommand = `git branch ${laneName}`
+-      return createSetupThenStandardWorkflow({
+-        setupCommand: displayCommand,
+-        setupLabel: '新規レーン作成',
+-        setupDescription: `新規レーン「${laneName}」を作成する。`,
+-        setupExample: `例: ${displayCommand}`,
+-      })
+-    },
+-  },
+-  {
+-    // git checkout <branch> を lane 切替コマンドへ変換する
+-    commandMatcher: /^git checkout <branch>$/i,
+-    buildRuntimeLogic: () => {
+-      const lane = pickRandomLaneSwitch()
+-      const displayCommand = createCheckoutLaneCommand(lane)
+-      return createSetupThenStandardWorkflow({
+-        setupCommand: displayCommand,
+-        setupLabel: 'レーン切替',
+-        setupDescription: `指定レーン「${lane}」へ切り替える。`,
+-        setupExample: `例: ${displayCommand}`,
+-      })
+-    },
+-  },
+-  {
+-    // git log 系も確認後に add -> commit -> push へ連鎖
+-    commandMatcher: /^git log(?: --oneline)?$/i,
+-    buildRuntimeLogic: (command) => {
+-      const compact = /--oneline/i.test(command.command)
+-      return createSetupThenStandardWorkflow({
+-        setupCommand: compact ? 'git log --oneline' : 'git log',
+-        setupLabel: compact ? 'レシート簡易表示' : 'レシート表示',
+-        setupDescription: compact ? 'レシートを1行表示で確認する。' : 'レシート詳細を確認する。',
+-      })
+-    },
+-  },
+-  {
+-    // git checkout -b <branch> を具体名に差し替える
+-    commandMatcher: /^git checkout -b <branch>$/i,
+-    buildRuntimeLogic: () => {
+-      const laneName = pickRandomLaneName()
+-      const displayCommand = `git checkout -b ${laneName}`
+-      return {
+-        steps: [createStep({
+-          type: 'command',
+-          displayCommand,
+-          logicLabel: '作成して切替',
+-          logicDescription: `新規レーン「${laneName}」を作り、そのまま切り替える。`,
+-          logicExample: `例: ${displayCommand}`,
+-        })],
+-      }
+-    },
+-  },
+-]
+-
+-export function resolveRuntimeCommandLogic(command: Command): RuntimeCommandLogic {
+-  const matchedRule = commandLogicRules.find(rule => rule.commandMatcher.test(command.command))
+-  if (matchedRule) {
+-    return matchedRule.buildRuntimeLogic(command)
+-  }
+-
+-  return {
+-    steps: [createStep({
+-      type: 'command',
+-      displayCommand: command.command,
+-      logicLabel: '通常コマンド',
+-      logicDescription: '表示されたコマンドをそのまま入力。',
+-    })],
+-  }
+-}
+-
+-export function createPullOrderPayload(course: number, _ramenId: number, baseCommandId: number): PullOrderPayload {
+-  const baseRamen = pickRandomBaseRamen()
+-  const topping = pickRandomTopping()
+-  const orderText = `${baseRamen}、トッピングは${topping}`
+-  const call = `${baseRamen}${topping}入りおまち！`
+-
+-  return {
+-    command: {
+-      // id: -ramenId,
+-      id: baseCommandId,
+-      command: `git add ${topping}`,
+-      description: `${baseRamen}に${topping}を追加する注文`,
+-      game_note: orderText,
+-      course,
+-    },
+-    runtimeLogic: createAddCommitWorkflow({
+-      addCommand: `git add ${topping}`,
+-      addItem: topping,
+-      commitCommand: `git commit -m "${call}"`,
+-    }),
+-    orderText,
+-  }
+-}
+-
+ export function createLaneAwarePullOrderPayload(params: {
+   course: number
+-  ramenId: number
+   baseCommandId: number
+   laneCount: number
+   maxLanes: number
+@@ -325,7 +78,6 @@ export function createLaneAwarePullOrderPayload(params: {
+     const newBranchName = pickRandomLaneName()
+     return {
+       command: {
+-        // id: -ramenId,
+         id: baseCommandId,
+         command: `git branch ${newBranchName}`,
+         description: `新規来客レーン ${newBranchName} を開設する注文`,
+diff --git a/frontend/src/game/gameEngine.ts b/frontend/src/game/gameEngine.ts
+index c7d1cc5..4340081 100644
+--- a/frontend/src/game/gameEngine.ts
++++ b/frontend/src/game/gameEngine.ts
+@@ -182,6 +182,7 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
+     stagedItems: [],
+     isCommitted: false,
+     isPushed: false,
++    isStashed: false,
+     pushedToMainFromOtherLane: false,
+     commandsExecuted: 0,
+     pushThreshold: steps.length,
+diff --git a/frontend/src/game/handleGameCommand.ts b/frontend/src/game/handleGameCommand.ts
+index 411df8f..907121c 100644
+--- a/frontend/src/game/handleGameCommand.ts
++++ b/frontend/src/game/handleGameCommand.ts
+@@ -4,7 +4,7 @@ import { advanceWorkflow, getCurrentCommandStep } from './gameEngine'
+ 
+ export function normalizeCommand(input: string): string {
+   return input
+-    .replace(/\u3000/g, ' ')
++    .replace(/\u3000/g, ' ') // 全角スペースを半角に
+     .replace(/\s+/g, ' ')
+     .trim()
+     .toLowerCase()
+@@ -38,6 +38,15 @@ type ExecuteGameCommandParams = {
+   recordMissByCommandId: (commandId: number) => void
+ }
+ 
++/**
++ * プレイヤーが入力した1コマンドを処理するエントリポイント。
++ *
++ * 構成:
++ *   1. 共有ヘルパー   … どのハンドラからも使う小さな関数群
++ *   2. コマンドハンドラ … コマンド種別ごとの処理（`handleXxx`）。処理したら true を返す
++ *   3. ディスパッチ    … ハンドラを「判定順」に呼び出す。※順序に依存するので変更注意
++ *   4. フォールバック   … どのハンドラにも当てはまらなかった場合
++ */
+ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+   const {
+     cmd,
+@@ -74,28 +83,26 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+   const activeRamen = getActiveRamen()
+   const currentStep = activeRamen ? getCurrentCommandStep(activeRamen) : null
+ 
+-  if (normalizedCmd === 'git pull') {
+-    if (activeRamen) {
+-      setMessage('⚠️ 既に調理中の注文があります。先にこの一杯を届けてください')
+-      setInputCommand('')
+-      return
+-    }
+-
+-    const pullMessage = onPullOrder()
+-    setMessage(pullMessage)
+-    setInputCommand('')
+-    return
+-  }
++  // ===== 1. 共有ヘルパー =====================================================
+ 
++  /** 入力が、対象ラーメンの「今やるべきステップ」に一致するか */
+   const isCurrentStepMatch = (ramen: Ramen | null, input: string): boolean => {
+     const step = ramen ? getCurrentCommandStep(ramen) : null
+     return step?.expectedInputs.some(expected => normalizeCommand(expected) === input) ?? false
+   }
+ 
++  /** 次のステップの表示コマンド（無ければ null） */
+   const getNextStepCommand = (ramen: Ramen): string | null => {
+     return ramen.steps[ramen.currentStepIndex + 1]?.displayCommand ?? null
+   }
+ 
++  /** メッセージ末尾に「次: <コマンド>」を付ける（次が無ければそのまま） */
++  const appendNextHint = (baseMessage: string, ramen: Ramen, connector = '。'): string => {
++    const nextStep = getNextStepCommand(ramen)
++    return nextStep ? `${baseMessage}${connector}次: ${nextStep}` : baseMessage
++  }
++
++  /** ブランチ名（または laneN エイリアス）から対応するレーン番号を引く（無ければ -1） */
+   const getBranchLane = (branchName: string): number => {
+     const laneAliasMatch = normalizeCommand(branchName).match(/^lane([1-9]\d*)$/)
+     if (laneAliasMatch) {
+@@ -109,19 +116,20 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+     return branchIndex >= 0 ? branchIndex + 1 : -1
+   }
+ 
++  /** 「main(Lane 1), akamaru-42(Lane 2)」のようなレーン一覧テキスト */
+   const toBranchListText = (): string => {
+     return existingBranches
+       .map((branch, index) => `${branch}(Lane ${index + 1})`)
+       .join(', ')
+   }
+ 
+-  const applyLaneSwitchWithoutStepAdvance = (ramen: Ramen, lane: number) => {
+-    setRamens(prev => prev.map((current) => {
+-      if (current.id !== ramen.id) return current
+-      return { ...current, currentLane: lane }
+-    }))
++  /** ミス数をコマンドID単位で記録する（省略時は対象ラーメンに対して） */
++  const recordMiss = (ramen: Ramen | null = activeRamen) => {
++    if (!ramen?.command?.id) return
++    recordMissByCommandId(ramen.command.id)
+   }
+ 
++  /** 対象ラーメンのステップを1つ進めてスコア加算・メッセージ表示までまとめて行う */
+   const completeCurrentStep = (ramen: Ramen, options?: {
+     scoreDelta?: number
+     message: string
+@@ -135,161 +143,158 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+ 
+     setRamens(prev => prev.map(current => {
+       if (current.id !== ramen.id) return current
+-      const nextState = advanceWorkflow(current, {
++      return advanceWorkflow(current, {
+         commandsExecuted: current.commandsExecuted + 1,
+         ...(update ? update(current) : {}),
+       })
+-      return nextState
+     }))
+ 
+     setMessage(message)
+     setInputCommand('')
+   }
+ 
+-  const recordMiss = (ramen?: Ramen | null) => {
+-    const target = ramen ?? activeRamen
+-    if (!target?.command?.id) return
+-    recordMissByCommandId(target.command.id)
++  /** メッセージを出して入力欄をクリア（ミスとしては記録しない） */
++  const notify = (message: string) => {
++    setMessage(message)
++    setInputCommand('')
++  }
++
++  /** ミスを記録したうえでメッセージを出して入力欄をクリア */
++  const rejectWithMiss = (message: string) => {
++    recordMiss(activeRamen)
++    notify(message)
+   }
+ 
+-  const rejectOutOfOrder = (stepType: 'add' | 'commit' | 'push') => {
++  /**
++   * add / commit / push が「手順の順番」を飛ばしていないか判定する。
++   * 順番違反なら true（＝呼び出し側で処理を打ち切る）。
++   */
++  const rejectOutOfOrder = (stepType: 'add' | 'commit' | 'push'): boolean => {
+     if (!currentStep) return false
+     if (currentStep.type === stepType) return false
+ 
+-    recordMiss(activeRamen)
+-
+     if (stepType === 'add') {
+-      setMessage(`❌ まだ add の番ではありません。今は「${currentStep.displayCommand}」です`)
++      rejectWithMiss(`❌ まだ add の番ではありません。今は「${currentStep.displayCommand}」です`)
+     } else if (stepType === 'commit') {
+-      setMessage(`❌ まだ commit できません。先に「${currentStep.displayCommand}」を完了してください`)
++      rejectWithMiss(`❌ まだ commit できません。先に「${currentStep.displayCommand}」を完了してください`)
+     } else {
+-      setMessage(`❌ まだ push できません。先に「${currentStep.displayCommand}」を完了してください`)
++      rejectWithMiss(`❌ まだ push できません。先に「${currentStep.displayCommand}」を完了してください`)
+     }
++    return true
++  }
+ 
+-    setInputCommand('')
++  // ===== 2. コマンドハンドラ =================================================
++  // 各ハンドラは「自分の担当コマンドを処理したら true、対象外なら false」を返す。
++
++  /** git pull … 新しい注文を受け取る */
++  const handlePull = (): boolean => {
++    if (normalizedCmd !== 'git pull') return false
++
++    if (activeRamen) {
++      notify('⚠️ 既に調理中の注文があります。先にこの一杯を届けてください')
++      return true
++    }
++
++    notify(onPullOrder())
+     return true
+   }
+ 
+-  if (cmd.match(/^git clone .+$/i)) {
+-    // recordMiss(activeRamen)
+-    setMessage('⛔ git clone はゲーム開始前の難易度選択専用です')
+-    setInputCommand('')
+-    return
++  /** git clone … ゲーム中は使用不可（開始前の難易度選択専用） */
++  const handleClone = (): boolean => {
++    if (!cmd.match(/^git clone .+$/i)) return false
++
++    notify('⛔ git clone はゲーム開始前の難易度選択専用です')
++    return true
+   }
+ 
+-  const addMatch = cmd.match(/^git add (.+)$/i)
+-  if (addMatch) {
++  /** git add <具材> … 具材をステージに載せる */
++  const handleAdd = (): boolean => {
++    const addMatch = cmd.match(/^git add (.+)$/i)
++    if (!addMatch) return false
++
+     if (!activeRamen) {
+-      // recordMiss(activeRamen)
+-      setMessage('❌ 操作できるラーメンがありません')
+-      setInputCommand('')
+-      return
++      notify('❌ 操作できるラーメンがありません')
++      return true
+     }
+-
+-    if (rejectOutOfOrder('add')) return
+-
+-    const item = addMatch[1].trim()
+-    const nextStep = getNextStepCommand(activeRamen)
++    if (rejectOutOfOrder('add')) return true
+ 
+     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      recordMiss(activeRamen)
+-      setMessage(`❌ 今必要なのは「${currentStep?.displayCommand ?? ''}」です`)
+-      setInputCommand('')
+-      return
++      rejectWithMiss(`❌ 今必要なのは「${currentStep?.displayCommand ?? ''}」です`)
++      return true
+     }
+ 
++    const item = addMatch[1].trim()
++
+     if (item === '.') {
+       completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `✅ 全マシ全のせ！ 次: ${nextStep}`
+-          : '✅ 全マシ全のせ！',
++        message: appendNextHint('✅ 全マシ全のせ！', activeRamen, ' '),
+         update: () => ({ stagedItems: [...availableItems] }),
+       })
+     } else if (availableItems.includes(item)) {
+       if (activeRamen.stagedItems.includes(item)) {
+-        setMessage(`⚠️ ${item}は既に追加されています`)
+-        setInputCommand('')
+-        return
++        notify(`⚠️ ${item}は既に追加されています`)
++        return true
+       }
+-
+       completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `✅ ${item}を追加しました。次: ${nextStep}`
+-          : `✅ ${item}を追加しました`,
++        message: appendNextHint(`✅ ${item}を追加しました`, activeRamen),
+         update: (current) => ({ stagedItems: [...current.stagedItems, item] }),
+       })
+     } else {
+-      recordMiss(activeRamen)
+-      setMessage(`❌ ${item}という具材はありません`)
+-      setInputCommand('')
++      rejectWithMiss(`❌ ${item}という具材はありません`)
+     }
+-    return
++    return true
+   }
+ 
+-  const commitMatch = cmd.match(/^git commit -m "(.+)"$/i)
+-  if (commitMatch) {
++  /** git commit -m "..." … 注文内容を確定する */
++  const handleCommit = (): boolean => {
++    const commitMatch = cmd.match(/^git commit -m "(.+)"$/i)
++    if (!commitMatch) return false
++
+     if (!activeRamen) {
+-      // recordMiss(activeRamen)
+-      setMessage('❌ 操作できるラーメンがありません')
+-      setInputCommand('')
+-      return
++      notify('❌ 操作できるラーメンがありません')
++      return true
+     }
+-
+-    if (rejectOutOfOrder('commit')) return
++    if (rejectOutOfOrder('commit')) return true
+ 
+     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      recordMiss(activeRamen)
+-      setMessage(`❌ 今必要な commit は「${currentStep?.displayCommand ?? ''}」です`)
+-      setInputCommand('')
+-      return
++      rejectWithMiss(`❌ 今必要な commit は「${currentStep?.displayCommand ?? ''}」です`)
++      return true
+     }
+ 
+     const callText = commitMatch[1]
+-    const nextStep = getNextStepCommand(activeRamen)
+     completeCurrentStep(activeRamen, {
+-      message: nextStep
+-        ? `🍜 ${callText} 次: ${nextStep}`
+-        : `🍜 ${callText}`,
++      message: appendNextHint(`🍜 ${callText}`, activeRamen, ' '),
+       update: () => ({ isCommitted: true }),
+     })
+-    return
++    return true
+   }
+ 
+-  const checkoutBranchMatch = cmd.match(/^git checkout -b (.+)$/i)
+-  if (checkoutBranchMatch) {
++  /** git checkout -b <branch> … 新規レーンを作成して同時に切り替える */
++  const handleCheckoutNewBranch = (): boolean => {
++    const match = cmd.match(/^git checkout -b (.+)$/i)
++    if (!match) return false
++
+     if (!activeRamen) {
+-      setMessage('❌ 操作できるラーメンがありません')
+-      setInputCommand('')
+-      return
++      notify('❌ 操作できるラーメンがありません')
++      return true
+     }
+ 
+-    const branchName = checkoutBranchMatch[1].trim()
++    const branchName = match[1].trim()
+     if (!branchName) {
+-      recordMiss(activeRamen)
+-      setMessage('❌ ブランチ名を入力してください')
+-      setInputCommand('')
+-      return
++      rejectWithMiss('❌ ブランチ名を入力してください')
++      return true
+     }
+-
+     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-    recordMiss(activeRamen)
+-    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+-    setInputCommand('')
+-    return
+-  }
+-
++      rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
++      return true
++    }
+     if (getBranchLane(branchName) > 0) {
+-      recordMiss(activeRamen)
+-      setMessage(`❌ ${branchName} は既に存在します`)
+-      setInputCommand('')
+-      return
++      rejectWithMiss(`❌ ${branchName} は既に存在します`)
++      return true
+     }
+-
+     if (existingBranches.length >= maxLanes) {
+-      recordMiss(activeRamen)
+-      setMessage(`ℹ️ 既に最大レーン数（${maxLanes}）です。既存ブランチへ checkout してください`)
+-      setInputCommand('')
+-      return
++      rejectWithMiss(`ℹ️ 既に最大レーン数（${maxLanes}）です。既存ブランチへ checkout してください`)
++      return true
+     }
+ 
+     const nextBranches = [...existingBranches, branchName]
+@@ -297,109 +302,81 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+     setExistingBranches(nextBranches)
+     setLaneCount(nextLane)
+ 
+-    if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      const nextStep = getNextStepCommand(activeRamen)
+-      completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `🆕 ${branchName} を作成して Lane ${nextLane} へ切替。次: ${nextStep}`
+-          : `🆕 ${branchName} を作成して Lane ${nextLane} へ切替`,
+-        update: () => ({ currentLane: nextLane }),
+-      })
+-      return
+-    }
+-
+-    applyLaneSwitchWithoutStepAdvance(activeRamen, nextLane)
+-    setMessage(`🔀 ${branchName} を作成して Lane ${nextLane} へ切り替えました`)
+-    setInputCommand('')
+-    return
++    completeCurrentStep(activeRamen, {
++      message: appendNextHint(`🆕 ${branchName} を作成して Lane ${nextLane} へ切替`, activeRamen),
++      update: () => ({ currentLane: nextLane }),
++    })
++    return true
+   }
+ 
+-  const switchMatch = cmd.match(/^git (switch|checkout) (.+)$/i)
+-  if (switchMatch) {
+-    const branchName = switchMatch[2].trim()
++  /** git switch|checkout <branch> … 既存レーンへ切り替える */
++  const handleSwitchLane = (): boolean => {
++    const match = cmd.match(/^git (switch|checkout) (.+)$/i)
++    if (!match) return false
++
++    const branchName = match[2].trim()
+     const targetLane = getBranchLane(branchName)
+ 
+     if (targetLane <= 0) {
+-      recordMiss(activeRamen)
+-      setMessage(`❌ ${branchName} は存在しません。既存: ${toBranchListText()}`)
+-      setInputCommand('')
+-      return
++      rejectWithMiss(`❌ ${branchName} は存在しません。既存: ${toBranchListText()}`)
++      return true
+     }
+-
+     if (!activeRamen) {
+-      // recordMiss(activeRamen)
+-      setMessage('❌ 移動できるラーメンがありません')
+-      setInputCommand('')
+-      return
++      notify('❌ 移動できるラーメンがありません')
++      return true
+     }
+-
+     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-    recordMiss(activeRamen)
+-    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+-    setInputCommand('')
+-    return
+-  }
+-
+-    if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      const nextStep = getNextStepCommand(activeRamen)
+-      completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `🔀 ${branchName} (Lane ${targetLane}) へ切替。次: ${nextStep}`
+-          : `🔀 ${branchName} (Lane ${targetLane}) へ切替`,
+-        update: () => ({ currentLane: targetLane }),
+-      })
+-      return
++      rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
++      return true
+     }
+ 
+-    applyLaneSwitchWithoutStepAdvance(activeRamen, targetLane)
+-    setMessage(`🔀 ${branchName} (Lane ${targetLane}) へ切り替えました`)
+-    setInputCommand('')
+-    return
++    completeCurrentStep(activeRamen, {
++      message: appendNextHint(`🔀 ${branchName} (Lane ${targetLane}) へ切替`, activeRamen),
++      update: () => ({ currentLane: targetLane }),
++    })
++    return true
+   }
+ 
+-  if (normalizedCmd === 'git branch') {
++  /** git branch （引数なし）… レーン一覧を表示する */
++  const handleBranchList = (): boolean => {
++    if (normalizedCmd !== 'git branch') return false
++
+     const laneList = toBranchListText()
+     if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      const nextStep = getNextStepCommand(activeRamen)
+       completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `🌿 現在のレーン: ${laneList}。次: ${nextStep}`
+-          : `🌿 現在のレーン: ${laneList}`,
++        message: appendNextHint(`🌿 現在のレーン: ${laneList}`, activeRamen),
+       })
+     } else {
+-      setMessage(`🌿 現在のレーン: ${laneList}`)
+-      setInputCommand('')
++      notify(`🌿 現在のレーン: ${laneList}`)
+     }
+-    return
++    return true
+   }
+ 
+-  const branchMatch = cmd.match(/^git branch (.+)$/i)
+-  if (branchMatch) {
+-    const branchName = branchMatch[1].trim()
++  /** git branch <name> … 新規レーンを開設する（切り替えはしない） */
++  const handleCreateBranch = (): boolean => {
++    const match = cmd.match(/^git branch (.+)$/i)
++    if (!match) return false
++
++    const branchName = match[1].trim()
+     if (!branchName) {
+-      recordMiss(activeRamen)
+-      setMessage('❌ ブランチ名を入力してください')
+-      setInputCommand('')
+-      return
++      rejectWithMiss('❌ ブランチ名を入力してください')
++      return true
++    }
++    if (!activeRamen) {
++      notify('❌ 操作できるラーメンがありません')
++      return true
+     }
+-
+     if (!isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-    recordMiss(activeRamen)
+-    setMessage(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
+-    setInputCommand('')
+-    return
+-  }
+-
++      rejectWithMiss(`❌ 今は「${currentStep?.displayCommand ?? ''}」の番です`)
++      return true
++    }
+     if (getBranchLane(branchName) > 0) {
+-      setMessage(`ℹ️ ${branchName} は既に存在します`)
+-      setInputCommand('')
+-      return
++      notify(`ℹ️ ${branchName} は既に存在します`)
++      return true
+     }
+-
+     if (existingBranches.length >= maxLanes) {
+-      setMessage(`ℹ️ 既に最大レーン数（${maxLanes}）です`)
+-      setInputCommand('')
+-      return
++      notify(`ℹ️ 既に最大レーン数（${maxLanes}）です`)
++      return true
+     }
+ 
+     const nextBranches = [...existingBranches, branchName]
+@@ -407,67 +384,61 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+     setExistingBranches(nextBranches)
+     setLaneCount(nextLane)
+ 
+-    if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      const nextStep = getNextStepCommand(activeRamen)
+-      completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `🆕 ${branchName} (Lane ${nextLane}) を開設。次: ${nextStep}`
+-          : `🆕 ${branchName} (Lane ${nextLane}) を開設`,
+-      })
+-      return
+-    }
+-
+-    setMessage(`🆕 ${branchName} (Lane ${nextLane}) を開設しました`)
+-    setInputCommand('')
+-    return
++    completeCurrentStep(activeRamen, {
++      message: appendNextHint(`🆕 ${branchName} (Lane ${nextLane}) を開設`, activeRamen),
++    })
++    return true
+   }
+ 
+-  if (normalizedCmd === 'git help') {
++  /** git help … ヒント表示をトグルする（表示中はゲームを一時停止） */
++  const handleHelp = (): boolean => {
++    if (normalizedCmd !== 'git help') return false
++
+     const nextShow = !showHelp
+     setShowHelp(nextShow)
+     setIsPaused(nextShow)
+-    setMessage(nextShow ? '💡 ヒントを表示（一時停止中）' : 'ヒントを非表示')
+-    setInputCommand('')
+-    return
++    notify(nextShow ? '💡 ヒントを表示（一時停止中）' : 'ヒントを非表示')
++    return true
+   }
+ 
+-  if (normalizedCmd === 'git log') {
++  /** git log … 注文履歴（レシート）を表示する */
++  const handleLog = (): boolean => {
++    if (normalizedCmd !== 'git log') return false
++
+     if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      const nextStep = getNextStepCommand(activeRamen)
+       completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `📜 注文履歴を表示。次: ${nextStep}`
+-          : '📜 注文履歴を表示',
++        message: appendNextHint('📜 注文履歴を表示', activeRamen),
+       })
+     } else {
+-      setMessage('📜 注文履歴を表示')
+-      setInputCommand('')
++      notify('📜 注文履歴を表示')
+     }
+     setIsPaused(false)
+     setIsCompactLog(false)
+     setShowLog(true)
+-    return
++    return true
+   }
+ 
+-  if (normalizedCmd === 'git lof --oneline' || normalizedCmd === 'git log --oneline') {
++  /** git log --oneline … レシートを簡易表示する */
++  const handleCompactLog = (): boolean => {
++    if (normalizedCmd !== 'git log --oneline') return false
++
+     if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-      const nextStep = getNextStepCommand(activeRamen)
+       completeCurrentStep(activeRamen, {
+-        message: nextStep
+-          ? `👋 おかえりでーす！レシート簡易表示。次: ${nextStep}`
+-          : '👋 おかえりでーす！レシート簡易表示',
++        message: appendNextHint('👋 おかえりでーす！レシート簡易表示', activeRamen),
+       })
+     } else {
+-      setMessage('🧾 レシート簡易表示')
+-      setInputCommand('')
++      notify('🧾 レシート簡易表示')
+     }
+     setIsPaused(false)
+     setIsCompactLog(true)
+     setShowLog(true)
+-    return
++    return true
+   }
+ 
+-  if (normalizedCmd === 'git status') {
++  /** git status … 厨房（対象ラーメン）の状態を伝票ウィンドウで表示する */
++  const handleStatus = (): boolean => {
++    if (normalizedCmd !== 'git status') return false
++
+     if (!activeRamen) {
+       setMessage('📊 お腹すいた～')
+       setStatusWindow({
+@@ -476,121 +447,124 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+         details: ['注文待機中'],
+       })
+       setTimeout(() => setStatusWindow(null), 2300)
+-    } else {
+-      const requiredItems = activeRamen.steps
+-        .filter(step => step.type === 'add' && step.itemName)
+-        .map(step => step.itemName as string)
+-      const uniqueItems = Array.from(new Set([...requiredItems, ...activeRamen.stagedItems]))
+-
+-      const phaseMessage = (() => {
+-        if (activeRamen.stagedItems.length === 0) {
+-          return '厨房の状態: まだ具材が選ばれていません！ git add で具材を乗せてください。'
+-        }
+-
+-        if (!activeRamen.isCommitted) {
+-          return '厨房の状態: 具材は乗っています！ あとは git commit -m で注文を確定させてください。'
+-        }
+-
+-        if (!activeRamen.isPushed) {
+-          return '厨房の状態: 調理完了！ 爆速で git push してお客さんに届けてください！'
+-        }
+-
+-        return '厨房の状態: 配達中です。無事に届くか見守りましょう。'
+-      })()
+-
+-      const itemDetails = uniqueItems.length > 0
+-        ? uniqueItems.map(item => `具材：[${item}] (${activeRamen.stagedItems.includes(item) ? '投入済み' : '未投入'})`)
+-        : ['具材：[なし] (未投入)']
+-
+-      const details = [
+-        `対象ラーメン: #${activeRamen.id} / Lane${activeRamen.currentLane} -> Lane${activeRamen.targetLane}`,
+-        `isCommitted: ${activeRamen.isCommitted ? 'true' : 'false'}`,
+-        `isPushed: ${activeRamen.isPushed ? 'true' : 'false'}`,
+-        ...itemDetails,
+-      ]
++      setInputCommand('')
++      return true
++    }
+ 
+-      setStatusWindow({
+-        title: '伝票 / git status',
+-        phaseMessage,
+-        details,
+-      })
+-      setTimeout(() => setStatusWindow(null), 2600)
+-
+-      setMessage(`📊 状態確認: ${phaseMessage}`)
+-      if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
+-        const nextStep = getNextStepCommand(activeRamen)
+-        completeCurrentStep(activeRamen, {
+-          message: nextStep
+-            ? `📊 状態確認完了。次: ${nextStep}`
+-            : '📊 状態確認完了',
+-        })
+-        return
++    const requiredItems = activeRamen.steps
++      .filter(step => step.type === 'add' && step.itemName)
++      .map(step => step.itemName as string)
++    const uniqueItems = Array.from(new Set([...requiredItems, ...activeRamen.stagedItems]))
++
++    const phaseMessage = (() => {
++      if (activeRamen.stagedItems.length === 0) {
++        return '厨房の状態: まだ具材が選ばれていません！ git add で具材を乗せてください。'
++      }
++      if (!activeRamen.isCommitted) {
++        return '厨房の状態: 具材は乗っています！ あとは git commit -m で注文を確定させてください。'
+       }
++      if (!activeRamen.isPushed) {
++        return '厨房の状態: 調理完了！ 爆速で git push してお客さんに届けてください！'
++      }
++      return '厨房の状態: 配達中です。無事に届くか見守りましょう。'
++    })()
++
++    const itemDetails = uniqueItems.length > 0
++      ? uniqueItems.map(item => `具材：[${item}] (${activeRamen.stagedItems.includes(item) ? '投入済み' : '未投入'})`)
++      : ['具材：[なし] (未投入)']
++
++    const details = [
++      `対象ラーメン: #${activeRamen.id} / Lane${activeRamen.currentLane} -> Lane${activeRamen.targetLane}`,
++      `isCommitted: ${activeRamen.isCommitted ? 'true' : 'false'}`,
++      `isPushed: ${activeRamen.isPushed ? 'true' : 'false'}`,
++      ...itemDetails,
++    ]
++
++    setStatusWindow({ title: '伝票 / git status', phaseMessage, details })
++    setTimeout(() => setStatusWindow(null), 2600)
++    setMessage(`📊 状態確認: ${phaseMessage}`)
++
++    if (isCurrentStepMatch(activeRamen, normalizedCmd)) {
++      completeCurrentStep(activeRamen, {
++        message: appendNextHint('📊 状態確認完了', activeRamen),
++      })
++      return true
+     }
++
+     setInputCommand('')
+-    return
++    return true
+   }
+ 
+-  // 入力されたコマンドが 'git push origin 〇〇' の形かチェックする
+-  const pushMatch = cmd.match(/^git push origin (.+)$/i)
+-  if (pushMatch) {
++  /** git push origin <branch> … 調理済みのラーメンを配達する */
++  const handlePush = (): boolean => {
++    const match = cmd.match(/^git push origin (.+)$/i)
++    if (!match) return false
++
+     if (!activeRamen) {
+-      // recordMiss(activeRamen)
+-      setMessage('❌ 配達できるラーメンがありません')
+-      setInputCommand('')
+-      return
++      notify('❌ 配達できるラーメンがありません')
++      return true
+     }
+ 
+-    // 入力されたブランチ名
+-    const targetBranch = pushMatch[1].trim() 
+-    // 今いるブランチ名
+-    const currentBranchName = existingBranches[activeRamen.currentLane - 1] || 'main'
++    const targetBranch = match[1].trim()              // 入力された push 先ブランチ名
++    const currentBranchName = existingBranches[activeRamen.currentLane - 1] || 'main' // 今いるブランチ名
+ 
+-    // ブランチ名が違う場合のエラーメッセージを
++    // 今いるレーンと違うブランチに push しようとした場合はエラー
+     if (normalizeCommand(targetBranch) !== normalizeCommand(currentBranchName)) {
+-      setMessage(`❌ 今いるのは ${currentBranchName} です。${targetBranch} に push するには、先に ${targetBranch} ブランチに移動してください！`)
+-      setInputCommand('')
+-      return
++      notify(`❌ 今いるのは ${currentBranchName} です。${targetBranch} に push するには、先に ${targetBranch} ブランチに移動してください！`)
++      return true
+     }
+ 
+-    // すでにブランチの一致チェックを通過しているので、「他レーンからmainに無理やり流した」という判定は false で確定！
++    // ブランチ名一致を通過しているので「他レーンから main へ流した」誤配達は起こり得ない
+     const pushedToMainFromOtherLane = false
+-    // ----------------------
+ 
+     const isCurrentPushStep = currentStep?.type === 'push' && isCurrentStepMatch(activeRamen, normalizedCmd)
+-
+     if (isCurrentPushStep) {
+       completeCurrentStep(activeRamen, {
+         scoreDelta: 0,
+         message: '🚀 push 完了！お客さんのところへ急げーー！！',
+         update: () => ({ speed: pushSpeed, isPushed: true, pushedToMainFromOtherLane }),
+       })
+-      return
++      return true
+     }
+ 
++    // 手順の途中でも push 自体は実行できる（未コミットならこの後ミス扱い）
+     setRamens(prev => prev.map(r => {
+       if (r.id !== activeRamen.id) return r
+-      return {
+-        ...r,
+-        speed: pushSpeed,
+-        isPushed: true,
+-        pushedToMainFromOtherLane, // ← ここに false が渡るようになります
+-      }
++      return { ...r, speed: pushSpeed, isPushed: true, pushedToMainFromOtherLane }
+     }))
+ 
+     if (!activeRamen.isCommitted) {
+-      recordMiss(activeRamen)
+-      setMessage('💢 トッピングはどうした💢 空のまま push してしまった！')
++      rejectWithMiss('💢 トッピングはどうした💢 空のまま push してしまった！')
+     } else {
+-      setMessage('🚀 push を実行！ものすごい勢いで流れていく！')
++      notify('🚀 push を実行！ものすごい勢いで流れていく！')
+     }
+-
+-    setInputCommand('')
+-    return
++    return true
+   }
+ 
++  // ===== 3. ディスパッチ（判定順に依存するため並び順を変えないこと）=========
++  const handlers = [
++    handlePull,
++    handleClone,
++    handleAdd,
++    handleCommit,
++    handleCheckoutNewBranch,
++    handleSwitchLane,
++    handleBranchList,
++    handleCreateBranch,
++    handleHelp,
++    handleLog,
++    handleCompactLog,
++    handleStatus,
++    handlePush,
++  ]
++
++  for (const handle of handlers) {
++    if (handle()) return
++  }
+ 
++  // ===== 4. フォールバック ===================================================
+ 
++  // 専用ハンドラは無いが、対象ラーメンの現在ステップにそのまま一致する汎用コマンド
+   if (activeRamen && isCurrentStepMatch(activeRamen, normalizedCmd)) {
+     const nextStep = getNextStepCommand(activeRamen)
+     completeCurrentStep(activeRamen, {
+@@ -604,15 +578,10 @@ export function executeGameCommand(params: ExecuteGameCommandParams): void {
+   const matchingCmd = availableCommands.find(c => normalizeCommand(c.command) === normalizedCmd)
+ 
+   if (currentStep) {
+-    recordMiss(activeRamen)
+-    setMessage(`❌ 今は「${currentStep.displayCommand}」の番です`)
++    rejectWithMiss(`❌ 今は「${currentStep.displayCommand}」の番です`)
+   } else if (matchingCmd) {
+-    recordMiss(activeRamen)
+-    setMessage('❌ そのコマンドは今じゃない！現在のラーメンのコマンドを入力してください')
++    rejectWithMiss('❌ そのコマンドは今じゃない！現在のラーメンのコマンドを入力してください')
+   } else {
+-    recordMiss(activeRamen)
+-    setMessage(`❓ 不明なコマンド: ${cmd}`)
++    rejectWithMiss(`❓ 不明なコマンド: ${cmd}`)
+   }
+-
+-  setInputCommand('')
+ }
