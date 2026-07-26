@@ -118,7 +118,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     if (!selectedCommand) {
       return '❌ 注文生成に失敗しました'
     }
-      
+
     const payload = createLaneAwarePullOrderPayload({
       course,
       baseCommandId: selectedCommand.id,
@@ -225,7 +225,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   useGameTimer({
     isLoading,
     isGameOver,
-    isPaused: isEffectivePaused, 
+    isPaused: isEffectivePaused,
     setTimeRemaining,
     onTimeout: gameOver,
   })
