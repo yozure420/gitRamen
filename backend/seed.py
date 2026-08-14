@@ -46,14 +46,18 @@ beginner_commands = [
 
 # 🔵 中級レベル（course=2）
 intermediate_commands = [
-    ("git stash", "—", "作業中の変更を一時退避する"),
-    ("git stash pop", "—", "退避した変更を元に戻す"),
+    ("git stash", "—", "作業中の変更を一時退避する", "調理中のラーメンを脇に寄せる"),
+    ("git stash pop", "—", "退避した変更を元に戻す", "退避したラーメンの調理を再開する"),
+    ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す", "間違えたトッピングコールを取り消す"),
+]
+
+# 🟠 上級レベル（course=3）
+advanced_commands = [
     ("git stash list", "—", "退避した変更の一覧を表示する"),
     ("git stash drop", "—", "特定のstashを削除する"),
     ("git rebase", "<branch>", "コミット履歴を別ブランチの先頭に付け替える"),
     ("git rebase", "-i HEAD~N", "直近N件のコミットを対話的に編集する"),
     ("git cherry-pick", "<hash>", "特定のコミットだけを現在のブランチに適用する"),
-    ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す"),
     ("git reset", "--hard HEAD~1", "直前のコミットを完全に取り消し、変更も消す"),
     ("git revert", "<hash>", "指定コミットを打ち消す新たなコミットを作る"),
     ("git remote", "-v", "リモートリポジトリの一覧とURLを表示する"),
@@ -78,10 +82,6 @@ intermediate_commands = [
     ("git mv", "<old> <new>", "ファイルを移動またはリネームする"),
     ("git config", "--global user.name", "Gitのユーザー名をグローバル設定する"),
     ("git config", "--global user.email", "Gitのメールアドレスをグローバル設定する"),
-]
-
-# 🟠 上級レベル（course=3）
-advanced_commands = [
     ("git bisect start", "—", "バグが混入したコミットを二分探索で特定し始める"),
     ("git bisect good", "<hash>", "指定コミットは正常だとマークする"),
     ("git bisect bad", "<hash>", "指定コミットはバグありとマークする"),

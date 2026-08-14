@@ -4,6 +4,9 @@ import {
   handleCommitCommand,
   handlePullCommand,
   handlePushCommand,
+  handleStashCommand,
+  handleStashPopCommand,
+  handleResetSoftCommand,
 } from './commandHandlers'
 import {
   handleBranchCreateCommand,
@@ -19,6 +22,9 @@ export const orderedCommandHandlers: GameCommandHandler[] = [
   handleCloneCommand,
   handleAddCommand,
   handleCommitCommand,
+  handleStashCommand,
+  handleStashPopCommand,
+  handleResetSoftCommand,
   handleCheckoutCreateCommand,
   handleSwitchCheckoutCommand,
   handleBranchListCommand,

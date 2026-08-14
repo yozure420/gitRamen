@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { SoundSettings, CommandHistory } from '../../types/interface'
+import type { SoundSettings, CommandHistory, Ramen } from '../../types/interface'
 import { playSound } from '../../lib/Sounds'
 
 type GmBottomPanelV2Props = {
@@ -8,7 +8,8 @@ type GmBottomPanelV2Props = {
   isGameOver: boolean
   soundSettings: SoundSettings
   commandHistory: CommandHistory[] 
-  isDisabledInput?: boolean // 👇 追加: モーダルが開いているかどうかのフラグ
+  isDisabledInput?: boolean
+  activeRamen: Ramen | null
 }
 
 /** タイプ音を鳴らさないキー */
@@ -23,7 +24,8 @@ function GmBottomPanelV2({
   isGameOver,
   soundSettings,
   commandHistory,
-  isDisabledInput = false, // 👇 追加: 初期値はfalse
+  isDisabledInput = false,
+  activeRamen,
 }: GmBottomPanelV2Props) {
   const [text, setText] = useState('')
   const [historyIndex, setHistoryIndex] = useState(-1) // 履歴の何番目を見ているか
@@ -79,6 +81,23 @@ function GmBottomPanelV2({
 
   return (
     <form onSubmit={onSubmitForm} className="command-form bottom-panel" autoComplete="off">
+      
+      {activeRamen?.steps[activeRamen.currentStepIndex]?.type === 'stash' && (
+        <div className="gimmick-hint stash-hint" style={{ color: '#ffb86c', fontWeight: 'bold', marginBottom: '8px' }}>
+          ⚠️ 割り込み客だ！ <code>git stash</code> で現在の調理を退避しろ！
+        </div>
+      )}
+      {activeRamen?.steps[activeRamen.currentStepIndex]?.type === 'stash_pop' && (
+        <div className="gimmick-hint pop-hint" style={{ color: '#50fa7b', fontWeight: 'bold', marginBottom: '8px' }}>
+          ✅ VIP注文完了！ <code>git stash pop</code> で元の調理を再開しろ！
+        </div>
+      )}
+      {activeRamen?.steps[activeRamen.currentStepIndex]?.type === 'reset_soft' && (
+        <div className="gimmick-hint reset-hint" style={{ color: '#ff5555', fontWeight: 'bold', marginBottom: '8px' }}>
+          ⚠️ 注文変更！ <code>git reset --soft HEAD~1</code> で確定を取り消せ！
+        </div>
+      )}
+
       <div className="command-input-wrapper">
         <span className="prompt">&gt;</span>
         <input

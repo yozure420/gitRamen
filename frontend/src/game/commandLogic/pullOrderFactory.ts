@@ -128,7 +128,17 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
   const targetLane = Math.floor(Math.random() * laneCount) + 1
   const targetBranchName = existingBranches[targetLane - 1] ?? `lane${targetLane}`
   const { baseRamen, topping, call } = createRamenOrderMeta()
-  const laneOrderText = `${targetBranchName}レーン: ${baseRamen}、トッピングは${topping}`
+  
+  const rand = Math.random()
+  const isStashGimmick = course === 2 && rand < 0.2
+  const isResetGimmick = course === 2 && rand >= 0.2 && rand < 0.4
+
+  let laneOrderText = `${targetBranchName}レーン: ${baseRamen}、トッピングは${topping}`
+  if (isStashGimmick) {
+    laneOrderText += ' (※ 途中で割り込みの予感…)'
+  } else if (isResetGimmick) {
+    laneOrderText += ' (※ 注文変更があるかも…)'
+  }
 
   const steps: CommandStep[] = []
 
@@ -136,7 +146,6 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
   const maybeSetupStep = createLaneSetupStep(targetLane)
   if (maybeSetupStep) steps.push(maybeSetupStep)
 
-  // 👇 修正：目的地のレーン（targetLane）と、現在プレイヤーがいるレーン（currentLane）が異なる場合のみ checkout 指示を挟む！
   if (targetLane !== currentLane) {
     steps.push(createStep({
       type: 'command',
@@ -147,7 +156,7 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
     }))
   }
 
-  // 2. 具材投入・確定・配達
+  // 2. 具材投入
   steps.push(createStep({
     type: 'add',
     displayCommand: `git add ${topping}`,
@@ -156,14 +165,80 @@ export function createLaneAwarePullOrderPayload(params: ExtendedParams): PullOrd
     itemName: topping,
   }))
 
-  steps.push(createStep({
-    type: 'commit',
-    displayCommand: `git commit -m "${call}"`,
-    logicLabel: `${targetBranchName}レーン確定`,
-    logicDescription: `${targetBranchName}レーン注文をコミットで確定する。`,
-  }))
-
-  steps.push(createPushStep(targetBranchName))
+  if (isStashGimmick) {
+    const vipMeta = createRamenOrderMeta()
+    steps.push(createStep({
+      type: 'stash',
+      displayCommand: 'git stash',
+      logicLabel: '割り込み発生',
+      logicDescription: 'VIP客の割り込み！現在の調理を一時退避。',
+    }))
+    steps.push(createStep({
+      type: 'add',
+      displayCommand: `git add ${vipMeta.topping}`,
+      logicLabel: 'VIP調理',
+      logicDescription: `VIP用具材「${vipMeta.topping}」を投入。`,
+      itemName: vipMeta.topping,
+    }))
+    steps.push(createStep({
+      type: 'commit',
+      displayCommand: `git commit -m "${vipMeta.call}"`,
+      logicLabel: 'VIP確定',
+      logicDescription: 'VIP注文を確定。',
+    }))
+    steps.push(createPushStep(targetBranchName))
+    
+    steps.push(createStep({
+      type: 'stash_pop',
+      displayCommand: 'git stash pop',
+      logicLabel: '作業復帰',
+      logicDescription: '退避していた元の調理を再開。',
+    }))
+    steps.push(createStep({
+      type: 'commit',
+      displayCommand: `git commit -m "${call}"`,
+      logicLabel: '元の確定',
+      logicDescription: '元の注文を確定。',
+    }))
+    steps.push(createPushStep(targetBranchName))
+  } else if (isResetGimmick) {
+    const addMeta = createRamenOrderMeta()
+    steps.push(createStep({
+      type: 'commit',
+      displayCommand: `git commit -m "${call}"`,
+      logicLabel: `${targetBranchName}レーン確定`,
+      logicDescription: `${targetBranchName}レーン注文をコミットで確定する。`,
+    }))
+    steps.push(createStep({
+      type: 'reset_soft',
+      displayCommand: 'git reset --soft HEAD~1',
+      logicLabel: '注文変更',
+      logicDescription: 'お客様から追加注文！直前の確定を取り消す。',
+    }))
+    steps.push(createStep({
+      type: 'add',
+      displayCommand: `git add ${addMeta.topping}`,
+      logicLabel: '追加調理',
+      logicDescription: `追加具材「${addMeta.topping}」を投入。`,
+      itemName: addMeta.topping,
+    }))
+    steps.push(createStep({
+      type: 'commit',
+      displayCommand: `git commit -m "${baseRamen}${topping}と${addMeta.topping}入りおまち！"`,
+      logicLabel: '再確定',
+      logicDescription: '変更された注文を再度確定する。',
+    }))
+    steps.push(createPushStep(targetBranchName))
+  } else {
+    // 通常
+    steps.push(createStep({
+      type: 'commit',
+      displayCommand: `git commit -m "${call}"`,
+      logicLabel: `${targetBranchName}レーン確定`,
+      logicDescription: `${targetBranchName}レーン注文をコミットで確定する。`,
+    }))
+    steps.push(createPushStep(targetBranchName))
+  }
 
   return {
     command: {

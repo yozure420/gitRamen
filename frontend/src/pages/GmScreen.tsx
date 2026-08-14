@@ -168,6 +168,7 @@ function GmScreen() {
         soundSettings={soundSettings}
         commandHistory={commandHistory}
         isDisabledInput={isUiLayerOpen}
+        activeRamen={activeRamen}
       />
     </div>
     </>

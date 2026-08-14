@@ -178,3 +178,97 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
   ctx.clearInput()
   return true
 }
+
+export function handleStashCommand(ctx: GameCommandContext): boolean {
+  const match = ctx.cmd.match(/^git\s+stash(\s+save)?(\s+.*)?$/i)
+  if (!match) return false
+  if (ctx.cmd.match(/^git\s+stash\s+(pop|list|drop|apply)/i)) return false
+
+  if (ctx.course !== 2) {
+    ctx.setMessage('⛔ git stash は normalモード で解放されます')
+    ctx.clearInput()
+    return true
+  }
+
+  if (!ctx.activeRamen) {
+    ctx.setMessage('❌ 退避できるラーメンがありません')
+    ctx.clearInput()
+    return true
+  }
+
+  if (ctx.currentStep?.type !== 'stash') {
+    ctx.recordMiss(ctx.activeRamen)
+    ctx.setMessage(`❌ 今は stash するタイミングではありません`)
+    ctx.clearInput()
+    return true
+  }
+
+  const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
+  ctx.completeCurrentStep(ctx.activeRamen, {
+    message: `📦 ラーメンを脇に退避しました！ 次: ${nextStep || '新しい注文を取ってください'}`,
+    update: () => ({ isStashed: true }),
+  })
+  return true
+}
+
+export function handleStashPopCommand(ctx: GameCommandContext): boolean {
+  const match = ctx.cmd.match(/^git\s+stash\s+pop(\s+.*)?$/i)
+  if (!match) return false
+
+  if (ctx.course !== 2) {
+    ctx.setMessage('⛔ git stash pop は normalモード で解放されます')
+    ctx.clearInput()
+    return true
+  }
+
+  if (!ctx.activeRamen || !ctx.activeRamen.isStashed) {
+    ctx.setMessage('❌ 退避しているラーメンはありません')
+    ctx.clearInput()
+    return true
+  }
+
+  if (ctx.currentStep?.type !== 'stash_pop') {
+    ctx.recordMiss(ctx.activeRamen)
+    ctx.setMessage(`❌ 今は stash pop するタイミングではありません`)
+    ctx.clearInput()
+    return true
+  }
+
+  const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
+  ctx.completeCurrentStep(ctx.activeRamen, {
+    message: `🔄 退避したラーメンを復帰しました！ 次: ${nextStep || '続けて調理してください'}`,
+    update: () => ({ isStashed: false }),
+  })
+  return true
+}
+
+export function handleResetSoftCommand(ctx: GameCommandContext): boolean {
+  const match = ctx.cmd.match(/^git\s+reset\s+--soft\s+HEAD~1$/i)
+  if (!match) return false
+
+  if (ctx.course !== 2) {
+    ctx.setMessage('⛔ git reset は normalモード で解放されます')
+    ctx.clearInput()
+    return true
+  }
+
+  if (!ctx.activeRamen) {
+    ctx.setMessage('❌ reset する対象のラーメンがありません')
+    ctx.clearInput()
+    return true
+  }
+
+  if (ctx.currentStep?.type !== 'reset_soft') {
+    ctx.recordMiss(ctx.activeRamen)
+    ctx.setMessage(`❌ 今は reset するタイミングではありません`)
+    ctx.clearInput()
+    return true
+  }
+
+  const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
+  ctx.completeCurrentStep(ctx.activeRamen, {
+    message: `⏪ 確定(commit)を取り消しました。 次: ${nextStep || '具材を追加してください'}`,
+    update: () => ({ isCommitted: false }),
+  })
+  return true
+}
