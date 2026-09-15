@@ -157,8 +157,11 @@ export function handleBranchCreateCommand(ctx: GameCommandContext): boolean {
     // 詰み防止: switch -c 等で先に作成済みでも、ステップがこのブランチの作成なら完了扱い
     if (ctx.activeRamen && ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
       const nextStep = ctx.getNextStepCommand(ctx.activeRamen)
+      const branchLane = ctx.getBranchLane(branchName)
       ctx.completeCurrentStep(ctx.activeRamen, {
         message: nextStep ? `🌿 ${branchName} は作成済み。次: ${nextStep}` : `🌿 ${branchName} は作成済み`,
+        // 来客注文のお客さんは、このブランチのレーンで待っている
+        update: () => ({ targetLane: branchLane }),
       })
       return true
     }
@@ -188,6 +191,8 @@ export function handleBranchCreateCommand(ctx: GameCommandContext): boolean {
       message: nextStep
         ? `🆕 ${branchName} (Lane ${nextLane}) を開設。次: ${nextStep}`
         : `🆕 ${branchName} (Lane ${nextLane}) を開設`,
+      // 来客注文のお客さんは、開設したレーンで待っている
+      update: () => ({ targetLane: nextLane }),
     })
     return true
   }

@@ -100,7 +100,8 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
       orderText: `${newBranchName}レーンご案内！${meta.baseRamen}${meta.topping}入り`,
       noticeTitle: '新規来客',
       noticeDetails: [`必要コマンド: git branch ${newBranchName}`],
-      targetLaneOverride: 'startLane',
+      // お客さんは今から開設するレーンで待っている
+      targetLaneOverride: 'newLane',
     }
   }
 
