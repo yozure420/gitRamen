@@ -6,7 +6,7 @@ import {
   SUCCESS_DELIVERY_POINT,
   WRONG_BRANCH_PUSH_PENALTY,
 } from './deliveryConstants'
-import { getRequiredToppingForRamen, isWorkflowCompleted } from './workflow'
+import { getWorkflowToppingItems, isWorkflowCompleted } from './workflow'
 import type { DeliveryOutcome } from './types'
 
 export function evaluateDelivery(ramen: Ramen, course: number): DeliveryOutcome {
@@ -39,19 +39,20 @@ export function evaluateDelivery(ramen: Ramen, course: number): DeliveryOutcome 
       scoreDelta: -INCOMPLETE_WORKFLOW_PENALTY,
       result: 'failed',
       summary: 'ワークフロー未完了で配達失敗',
-      message: '❌ 失敗！必要な手順を完了する前に流れてしまいました (-50点)',
+      message: `❌ 失敗！必要な手順を完了する前に流れてしまいました (-${INCOMPLETE_WORKFLOW_PENALTY}点)`,
+      ...(ramen.isPushed ? { customerWarning: '頼んだものと違うんだけど💢', errorLabel: '手順未完了' } : {}),
     }
   }
 
   if (ramen.currentLane === ramen.targetLane) {
-    const requiredTopping = getRequiredToppingForRamen(ramen)
-    if (requiredTopping && !ramen.stagedItems.includes(requiredTopping)) {
+    const missingTopping = getWorkflowToppingItems(ramen).find(item => !ramen.stagedItems.includes(item))
+    if (missingTopping) {
       const penalty = MISSING_TOPPING_PENALTY * course
       return {
         scoreDelta: -penalty,
         result: 'failed',
-        summary: `味判定失敗: ${requiredTopping}なし`,
-        message: `🤢 まずい…「${requiredTopping}」が入ってない！ (-${penalty}点)`,
+        summary: `味判定失敗: ${missingTopping}なし`,
+        message: `🤢 まずい…「${missingTopping}」が入ってない！ (-${penalty}点)`,
       }
     }
 

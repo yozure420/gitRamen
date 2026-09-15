@@ -14,13 +14,16 @@ export type PullOrderPayload = {
   targetLaneOverride?: number | 'startLane'
 }
 
+/** 注文に仕込まれる厨房ギミックの種類 */
+export type OrderEventType = 'standard' | 'stash' | 'reset_soft' | 'amend'
+
 export type CreateLaneAwarePullOrderParams = {
   course: number
-  ramenId: number
   baseCommandId: number
   laneCount: number
   maxLanes: number
   existingBranches: string[]
+  currentLane?: number
 }
 
 export type CommandLogicRule = {

@@ -40,6 +40,7 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
     isCommitted: false,
     isPushed: false,
     isStashed: false,
+    stashedItems: [],
     pushedToMainFromOtherLane: false,
     commandsExecuted: 0,
     pushThreshold: steps.length,
