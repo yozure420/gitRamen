@@ -1,6 +1,10 @@
 import type { CommandStepType, Ramen } from '../../types/interface'
 import type { GameCommandContext } from './types'
 
+// ギミック系のコマンドは表記ゆれ（--no-edit や HEAD^ など）を受け付けたいので、
+// このファイルのパターンが「何を正解とみなすか」の正になる。
+// CommandStep.expectedInputs は伝票の表示と、他のハンドラ（checkout など）が使う
+// isCurrentStepMatch 用なので、受け付ける形を変えるときは両方を直すこと。
 const AMEND_PATTERN = /^git\s+commit\s+--amend(?:\s+--no-edit|\s+-m\s*["“”＂][^"“”＂]*["“”＂])?\s*$/i
 const RESET_SOFT_PATTERN = /^git reset --soft head(?:~1|\^)$/
 
