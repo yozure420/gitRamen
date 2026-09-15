@@ -23,6 +23,8 @@ PLAYABLE_COMMANDS = {
         "git checkout <branch>", "git checkout -b <branch>",
     },
     2: {"git stash", "git stash pop", "git stash list", "git reset --soft HEAD~1", "git commit --amend"},
+    3: {"git bisect start", "git bisect good <hash>", "git bisect bad <hash>", "git bisect reset", "git reflog", "git reset --hard HEAD@{1}"},
+    4: {"git write-tree", "git commit-tree <tree> -p <parent> -m", "git update-ref refs/heads/<branch> <hash>"},
 }
 
 # 🟢 初級レベル（course=1）
@@ -83,11 +85,12 @@ intermediate_commands = [
 
 # 🟠 上級レベル（course=3）
 advanced_commands = [
-    ("git bisect start", "—", "バグが混入したコミットを二分探索で特定し始める"),
-    ("git bisect good", "<hash>", "指定コミットは正常だとマークする"),
-    ("git bisect bad", "<hash>", "指定コミットはバグありとマークする"),
-    ("git bisect reset", "—", "二分探索を終了して元のブランチに戻る"),
-    ("git reflog", "—", "HEADの移動履歴を表示し、消えたコミットを復元できる"),
+    ("git bisect start", "—", "バグが混入したコミットを二分探索で特定し始める", "まずいスープの犯人探しを開始"),
+    ("git bisect good", "<hash>", "指定コミットは正常だとマークする", "この仕込みは美味しかったと記録"),
+    ("git bisect bad", "<hash>", "指定コミットはバグありとマークする", "今のスープはまずいと記録"),
+    ("git bisect reset", "—", "二分探索を終了して元のブランチに戻る", "犯人探しを終えて厨房に戻る"),
+    ("git reflog", "—", "HEADの移動履歴を表示し、消えたコミットを復元できる", "消えた丼の履歴を探す"),
+    ("git reset", "--hard HEAD@{1}", "reflogで見つけた直前の状態に戻す", "消えた丼を復元する"),
     ("git worktree add", "<path> <branch>", "同リポジトリを複数ディレクトリで同時チェックアウト"),
     ("git submodule add", "<URL>", "別リポジトリをサブモジュールとして組み込む"),
     ("git submodule update", "--init --recursive", "サブモジュールを再帰的に初期化・更新する"),
@@ -114,8 +117,9 @@ expert_commands = [
     ("git update-ref", "-d refs/heads/<branch>", "refを直接操作してブランチポインタを強制削除する"),
     ("git symbolic-ref", "HEAD refs/heads/main", "HEADが指すブランチを低レイヤーで直接書き換える"),
     ("git read-tree", "-m -u <hash>", "ツリーオブジェクトをインデックスに直接読み込む"),
-    ("git write-tree", "—", "現在のインデックスからツリーオブジェクトを生成する"),
-    ("git commit-tree", '<tree> -p <parent> -m', "コミットオブジェクトを低レベルAPIで手動生成する"),
+    ("git write-tree", "—", "現在のインデックスからツリーオブジェクトを生成する", "ステージの具材からツリーを作る"),
+    ("git commit-tree", '<tree> -p <parent> -m', "コミットオブジェクトを低レベルAPIで手動生成する", "ツリーからコミットを手作りする"),
+    ("git update-ref", "refs/heads/<branch> <hash>", "ブランチが指すコミットを直接書き換える", "手作りコミットをブランチに貼る"),
     ("git update-index", "--assume-unchanged <file>", "ファイルを変更されていないとGitに思い込ませる"),
     ("git update-index", "--skip-worktree <file>", "ローカル設定ファイルをpush対象から除外する"),
     ("git pack-refs", "--all", "すべてのrefをpackファイルに圧縮してパフォーマンス向上"),

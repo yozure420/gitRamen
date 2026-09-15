@@ -93,7 +93,7 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
             logicLabel: 'レーン移動',
             logicDescription: '作成した新しいレーンに移動する。',
           }),
-          ...buildCookingSteps('standard', { meta, laneLabel: `${newBranchName}レーン` }),
+          ...buildCookingSteps('standard', { meta, laneLabel: `${newBranchName}レーン`, branchName: newBranchName }),
           createPushStep(newBranchName),
         ],
       },
@@ -129,8 +129,15 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
   }
 
   // 2. 調理（コースに応じたギミック込み）・配達
-  steps.push(...buildCookingSteps(event, { meta, laneLabel: `${targetBranchName}レーン` }))
+  steps.push(...buildCookingSteps(event, { meta, laneLabel: `${targetBranchName}レーン`, branchName: targetBranchName }))
   steps.push(createPushStep(targetBranchName))
+
+  // 最初の手順からギミックが始まる注文（bisect など）は、受付時にその告知を出す
+  const firstNotice = steps[0].eventNotice
+  const noticeTitle = firstNotice ? `${NEW_ORDER_NOTICE}: ${firstNotice.title}` : NEW_ORDER_NOTICE
+  const noticeDetails = firstNotice
+    ? [firstNotice.message, ...firstNotice.details]
+    : [`対象: ${targetBranchName}レーン`, `最初のコマンド: ${steps[0].displayCommand}`]
 
   return {
     command: {
@@ -142,8 +149,8 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
     },
     runtimeLogic: { steps },
     orderText: laneOrderText,
-    noticeTitle: NEW_ORDER_NOTICE,
-    noticeDetails: [`対象: ${targetBranchName}レーン`, `最初のコマンド: ${steps[0].displayCommand}`],
+    noticeTitle,
+    noticeDetails,
     targetLaneOverride: targetLane,
   }
 }

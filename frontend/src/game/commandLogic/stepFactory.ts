@@ -1,4 +1,4 @@
-import type { CommandStep, CommandStepType, StepEventNotice } from '../../types/interface'
+import type { CommandStep, CommandStepType, StepEnterEffect, StepEventNotice } from '../../types/interface'
 import type { RuntimeCommandLogic } from './types'
 
 export const createStep = (params: {
@@ -10,6 +10,7 @@ export const createStep = (params: {
   logicExample?: string
   itemName?: string
   eventNotice?: StepEventNotice
+  onEnter?: StepEnterEffect
 }): CommandStep => {
   const {
     type,
@@ -20,6 +21,7 @@ export const createStep = (params: {
     logicExample = `例: ${displayCommand}`,
     itemName,
     eventNotice,
+    onEnter,
   } = params
 
   return {
@@ -32,6 +34,7 @@ export const createStep = (params: {
     logicExample,
     itemName,
     ...(eventNotice ? { eventNotice } : {}),
+    ...(onEnter ? { onEnter } : {}),
   }
 }
 
