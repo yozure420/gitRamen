@@ -1,7 +1,10 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DATABASE_URL = "sqlite:///./db/gitramen.db"
+# テストやローカル実行では環境変数 DATABASE_URL で差し替えられる
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./db/gitramen.db")
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
