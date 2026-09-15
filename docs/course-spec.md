@@ -63,6 +63,7 @@
 4. `git reset --hard HEAD@{1}` … 丼を復元（`isCommitted=true`）→ `git push`
 
 ミス: reflog より先に復元コマンド。消えたまま push すると「空振りプッシュ」で失敗。
+`git reflog` は手順外でも使える確認コマンド（ミスにならない）。
 
 #### bisect: スープがまずい！
 `git bisect start` → `git bisect bad`（`HEAD` 付きも可）→ `git bisect good <表示されたハッシュ>` → `git bisect reset`（犯人ハッシュを告知）→ `git add` → `git commit` → `git push`
@@ -87,7 +88,7 @@
 4. 同じレーンで、全 add 手順の具材が乗っている → 成功（+100×course）／欠けていれば味判定失敗（-30×course）
 5. それ以外 → 誤配達（-50）
 
-来客注文のお客さんは、開設したレーンで待っている（`targetLaneOverride: 'newLane'`）。
+来客注文のお客さんは、開設したレーンで待っている。
 
 ## ヘルプとシードデータ（#45 / #55）
 - `command.playable` が `true` のコマンドだけがヘルプ・出題の対象。ゲーム中のヘルプは course 1〜現在コースの playable コマンドを連結して表示する。
