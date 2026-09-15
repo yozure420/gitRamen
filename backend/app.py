@@ -8,6 +8,7 @@ from models import User, History, Cmd, Miss
 from pydantic import BaseModel
 from typing import List, Optional
 from routers.auth import router as auth_router, get_current_user
+from routers.news import router as news_router
 import random
 
 # データベーステーブルを作成
@@ -16,6 +17,7 @@ ensure_schema(engine)
 
 app = FastAPI(title="GitRamen API")
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(news_router, prefix="/news", tags=["news"])
 
 # CORS設定（フロントエンドからのアクセスを許可）
 origins = [
