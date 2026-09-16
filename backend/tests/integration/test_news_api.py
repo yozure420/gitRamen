@@ -53,8 +53,14 @@ def stub_sources(monkeypatch):
                 raise RuntimeError("boom")
             return CHANGELOG
 
+        async def fake_get_client():
+            # 取得関数を差し替えているので実クライアントは不要。
+            # 生成すると SSL コンテキスト構築で数百 ms かかり、計測系のテストが不安定になる
+            return object()
+
         monkeypatch.setattr(news, "_get_json", fake_get_json)
         monkeypatch.setattr(news, "_get_text", fake_get_text)
+        monkeypatch.setattr(news, "get_client", fake_get_client)
 
     return install
 

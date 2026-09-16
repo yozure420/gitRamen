@@ -206,6 +206,35 @@ async def _get_text(client: httpx.AsyncClient, url: str) -> str:
     return response.text
 
 
+_client: Optional[httpx.AsyncClient] = None
+_client_lock = asyncio.Lock()
+
+
+async def get_client() -> httpx.AsyncClient:
+    """AsyncClient を使い回す。
+
+    毎回生成すると SSL コンテキストの構築とコネクション確立が都度発生し、
+    取得時間が数百ミリ秒単位で増える。
+    """
+    global _client
+    if _client is None or _client.is_closed:
+        async with _client_lock:
+            if _client is None or _client.is_closed:
+                _client = httpx.AsyncClient(
+                    timeout=REQUEST_TIMEOUT_SECONDS,
+                    follow_redirects=True,
+                    limits=httpx.Limits(max_keepalive_connections=8, max_connections=8),
+                )
+    return _client
+
+
+async def close_client() -> None:
+    global _client
+    if _client is not None and not _client.is_closed:
+        await _client.aclose()
+    _client = None
+
+
 async def fetch_news(use_cache: bool = True) -> dict[str, Any]:
     """Git / GitHub / GitRamen の更新情報と GitHub の稼働状況をまとめて返す。
 
@@ -218,15 +247,15 @@ async def fetch_news(use_cache: bool = True) -> dict[str, Any]:
 
     unavailable: list[str] = []
 
-    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True) as client:
-        # 4件の取得は互いに独立しているので並列に投げる（直列だと合計レイテンシが4倍になる）
-        raw_git, raw_github, raw_gitramen, raw_status = await asyncio.gather(
-            _get_json(client, GIT_TAGS_URL),
-            _get_text(client, GITHUB_CHANGELOG_URL),
-            _get_json(client, GITRAMEN_COMMITS_URL),
-            _get_json(client, GITHUB_STATUS_URL),
-            return_exceptions=True,
-        )
+    client = await get_client()
+    # 4件の取得は互いに独立しているので並列に投げる（直列だと合計レイテンシが4倍になる）
+    raw_git, raw_github, raw_gitramen, raw_status = await asyncio.gather(
+        _get_json(client, GIT_TAGS_URL),
+        _get_text(client, GITHUB_CHANGELOG_URL),
+        _get_json(client, GITRAMEN_COMMITS_URL),
+        _get_json(client, GITHUB_STATUS_URL),
+        return_exceptions=True,
+    )
 
     def _parse(source: str, raw: Any, parser: Callable[[Any], Any], fallback: Any) -> Any:
         if isinstance(raw, BaseException):

@@ -9,13 +9,22 @@ from pydantic import BaseModel
 from typing import List, Optional
 from routers.auth import router as auth_router, get_current_user
 from routers.news import router as news_router
+from news import close_client as close_news_client
+from contextlib import asynccontextmanager
 import random
 
 # データベーステーブルを作成
 Base.metadata.create_all(bind=engine)
 ensure_schema(engine)
 
-app = FastAPI(title="GitRamen API")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    yield
+    # 外部 API 用の HTTP クライアントを終了時に片付ける
+    await close_news_client()
+
+
+app = FastAPI(title="GitRamen API", lifespan=lifespan)
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(news_router, prefix="/news", tags=["news"])
 
