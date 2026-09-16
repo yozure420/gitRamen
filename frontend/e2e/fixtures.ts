@@ -22,15 +22,19 @@ const COURSE_COMMANDS = [
 const json = (route: Route, body: unknown) =>
   route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
 
-/** 外部 API に依存せず画面を検証するため、バックエンドのレスポンスを固定する */
+/**
+ * 外部 API に依存せず画面を検証するため、バックエンドのレスポンスを固定する。
+ * glob（**\/api/news*）だとソースの /src/api/news.ts まで一致してしまうため、
+ * パスの末尾まで見る正規表現でマッチさせる。
+ */
 export async function mockApi(page: Page, options: { news?: unknown | 'error' } = {}) {
-  await page.route('**/api/news*', route => {
+  await page.route(/\/api\/news(\?.*)?$/, route => {
     if (options.news === 'error') {
       return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"unavailable"}' })
     }
     return json(route, options.news ?? NEWS_RESPONSE)
   })
-  await page.route('**/api/commands/random*', route => json(route, COURSE_COMMANDS))
-  await page.route('**/api/commands/course*', route => json(route, COURSE_COMMANDS))
-  await page.route('**/api/history', route => json(route, { ok: true }))
+  await page.route(/\/api\/commands\/random(\?.*)?$/, route => json(route, COURSE_COMMANDS))
+  await page.route(/\/api\/commands\/course(\?.*)?$/, route => json(route, COURSE_COMMANDS))
+  await page.route(/\/api\/history$/, route => json(route, { ok: true }))
 }

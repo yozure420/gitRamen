@@ -22,7 +22,8 @@ const response: NewsResponse = {
   fetched_at: '2026-09-16T00:00:00+00:00',
 }
 
-beforeEach(() => fetchNewsMock.mockReset())
+// ブロックにしないと mockReset() の戻り値（モック関数）が Vitest の後処理として実行されてしまう
+beforeEach(() => { fetchNewsMock.mockReset() })
 afterEach(cleanup)
 
 describe('GithubNewsPanel', () => {
@@ -82,7 +83,7 @@ describe('GithubNewsPanel', () => {
   })
 
   it('取得に失敗したらエラーメッセージを表示する', async () => {
-    fetchNewsMock.mockRejectedValue(new Error('更新情報を取得できませんでした'))
+    fetchNewsMock.mockImplementation(async () => { throw new Error('更新情報を取得できませんでした') })
     render(<GithubNewsPanel />)
 
     await waitFor(() => expect(screen.getByText('更新情報を取得できませんでした')).toBeTruthy())
