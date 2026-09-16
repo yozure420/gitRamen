@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /mypage
+Disallow: /settings
+
+Sitemap: https://gitramen.com/sitemap.xml
