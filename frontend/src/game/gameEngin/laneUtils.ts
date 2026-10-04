@@ -12,7 +12,7 @@ export function resolveTargetLane(params: {
   firstStep: CommandStep | undefined
   startLane: number
   laneCount: number
-  targetLaneOverride?: number | 'startLane'
+  targetLaneOverride?: number | 'startLane' | 'newLane'
 }): number {
   const { firstStep, startLane, laneCount, targetLaneOverride } = params
   const checkoutLaneMatch = firstStep?.displayCommand.match(/^git checkout lane([1-3])$/i)
@@ -23,6 +23,11 @@ export function resolveTargetLane(params: {
 
   if (targetLaneOverride === 'startLane') {
     return startLane
+  }
+
+  // 来客注文: これから git branch で開設されるレーン
+  if (targetLaneOverride === 'newLane') {
+    return laneCount + 1
   }
 
   if (typeof targetLaneOverride === 'number') {

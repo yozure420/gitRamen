@@ -6,7 +6,7 @@ export type CreateRamenEntryParams = {
   steps: CommandStep[]
   laneCount: number
   speed: number
-  targetLaneOverride?: number | 'startLane'
+  targetLaneOverride?: number | 'startLane' | 'newLane'
 }
 
 export type CanSpawnRamenParams = {

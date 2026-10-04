@@ -11,7 +11,7 @@ export type PullOrderPayload = {
   orderText: string
   noticeTitle?: string
   noticeDetails?: string[]
-  targetLaneOverride?: number | 'startLane'
+  targetLaneOverride?: number | 'startLane' | 'newLane'
 }
 
 /** 注文に仕込まれる厨房ギミックの種類 */
