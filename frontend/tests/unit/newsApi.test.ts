@@ -32,3 +32,17 @@ describe('fetchNews', () => {
     await expect(fetchNews()).rejects.toThrow('更新情報を取得できませんでした')
   })
 })
+
+describe('fetchNews の失敗時の挙動', () => {
+  it('ネットワークエラー（fetch の reject）はそのまま呼び出し元へ伝わる', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
+
+    await expect(fetchNews()).rejects.toThrow('Failed to fetch')
+  })
+
+  it('本文が JSON として壊れていれば例外を投げる', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => { throw new SyntaxError('Unexpected token') } } as unknown as Response)
+
+    await expect(fetchNews()).rejects.toThrow(SyntaxError)
+  })
+})
