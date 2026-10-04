@@ -9,20 +9,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from database import SessionLocal, Base, engine
+from migrations import ensure_schema
 from models import Cmd, User, History, Miss  # noqa: F401 – 全モデルをロードして metadata を確定させる
 
 # テーブル作成
 Base.metadata.create_all(bind=engine)
 
-
-def ensure_schema():
-    """既存DBに不足カラムがあれば追加する（簡易マイグレーション）"""
-    with engine.connect() as conn:
-        columns = conn.exec_driver_sql("PRAGMA table_info(command)").fetchall()
-        column_names = {col[1] for col in columns}
-        if "game_note" not in column_names:
-            conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
-            conn.commit()
+# ゲーム内で実際に操作できる（ヘルプ・出題に出す）コマンド。ここにないものは playable=False で投入する
+PLAYABLE_COMMANDS = {
+    1: {
+        "git status", "git add <file>", "git add .", 'git commit -m "message"', "git push origin main",
+        "git pull", "git log", "git log --oneline", "git branch", "git branch <name>",
+        "git checkout <branch>", "git checkout -b <branch>",
+    },
+    2: {"git stash", "git stash pop", "git stash list", "git reset --soft HEAD~1", "git commit --amend"},
+}
 
 # 🟢 初級レベル（course=1）
 beginner_commands = [
@@ -46,14 +47,14 @@ beginner_commands = [
 
 # 🔵 中級レベル（course=2）
 intermediate_commands = [
-    ("git stash", "—", "作業中の変更を一時退避する"),
-    ("git stash pop", "—", "退避した変更を元に戻す"),
-    ("git stash list", "—", "退避した変更の一覧を表示する"),
+    ("git stash", "—", "作業中の変更を一時退避する", "作りかけの丼を一時退避（常連さんの割り込み対応）"),
+    ("git stash pop", "—", "退避した変更を元に戻す", "退避した丼を戻して調理再開"),
+    ("git stash list", "—", "退避した変更の一覧を表示する", "退避中の丼を確認"),
     ("git stash drop", "—", "特定のstashを削除する"),
     ("git rebase", "<branch>", "コミット履歴を別ブランチの先頭に付け替える"),
     ("git rebase", "-i HEAD~N", "直近N件のコミットを対話的に編集する"),
     ("git cherry-pick", "<hash>", "特定のコミットだけを現在のブランチに適用する"),
-    ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す"),
+    ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す", "コール間違いを取り消す（具材はそのまま）"),
     ("git reset", "--hard HEAD~1", "直前のコミットを完全に取り消し、変更も消す"),
     ("git revert", "<hash>", "指定コミットを打ち消す新たなコミットを作る"),
     ("git remote", "-v", "リモートリポジトリの一覧とURLを表示する"),
@@ -71,7 +72,7 @@ intermediate_commands = [
     ("git show", "<hash>", "特定コミットの変更内容を表示する"),
     ("git blame", "<file>", "ファイルの各行を最後に変更したコミットを表示する"),
     ("git clean", "-fd", "未追跡のファイル・ディレクトリを一掃する"),
-    ("git commit", "--amend", "直前のコミットメッセージや内容を修正する"),
+    ("git commit", "--amend", "直前のコミットメッセージや内容を修正する", "注文変更を直前のコールに上書き"),
     ("git push", "--force-with-lease", "安全な強制プッシュ（他人の変更を上書きしない）"),
     ("git diff", "—", "ステージ前の変更差分を表示する"),
     ("git rm", "<file>", "ファイルを削除してステージングに反映する"),
@@ -147,7 +148,7 @@ def seed_database():
     db = SessionLocal()
     
     try:
-        ensure_schema()
+        ensure_schema(engine)
         # 既存データをクリア
         db.query(Cmd).delete()
         db.commit()
@@ -160,12 +161,14 @@ def seed_database():
                 else:
                     cmd, option, desc = command_row
                     game_note = None
+                command = format_command(cmd, option)
                 db.add(
                     Cmd(
-                        command=format_command(cmd, option),
+                        command=command,
                         description=desc,
                         game_note=game_note,
                         course=course,
+                        playable=command in PLAYABLE_COMMANDS.get(course, set()),
                     )
                 )
         db.commit()

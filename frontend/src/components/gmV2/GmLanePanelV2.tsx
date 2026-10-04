@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import type { Ramen } from '../../types/interface'
 
 /** パス：ラーメン画像URL というプロパティを集めたオブジェクト。*/
@@ -30,7 +29,11 @@ function prunePathToName<V>(record: Record<string, V>): Record<string, V> {
 
 const fileNameToRamenImage = prunePathToName(ramenAssetModules)
 const fineNameToToppingImage = prunePathToName(toppingAssetModules)
-const customerImages = Object.values(prunePathToName(customerAssetModules))
+/** 客画像はページ読み込み時に一度だけシャッフルし、レーンごとに順に割り当てる */
+const shuffledCustomerImages = Object.values(prunePathToName(customerAssetModules))
+  .map(image => ({ image, order: Math.random() }))
+  .sort((a, b) => a.order - b.order)
+  .map(({ image }) => image)
 
 const keywordToRamenImage: Record<string, string> = {
   '味噌': 'a1.png',
@@ -83,13 +86,9 @@ function GmLanePanelV2({
   existingBrancheNames
 }: GmLanePanelV2Props) {
   const laneCount = existingBrancheNames.length
-  const laneCustomerImages = useMemo(() => {
-    if (customerImages.length === 0) {
-      return Array.from({ length: laneCount }, () => null)
-    }
-    const pickRandom = () => customerImages[Math.floor(Math.random() * customerImages.length)]
-    return Array.from({ length: laneCount }, () => pickRandom())
-  }, [laneCount])
+  const laneCustomerImages = Array.from({ length: laneCount }, (_, index) => {
+    return shuffledCustomerImages.length > 0 ? shuffledCustomerImages[index % shuffledCustomerImages.length] : null
+  })
 
   return (
     <div className='center-panel'>
