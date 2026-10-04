@@ -242,6 +242,9 @@ async def close_client() -> None:
     _client = None
 
 
+_fetch_lock = asyncio.Lock()
+
+
 async def fetch_news(use_cache: bool = True) -> dict[str, Any]:
     """Git / GitHub / GitRamen の更新情報と GitHub の稼働状況をまとめて返す。
 
@@ -252,36 +255,49 @@ async def fetch_news(use_cache: bool = True) -> dict[str, Any]:
         if cached is not None:
             return cached
 
+    # キャッシュが切れた瞬間に同時アクセスが来ても、外部取得は1回にまとめる
+    async with _fetch_lock:
+        if use_cache:
+            cached = cache.get("news")
+            if cached is not None:
+                return cached
+        return await _fetch_and_cache(use_cache)
+
+
+async def _fetch_and_cache(use_cache: bool) -> dict[str, Any]:
     unavailable: list[str] = []
-
     client = await get_client()
-    # 4件の取得は互いに独立しているので並列に投げる（直列だと合計レイテンシが4倍になる）
-    raw_git, raw_github, raw_gitramen, raw_status = await asyncio.gather(
-        _get_json(client, GIT_TAGS_URL),
-        _get_text(client, GITHUB_CHANGELOG_URL),
-        _get_json(client, GITRAMEN_COMMITS_URL),
-        _get_json(client, GITHUB_STATUS_URL),
-        return_exceptions=True,
-    )
 
-    def _parse(source: str, raw: Any, parser: Callable[[Any], Any], fallback: Any) -> Any:
-        if isinstance(raw, BaseException):
-            unavailable.append(source)
-            return fallback
+    async def _load(source: str, url: str, getter: Callable[..., Any], parser: Callable[[Any], Any]) -> Any:
+        """取得できたソースは通常の TTL、失敗したソースだけ短い TTL で持つ。
+
+        結果全体を短い TTL にすると、1つのソースの障害が続く間、取得できている
+        GitHub API まで毎回呼び直してレート制限を使い切ってしまう。
+        """
+        key = f"source:{source}"
+        if use_cache:
+            hit = cache.get(key)
+            if hit is not None:
+                return hit[0]
         try:
-            parsed = parser(raw)
+            parsed = parser(await getter(client, url)) or None
         except Exception:
-            unavailable.append(source)
-            return fallback
-        if not parsed:
-            unavailable.append(source)
-            return fallback
+            parsed = None
+        cache.set(key, (parsed,), None if parsed is not None else FAILED_CACHE_TTL_SECONDS)
         return parsed
 
-    git = _parse("git", raw_git, parse_git_tags, [])
-    github = _parse("github", raw_github, parse_changelog_feed, [])
-    gitramen = _parse("gitramen", raw_gitramen, parse_repo_commits, [])
-    status = _parse("status", raw_status, parse_github_status, None)
+    # 4件の取得は互いに独立しているので並列に投げる（直列だと合計レイテンシが4倍になる）
+    results = await asyncio.gather(
+        _load("git", GIT_TAGS_URL, _get_json, parse_git_tags),
+        _load("github", GITHUB_CHANGELOG_URL, _get_text, parse_changelog_feed),
+        _load("gitramen", GITRAMEN_COMMITS_URL, _get_json, parse_repo_commits),
+        _load("status", GITHUB_STATUS_URL, _get_json, parse_github_status),
+    )
+    for source, result in zip(("git", "github", "gitramen", "status"), results):
+        if result is None:
+            unavailable.append(source)
+    git, github, gitramen = (result or [] for result in results[:3])
+    status = results[3]
 
     payload = {
         "git": [item.as_dict() for item in git],

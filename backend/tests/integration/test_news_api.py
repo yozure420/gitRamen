@@ -138,9 +138,24 @@ def test_failed_result_is_cached_only_briefly(client, stub_sources, monkeypatch)
     stub_sources(counter=counter)
     now["value"] = news.FAILED_CACHE_TTL_SECONDS
     assert client.get("/news").json()["unavailable"] == []  # 短い TTL が切れたら復旧する
+    # 取り直すのは失敗したソースだけ。取得できていた GitHub API まで呼び直さない
+    assert counter[news.GITRAMEN_COMMITS_URL] == 1
     now["value"] = news.FAILED_CACHE_TTL_SECONDS + news.CACHE_TTL_SECONDS - 1
     client.get("/news")
     assert counter[news.GIT_TAGS_URL] == 2  # 成功した結果は通常の TTL で持つ
+
+
+def test_concurrent_requests_share_one_fetch(stub_sources):
+    counter: dict[str, int] = {}
+    stub_sources(delay=0.05, counter=counter)
+
+    async def scenario():
+        return await asyncio.gather(*(news.fetch_news() for _ in range(5)))
+
+    results = asyncio.run(scenario())
+
+    assert counter[news.GIT_TAGS_URL] == 1
+    assert all(result is results[0] for result in results)
 
 
 def test_news_sources_are_fetched_in_parallel(client, stub_sources):
