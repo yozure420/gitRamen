@@ -21,7 +21,9 @@ STATUS = {
 
 
 @pytest.fixture(autouse=True)
-def clear_news_cache():
+def clear_news_cache(monkeypatch):
+    # asyncio.Lock は最初に競合したイベントループに結び付くので、テストごとに作り直す
+    monkeypatch.setattr(news, "_fetch_lock", asyncio.Lock())
     news.cache.clear()
     yield
     news.cache.clear()

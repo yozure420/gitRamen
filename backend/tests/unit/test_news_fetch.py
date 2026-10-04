@@ -8,7 +8,8 @@ import news
 
 
 @pytest.fixture(autouse=True)
-def clean_state():
+def clean_state(monkeypatch):
+    monkeypatch.setattr(news, "_fetch_lock", asyncio.Lock())
     news.cache.clear()
     yield
     news.cache.clear()
