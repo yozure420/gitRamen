@@ -9,9 +9,13 @@ export function buildStatusSnapshot(ramen: Ramen): StatusSnapshot {
   const requiredItems = ramen.steps
     .filter(step => step.type === 'add' && step.itemName)
     .map(step => step.itemName as string)
-  const uniqueItems = Array.from(new Set([...requiredItems, ...ramen.stagedItems, ...ramen.stashedItems]))
+  const uniqueItems = Array.from(new Set([...requiredItems, ...ramen.stagedItems, ...ramen.stashedItems, ...ramen.lostItems]))
 
   const phaseMessage = (() => {
+    if (ramen.isLost) {
+      return '厨房の状態: 丼が消えています！ git reflog で履歴を探し、git reset --hard HEAD@{1} で復元してください。'
+    }
+
     if (ramen.isStashed) {
       return '厨房の状態: 作りかけの丼を退避中です。割り込みを片付けたら git stash pop で戻してください。'
     }
@@ -34,6 +38,7 @@ export function buildStatusSnapshot(ramen: Ramen): StatusSnapshot {
   const toItemState = (item: string) => {
     if (ramen.stagedItems.includes(item)) return '投入済み'
     if (ramen.stashedItems.includes(item)) return '退避中'
+    if (ramen.lostItems.includes(item)) return '消失'
     return '未投入'
   }
 

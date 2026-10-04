@@ -16,6 +16,8 @@ export type OrderMeta = {
 export const ORDER_EVENT_RATES: Record<number, Partial<Record<Exclude<OrderEventType, 'standard'>, number>>> = {
   1: {},
   2: { stash: 0.2, reset_soft: 0.2, amend: 0.2 },
+  3: { stash: 0.12, reset_soft: 0.12, amend: 0.12, reflog: 0.2, bisect: 0.2 },
+  4: { stash: 0.08, reset_soft: 0.08, amend: 0.08, reflog: 0.12, bisect: 0.12, plumbing: 0.3 },
 }
 
 /** E2E テストなどから特定のギミックを強制するためのグローバルキー */
@@ -54,6 +56,11 @@ export function createOrderMeta(): OrderMeta {
   return { baseRamen, topping, call: `${baseRamen}${topping}入りおまち！` }
 }
 
+/** 画面表示用の短縮コミットハッシュ（7桁） */
+export function createFakeHash(): string {
+  return Math.floor(Math.random() * 0x10000000).toString(16).padStart(7, '0')
+}
+
 function pickOtherValue(pick: () => string, excluded: string, fallback: string): string {
   for (let i = 0; i < 20; i++) {
     const value = pick()
@@ -83,8 +90,11 @@ function createCommitStep(call: string, laneLabel: string): CommandStep {
 }
 
 /** 注文の調理部分（push 手前まで）のステップ列をギミックに応じて組み立てる */
-export function buildCookingSteps(event: OrderEventType, params: { meta: OrderMeta; laneLabel: string }): CommandStep[] {
-  const { meta, laneLabel } = params
+export function buildCookingSteps(
+  event: OrderEventType,
+  params: { meta: OrderMeta; laneLabel: string; branchName: string },
+): CommandStep[] {
+  const { meta, laneLabel, branchName } = params
 
   switch (event) {
     case 'stash': {
@@ -166,6 +176,120 @@ export function buildCookingSteps(event: OrderEventType, params: { meta: OrderMe
           expectedInputs: ['git commit --amend', 'git commit --amend --no-edit'],
           logicLabel: 'コール上書き',
           logicDescription: '追加した具材を直前のコミットに含めて上書きする。',
+        }),
+      ]
+    }
+    case 'reflog': {
+      return [
+        createAddStep(meta.topping, laneLabel),
+        createCommitStep(meta.call, laneLabel),
+        createStep({
+          type: 'command',
+          displayCommand: 'git reflog',
+          logicLabel: '履歴を探す',
+          logicDescription: '消える前のコミットを reflog で探す。',
+          // この手順に入った瞬間、新人の reset --hard で丼（コミット）が消える
+          onEnter: 'drop_bowl',
+          eventNotice: {
+            title: '丼が消えた！',
+            message: '「すみません大将…git reset --hard で丼を片付けちゃいました！」',
+            details: [
+              'コールした丼（コミット）が消えてしまった',
+              'git reflog で消える前の履歴 HEAD@{1} を見つける',
+              'git reset --hard HEAD@{1} で丼を復元してから届ける',
+            ],
+          },
+        }),
+        createStep({
+          type: 'reset_hard_restore',
+          displayCommand: 'git reset --hard HEAD@{1}',
+          logicLabel: '丼を復元',
+          logicDescription: 'reflog で見つけたコミットに戻して丼を復元する。',
+        }),
+      ]
+    }
+    case 'bisect': {
+      const goodHash = createFakeHash()
+      const culpritHash = createFakeHash()
+      return [
+        createStep({
+          type: 'command',
+          displayCommand: 'git bisect start',
+          logicLabel: '犯人探し開始',
+          logicDescription: 'どの仕込みからスープがまずくなったか二分探索を始める。',
+          eventNotice: {
+            title: 'スープがまずい！',
+            message: '「昨日の仕込みから味がおかしい…どのコミットで壊れた？」',
+            details: [
+              'git bisect start で二分探索を開始',
+              'git bisect bad で今のスープはまずいと記録',
+              `git bisect good ${goodHash} で美味しかった仕込みを記録`,
+              'git bisect reset で探索を終えてから調理する',
+            ],
+          },
+        }),
+        createStep({
+          type: 'command',
+          displayCommand: 'git bisect bad',
+          expectedInputs: ['git bisect bad', 'git bisect bad HEAD'],
+          logicLabel: '今はまずい',
+          logicDescription: '現在のスープはまずい（bad）と記録する。',
+        }),
+        createStep({
+          type: 'command',
+          displayCommand: `git bisect good ${goodHash}`,
+          logicLabel: '昔はうまい',
+          logicDescription: `${goodHash} の仕込みは美味しかった（good）と記録する。`,
+        }),
+        createStep({
+          type: 'command',
+          displayCommand: 'git bisect reset',
+          logicLabel: '犯人探し終了',
+          logicDescription: '二分探索を終えて元のレーンに戻る。',
+          eventNotice: {
+            title: '犯人判明！',
+            message: `${culpritHash} が最初のまずいコミット（塩の入れすぎ）でした`,
+            details: [
+              'git bisect reset で探索を終了',
+              `その後 git add ${meta.topping} → git commit で作り直して届ける`,
+            ],
+          },
+        }),
+        createAddStep(meta.topping, laneLabel),
+        createCommitStep(meta.call, laneLabel),
+      ]
+    }
+    case 'plumbing': {
+      const treeHash = createFakeHash()
+      const commitHash = createFakeHash()
+      return [
+        createAddStep(meta.topping, laneLabel),
+        createStep({
+          type: 'command',
+          displayCommand: 'git write-tree',
+          logicLabel: 'ツリーを作る',
+          logicDescription: 'ステージの具材からツリーオブジェクトを作る。',
+          eventNotice: {
+            title: '親方の検品！',
+            message: '「今日は porcelain 禁止だ。plumbing で仕上げてみろ」',
+            details: [
+              `git write-tree でツリー ${treeHash} を作る`,
+              `git commit-tree ${treeHash} -p HEAD -m "${meta.call}" でコミットを手作り（メッセージは自由）`,
+              `git update-ref refs/heads/${branchName} ${commitHash} でブランチに貼る`,
+            ],
+          },
+        }),
+        createStep({
+          type: 'commit_tree',
+          displayCommand: `git commit-tree ${treeHash} -p HEAD -m "${meta.call}"`,
+          logicLabel: 'コミットを手作り',
+          logicDescription: `ツリー ${treeHash} から、親を HEAD にしたコミットを作る。`,
+        }),
+        createStep({
+          type: 'update_ref',
+          displayCommand: `git update-ref refs/heads/${branchName} ${commitHash}`,
+          logicLabel: 'ブランチに貼る',
+          logicDescription: `できたコミット ${commitHash} を ${branchName} ブランチに記録する。`,
         }),
       ]
     }

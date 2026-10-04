@@ -11,6 +11,8 @@ import { postHistory } from '../api/history'
 
 const GAME_TIME_LIMIT = 3000
 const RAMEN_SPEED = 0.12
+// 上位コースは手順が長いので流れる速度を少し落とす（スコア倍率はコース番号）
+const COURSE_RAMEN_SPEED: Record<number, number> = { 1: 0.12, 2: 0.12, 3: 0.1, 4: 0.09 }
 const PUSH_SPEED = 5.0
 const MAX_LANES = 3
 const AVAILABLE_ITEMS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト']
@@ -133,7 +135,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       command: payload.command,
       steps: payload.runtimeLogic.steps,
       laneCount: laneCountRef.current,
-      speed: RAMEN_SPEED,
+      speed: COURSE_RAMEN_SPEED[course] ?? RAMEN_SPEED,
       targetLaneOverride: payload.targetLaneOverride,
     })
 

@@ -48,14 +48,14 @@ function GmStart() {
     }
 
     if (normalized === 'git remote add high') {
-      setMessage('error: 上級コースは現在開発中です')
-      setCommand('')
+      setMessage('上級で開始します')
+      navigate('/game', { state: { course: 3 } })
       return
     }
 
     if (normalized === 'git remote add god') {
-      setMessage('error: 超上級コースは現在開発中です')
-      setCommand('')
+      setMessage('超上級で開始します')
+      navigate('/game', { state: { course: 4 } })
       return
     }
 
