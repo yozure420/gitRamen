@@ -109,7 +109,7 @@ def test_news_endpoint_survives_total_outage(client, stub_sources):
     assert set(body["unavailable"]) == {"git", "github", "gitramen", "status"}
 
 
-def test_news_endpoint_uses_cache_and_refresh_bypasses_it(client, stub_sources):
+def test_news_endpoint_uses_cache_and_ignores_refresh_param(client, stub_sources):
     counter: dict[str, int] = {}
     stub_sources(counter=counter)
 
@@ -118,9 +118,29 @@ def test_news_endpoint_uses_cache_and_refresh_bypasses_it(client, stub_sources):
     assert counter[news.GIT_TAGS_URL] == 1  # 2回目はキャッシュから返る
     assert second["fetched_at"] == first["fetched_at"]
 
+    # 公開エンドポイントからキャッシュを迂回して外部 API を叩かせない
     refreshed = client.get("/news?refresh=true").json()
-    assert counter[news.GIT_TAGS_URL] == 2
-    assert refreshed["fetched_at"] >= first["fetched_at"]
+    assert counter[news.GIT_TAGS_URL] == 1
+    assert refreshed["fetched_at"] == first["fetched_at"]
+
+
+def test_failed_result_is_cached_only_briefly(client, stub_sources, monkeypatch):
+    now = {"value": 0.0}
+    monkeypatch.setattr(news, "cache", news.TtlCache(clock=lambda: now["value"]))
+    counter: dict[str, int] = {}
+    stub_sources(fail_urls={news.GIT_TAGS_URL}, counter=counter)
+
+    assert client.get("/news").json()["unavailable"] == ["git"]
+    now["value"] = news.FAILED_CACHE_TTL_SECONDS - 1
+    client.get("/news")
+    assert counter[news.GIT_TAGS_URL] == 1  # 失敗直後の連続アクセスでは取り直さない
+
+    stub_sources(counter=counter)
+    now["value"] = news.FAILED_CACHE_TTL_SECONDS
+    assert client.get("/news").json()["unavailable"] == []  # 短い TTL が切れたら復旧する
+    now["value"] = news.FAILED_CACHE_TTL_SECONDS + news.CACHE_TTL_SECONDS - 1
+    client.get("/news")
+    assert counter[news.GIT_TAGS_URL] == 2  # 成功した結果は通常の TTL で持つ
 
 
 def test_news_sources_are_fetched_in_parallel(client, stub_sources):

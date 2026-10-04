@@ -27,6 +27,8 @@ WATCHED_COMPONENTS = ("Git Operations", "API Requests", "Webhooks", "Issues", "P
 
 REQUEST_TIMEOUT_SECONDS = 5.0
 CACHE_TTL_SECONDS = 600
+# 取得に失敗したソースがある結果は短く持つ（一時的な障害を10分間見せ続けない）
+FAILED_CACHE_TTL_SECONDS = 60
 ITEM_LIMIT = 5
 
 GIT_RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)(?:\.(\d+))?$")
@@ -55,14 +57,15 @@ class TtlCache:
         entry = self._entries.get(key)
         if entry is None:
             return None
-        stored_at, value = entry
-        if self._clock() - stored_at >= self._ttl:
+        expires_at, value = entry
+        if self._clock() >= expires_at:
             del self._entries[key]
             return None
         return value
 
-    def set(self, key: str, value: Any) -> None:
-        self._entries[key] = (self._clock(), value)
+    def set(self, key: str, value: Any, ttl_seconds: Optional[float] = None) -> None:
+        ttl = self._ttl if ttl_seconds is None else ttl_seconds
+        self._entries[key] = (self._clock() + ttl, value)
 
     def clear(self) -> None:
         self._entries.clear()
@@ -288,5 +291,5 @@ async def fetch_news(use_cache: bool = True) -> dict[str, Any]:
         "unavailable": unavailable,
         "fetched_at": datetime.now(timezone.utc).isoformat(),
     }
-    cache.set("news", payload)
+    cache.set("news", payload, FAILED_CACHE_TTL_SECONDS if unavailable else None)
     return payload
