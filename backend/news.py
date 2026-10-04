@@ -186,16 +186,20 @@ def parse_github_status(payload: Any) -> Optional[dict[str, Any]]:
 
 # --- 取得 -----------------------------------------------------------------
 
-def _headers() -> dict[str, str]:
+GITHUB_API_HOST = "api.github.com"
+
+
+def _headers(url: str) -> dict[str, str]:
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "gitramen-news"}
     token = os.getenv("GITHUB_TOKEN")
-    if token:  # 任意。設定するとレート制限が緩和される
+    # トークンは GitHub API 以外（githubstatus.com など）へ送らない
+    if token and httpx.URL(url).host == GITHUB_API_HOST:  # 任意。設定するとレート制限が緩和される
         headers["Authorization"] = f"Bearer {token}"
     return headers
 
 
 async def _get_json(client: httpx.AsyncClient, url: str) -> Any:
-    response = await client.get(url, headers=_headers())
+    response = await client.get(url, headers=_headers(url))
     response.raise_for_status()
     return response.json()
 
