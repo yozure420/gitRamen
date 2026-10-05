@@ -1,5 +1,12 @@
+import type { StatusWindowData } from '../../types/interface'
 import type { GameCommandContext } from './types'
 import { buildStatusSnapshot } from './statusSnapshot'
+
+/** git status の伝票を出し、一定時間後に閉じる。その間に別の表示（ギミックの告知など）へ替わっていたら閉じない */
+function showStatusSnapshot(ctx: GameCommandContext, snapshot: StatusWindowData, closeAfterMs: number) {
+  ctx.setStatusWindow(snapshot)
+  setTimeout(() => ctx.setStatusWindow(current => (current === snapshot ? null : current)), closeAfterMs)
+}
 
 export function handleHelpCommand(ctx: GameCommandContext): boolean {
   if (ctx.normalizedCmd !== 'git help') return false
@@ -59,24 +66,22 @@ export function handleStatusCommand(ctx: GameCommandContext): boolean {
 
   if (!ctx.activeRamen) {
     ctx.setMessage('📊 お腹すいた～')
-    ctx.setStatusWindow({
+    showStatusSnapshot(ctx, {
       title: '伝票 / git status',
       phaseMessage: '厨房の状態: まだ調理中の注文がありません。',
       details: ['注文待機中'],
-    })
-    setTimeout(() => ctx.setStatusWindow(null), 2300)
+    }, 2300)
     ctx.clearInput()
     return true
   }
 
   const { phaseMessage, details } = buildStatusSnapshot(ctx.activeRamen)
 
-  ctx.setStatusWindow({
+  showStatusSnapshot(ctx, {
     title: '伝票 / git status',
     phaseMessage,
     details,
-  })
-  setTimeout(() => ctx.setStatusWindow(null), 2600)
+  }, 2600)
 
   ctx.setMessage(`📊 状態確認: ${phaseMessage}`)
   if (ctx.isCurrentStepMatch(ctx.activeRamen, ctx.normalizedCmd)) {
