@@ -216,3 +216,33 @@ describe('ゲーム通し: ギミックの誤操作', () => {
     expect(harness.active()!.isStashed).toBe(false)
   })
 })
+
+describe('ゲーム通し: git status の伝票の自動クローズ', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('git status の伝票は一定時間で閉じる', () => {
+    vi.useFakeTimers()
+    const harness = createGameHarness(1)
+
+    harness.run('git status')
+    expect(harness.state.statusWindow?.title).toBe('伝票 / git status')
+
+    vi.advanceTimersByTime(3000)
+    expect(harness.state.statusWindow).toBeNull()
+  })
+
+  it('git status のあとに出たギミックの告知は、自動クローズで閉じない', () => {
+    vi.useFakeTimers()
+    forceOrderEvent('stash')
+    const harness = createGameHarness(2)
+    harness.run('git pull')
+    const [addStep] = harness.active()!.steps
+
+    harness.run('git status')
+    harness.run(addStep.displayCommand)
+    expect(harness.state.statusWindow?.title).toBe('常連さんの割り込み！')
+
+    vi.advanceTimersByTime(3000)
+    expect(harness.state.statusWindow?.title).toBe('常連さんの割り込み！')
+  })
+})
