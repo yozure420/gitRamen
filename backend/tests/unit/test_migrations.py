@@ -1,6 +1,9 @@
 from sqlalchemy import create_engine
+from sqlalchemy.dialects import postgresql, sqlite
+from sqlalchemy.schema import CreateTable
 
 from migrations import ensure_schema
+from models import Cmd
 
 
 def _columns(engine):
@@ -34,3 +37,11 @@ def test_ensure_schema_is_idempotent(tmp_path):
     ensure_schema(engine)
 
     assert list(_columns(engine)) == ["id", "command", "game_note", "course", "playable"]
+
+
+def test_playable_default_is_rendered_per_dialect():
+    """SQLite 以外でも通る既定値になっている（PostgreSQL は BOOLEAN の既定値に 1 を受け付けない）"""
+    create_table = CreateTable(Cmd.__table__)
+
+    assert "playable BOOLEAN DEFAULT true NOT NULL" in str(create_table.compile(dialect=postgresql.dialect()))
+    assert "playable BOOLEAN DEFAULT (1) NOT NULL" in str(create_table.compile(dialect=sqlite.dialect()))

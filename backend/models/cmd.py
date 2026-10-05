@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Integer, String, Text
+from sqlalchemy import Boolean, Integer, String, Text, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 
@@ -23,6 +23,6 @@ class Cmd(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     game_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     course: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    playable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    playable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())
 
     miss_records: Mapped[List["Miss"]] = relationship(back_populates="command")
