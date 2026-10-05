@@ -23,7 +23,7 @@ def test_ensure_schema_adds_missing_columns_to_legacy_table(tmp_path):
     assert {"game_note", "course", "playable"} <= set(_columns(engine))
     with engine.connect() as conn:
         course, playable = conn.exec_driver_sql("SELECT course, playable FROM command").one()
-    # 再シード前の既存データは従来どおり表示されるよう、コース1・playable 扱いになる
+    # 再シード前の既存データはコース1扱いになり、ゲームで操作できるコマンドは playable のまま
     assert (course, playable) == (1, 1)
 
 
@@ -45,3 +45,52 @@ def test_playable_default_is_rendered_per_dialect():
 
     assert "playable BOOLEAN DEFAULT true NOT NULL" in str(create_table.compile(dialect=postgresql.dialect()))
     assert "playable BOOLEAN DEFAULT (1) NOT NULL" in str(create_table.compile(dialect=sqlite.dialect()))
+
+
+
+def _playable_by_command(engine):
+    with engine.connect() as conn:
+        return dict(conn.exec_driver_sql("SELECT command, playable FROM command").fetchall())
+
+
+def test_ensure_schema_hides_unimplemented_commands_when_adding_playable(tmp_path):
+    """再シードしていない既存 DB でも、未実装コマンドがヘルプと出題に出ない"""
+    engine = create_engine(f"sqlite:///{(tmp_path / 'no-playable.db').as_posix()}")
+    with engine.connect() as conn:
+        conn.exec_driver_sql("CREATE TABLE command (id INTEGER PRIMARY KEY, command VARCHAR(100), course INTEGER NOT NULL DEFAULT 1)")
+        conn.exec_driver_sql(
+            "INSERT INTO command (command, course) VALUES "
+            "('git status', 1), ('git init', 1), ('git merge <branch>', 1), "
+            "('git stash', 2), ('git rebase <branch>', 2), ('git stash', 1)"
+        )
+        conn.commit()
+
+    ensure_schema(engine)
+
+    with engine.connect() as conn:
+        rows = conn.exec_driver_sql("SELECT command, course, playable FROM command ORDER BY id").fetchall()
+    assert [tuple(row) for row in rows] == [
+        ("git status", 1, 1),
+        ("git init", 1, 0),
+        ("git merge <branch>", 1, 0),
+        ("git stash", 2, 1),
+        ("git rebase <branch>", 2, 0),
+        # 表記が同じでも、そのコースで操作できないものは対象外
+        ("git stash", 1, 0),
+    ]
+
+
+def test_ensure_schema_keeps_playable_values_of_migrated_db(tmp_path):
+    """playable 列が既にある DB（シード済みなど）の値は書き換えない"""
+    engine = create_engine(f"sqlite:///{(tmp_path / 'migrated.db').as_posix()}")
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            "CREATE TABLE command (id INTEGER PRIMARY KEY, command VARCHAR(100), game_note TEXT, "
+            "course INTEGER NOT NULL DEFAULT 1, playable BOOLEAN NOT NULL DEFAULT 1)"
+        )
+        conn.exec_driver_sql("INSERT INTO command (command, course, playable) VALUES ('git init', 1, 1), ('git status', 1, 0)")
+        conn.commit()
+
+    ensure_schema(engine)
+
+    assert _playable_by_command(engine) == {"git init": 1, "git status": 0}
