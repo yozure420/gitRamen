@@ -92,8 +92,8 @@
 
 ## ヘルプとシードデータ（#45 / #55）
 - `command.playable` が `true` のコマンドだけがヘルプ・出題の対象。ゲーム中のヘルプは course 1〜現在コースの playable コマンドを連結して表示する。
-- 実装済みコマンドは `backend/seed.py` の `PLAYABLE_COMMANDS` で管理する。
-- 既存 DB は起動時の簡易マイグレーションで `playable` 列が追加される（再シードまでは全コマンド表示のまま）。本番反映時は `docker compose exec backend python seed.py` で再シードすること。
+- 実装済みコマンドは `backend/playable_commands.py` の `PLAYABLE_COMMANDS` で管理する。
+- 既存 DB は起動時の簡易マイグレーションで `playable` 列が追加される（列を追加するときに、`PLAYABLE_COMMANDS` にないコマンドを `playable=false` にする）。本番反映時は `docker compose exec backend python seed.py` で再シードすること。再シードするまで、シードで表記を変えたコマンド（例: `git bisect bad`）や新しく足したコマンドはヘルプ・出題に出ない。
 
 ## スコープ外
 rebase / cherry-pick / revert / worktree / submodule などは未実装（`playable=false`）。ヘルプ・出題には出ない。
