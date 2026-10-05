@@ -32,3 +32,9 @@ def test_playable_commands_have_game_note():
 def test_start_screen_commands_are_not_playable_in_game():
     assert "git init" not in seed.PLAYABLE_COMMANDS[1]
     assert "git clone <URL>" not in seed.PLAYABLE_COMMANDS[1]
+
+
+def test_bisect_bad_help_matches_what_the_game_accepts():
+    """ゲームが受け付けるのは引数なし（または HEAD）の git bisect bad だけなので、ヘルプにハッシュ付きで出さない"""
+    assert "git bisect bad" in seed.PLAYABLE_COMMANDS[3]
+    assert "git bisect bad <hash>" not in seed.PLAYABLE_COMMANDS[3]
