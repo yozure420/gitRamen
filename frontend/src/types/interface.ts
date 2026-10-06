@@ -36,7 +36,7 @@ export interface StepEventNotice {
     title: string
     message: string
     details: string[]
-    illustration?: GimmickIllustration
+    illustration: GimmickIllustration
 }
 
 export interface CommandStep {
