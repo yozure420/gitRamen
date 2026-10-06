@@ -132,3 +132,26 @@ describe('createOrderMeta / createFakeHash', () => {
     for (let i = 0; i < 50; i++) expect(createFakeHash()).toMatch(/^[0-9a-f]{7}$/)
   })
 })
+
+describe('buildCookingSteps の告知の挿絵', () => {
+  const illustrations = (event: OrderEventType) =>
+    build(event).flatMap(step => (step.eventNotice ? [step.eventNotice.illustration] : []))
+
+  it.each<[OrderEventType, string]>([
+    ['stash', 'stash'],
+    ['reset_soft', 'reset_soft'],
+    ['amend', 'amend'],
+    ['reflog', 'reflog'],
+    ['plumbing', 'plumbing'],
+  ])('%s の告知には挿絵 %s が付く', (event, expected) => {
+    expect(illustrations(event)).toEqual([expected])
+  })
+
+  it('bisect は開始の告知と犯人判明の告知で別の挿絵になる', () => {
+    expect(illustrations('bisect')).toEqual(['bisect', 'bisect_culprit'])
+  })
+
+  it('standard には告知がないので挿絵もない', () => {
+    expect(build('standard').some(step => step.eventNotice)).toBe(false)
+  })
+})

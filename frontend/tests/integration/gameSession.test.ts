@@ -216,3 +216,27 @@ describe('ゲーム通し: ギミックの誤操作', () => {
     expect(harness.active()!.isStashed).toBe(false)
   })
 })
+
+describe('ゲーム通し: 次の手順の告知の挿絵が伝票ウィンドウに渡る', () => {
+  it('手順を進めて告知付きの手順になると、その挿絵が statusWindow に入る', () => {
+    forceOrderEvent('stash')
+    const harness = createGameHarness(2)
+    harness.run('git pull')
+
+    harness.run(harness.active()!.steps[0].displayCommand)
+
+    expect(harness.state.statusWindow?.title).toBe('常連さんの割り込み！')
+    expect(harness.state.statusWindow?.illustration).toBe('stash')
+  })
+
+  it('告知のない手順に進んでも、新しい告知は出ず挿絵は渡されない', () => {
+    forceOrderEvent('standard')
+    const harness = createGameHarness(1)
+    harness.run('git pull')
+    harness.state.statusWindowTitles = []
+
+    harness.run(harness.active()!.steps[0].displayCommand)
+
+    expect(harness.state.statusWindowTitles).toEqual([])
+  })
+})
