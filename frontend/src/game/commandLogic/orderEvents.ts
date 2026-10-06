@@ -115,6 +115,7 @@ export function buildCookingSteps(
               `2. git add ${regularTopping} → git commit で常連さんの分を先に確定`,
               '3. git stash pop で作りかけを戻して仕上げる',
             ],
+            illustration: 'stash',
           },
         }),
         createAddStep(regularTopping, '割り込み'),
@@ -152,6 +153,7 @@ export function buildCookingSteps(
               'git reset --soft HEAD~1 で直前のコールだけ取り消す（具材はそのまま）',
               `git commit -m "${meta.call}" で正しくコールし直す`,
             ],
+            illustration: 'reset_soft',
           },
         }),
         createCommitStep(meta.call, laneLabel),
@@ -169,6 +171,7 @@ export function buildCookingSteps(
             `git add ${extraTopping} で具材を追加`,
             'git commit --amend で直前のコールを上書き（普通の git commit はミス）',
           ],
+          illustration: 'amend',
         }),
         createStep({
           type: 'amend',
@@ -198,6 +201,7 @@ export function buildCookingSteps(
               'git reflog で消える前の履歴 HEAD@{1} を見つける',
               'git reset --hard HEAD@{1} で丼を復元してから届ける',
             ],
+            illustration: 'reflog',
           },
         }),
         createStep({
@@ -226,6 +230,7 @@ export function buildCookingSteps(
               `git bisect good ${goodHash} で美味しかった仕込みを記録`,
               'git bisect reset で探索を終えてから調理する',
             ],
+            illustration: 'bisect',
           },
         }),
         createStep({
@@ -253,6 +258,7 @@ export function buildCookingSteps(
               'git bisect reset で探索を終了',
               `その後 git add ${meta.topping} → git commit で作り直して届ける`,
             ],
+            illustration: 'bisect_culprit',
           },
         }),
         createAddStep(meta.topping, laneLabel),
@@ -277,6 +283,7 @@ export function buildCookingSteps(
               `git commit-tree ${treeHash} -p HEAD -m "${meta.call}" でコミットを手作り（メッセージは自由）`,
               `git update-ref refs/heads/${branchName} ${commitHash} でブランチに貼る`,
             ],
+            illustration: 'plumbing',
           },
         }),
         createStep({

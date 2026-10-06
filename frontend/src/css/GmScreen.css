@@ -1402,6 +1402,14 @@ body:has(.game-container-v2) {
   margin: 12px 0;
 }
 
+.status-slip-illustration-v2 {
+  display: block;
+  height: 130px;
+  max-width: 100%;
+  margin: 4px auto 0;
+  object-fit: contain;
+}
+
 .status-slip-phase-v2 {
   margin: 16px 0;
   font-size: 1.1rem;

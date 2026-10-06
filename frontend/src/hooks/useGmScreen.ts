@@ -155,6 +155,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
         title: payload.noticeTitle,
         phaseMessage: payload.orderText,
         details: payload.noticeDetails ?? [],
+        illustration: payload.noticeIllustration,
       })
     }
 

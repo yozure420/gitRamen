@@ -3,6 +3,7 @@ import '../css/GmScreen.css'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGmScreen } from '../hooks/useGmScreen'
 import { GmTopPanelV2, GmLanePanelV2, GmOrderPanelV2, GmBottomPanelV2 } from '../components/gmV2';
+import { GIMMICK_ILLUSTRATIONS } from '../components/gmV2/gimmickIllustrations'
 import { ResumePanels } from '../components/ResumePanels'
 import { useSoundSettings } from '../context/SoundContext'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
@@ -79,6 +80,13 @@ function GmScreen() {
           <div className="slip-clip"></div>
           <h3 className="status-slip-title-v2">{statusWindow.title}</h3>
           <div className="slip-dashed-line"></div>
+          {statusWindow.illustration && (
+            <img
+              src={GIMMICK_ILLUSTRATIONS[statusWindow.illustration]}
+              alt=""
+              className="status-slip-illustration-v2"
+            />
+          )}
           <p className="status-slip-phase-v2">{statusWindow.phaseMessage}</p>
           <div className="status-slip-details-v2">
             {statusWindow.details.map((detail, idx) => (
