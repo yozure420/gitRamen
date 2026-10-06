@@ -80,18 +80,20 @@ function GmScreen() {
           <div className="slip-clip"></div>
           <h3 className="status-slip-title-v2">{statusWindow.title}</h3>
           <div className="slip-dashed-line"></div>
-          {statusWindow.illustration && (
-            <img
-              src={GIMMICK_ILLUSTRATIONS[statusWindow.illustration]}
-              alt=""
-              className="status-slip-illustration-v2"
-            />
-          )}
-          <p className="status-slip-phase-v2">{statusWindow.phaseMessage}</p>
-          <div className="status-slip-details-v2">
-            {statusWindow.details.map((detail, idx) => (
-              <p key={idx} className="status-slip-item-v2">・ {detail}</p>
-            ))}
+          <div className="status-slip-body-v2">
+            {statusWindow.illustration && (
+              <img
+                src={GIMMICK_ILLUSTRATIONS[statusWindow.illustration]}
+                alt=""
+                className="status-slip-illustration-v2"
+              />
+            )}
+            <p className="status-slip-phase-v2">{statusWindow.phaseMessage}</p>
+            <div className="status-slip-details-v2">
+              {statusWindow.details.map((detail, idx) => (
+                <p key={idx} className="status-slip-item-v2">・ {detail}</p>
+              ))}
+            </div>
           </div>
           <div className="slip-dashed-line" style={{ marginTop: '20px' }}></div>
           <p className="slip-footer-hint">【 Enter 】または【 Esc 】キーで厨房に戻る</p>

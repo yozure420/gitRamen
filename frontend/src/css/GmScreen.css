@@ -1370,9 +1370,19 @@ body:has(.game-container-v2) {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
   color: #5c4638; /* 画像通りの焦げ茶色の文字 */
   font-family: 'Courier New', Courier, monospace, sans-serif;
-  width: 460px;
+  width: min(526px, 92vw);
+  /* 上にはみ出すクリップ（.slip-clip）を切らないよう、スクロールは中身（.status-slip-body-v2）に持たせる */
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   position: relative;
   animation: scaleUpEffect 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+.status-slip-body-v2 {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* 伝票上部の木製クリップボード風のワンポイント装飾 */
@@ -1404,7 +1414,7 @@ body:has(.game-container-v2) {
 
 .status-slip-illustration-v2 {
   display: block;
-  height: 130px;
+  height: clamp(80px, 18vh, 130px);
   max-width: 100%;
   margin: 4px auto 0;
   object-fit: contain;
