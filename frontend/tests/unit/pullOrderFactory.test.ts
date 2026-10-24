@@ -61,4 +61,23 @@ describe('createLaneAwarePullOrderPayload', () => {
     expect(payload.noticeTitle).toBe(`${NEW_ORDER_NOTICE}: スープがまずい！`)
     expect(payload.noticeDetails?.join('\n')).toContain('git bisect bad')
   })
+
+  it('bisect を強制した注文は、受付時の告知に bisect の挿絵を付ける', () => {
+    forceOrderEvent('bisect')
+    const payload = createLaneAwarePullOrderPayload({ ...baseParams, course: 3 })
+    expect(payload.noticeIllustration).toBe('bisect')
+  })
+
+  it('通常注文には受付時の挿絵がない', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    const payload = createLaneAwarePullOrderPayload(baseParams)
+    expect(payload.noticeIllustration).toBeUndefined()
+  })
+
+  it('新規来客には受付時の挿絵がない', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const payload = createLaneAwarePullOrderPayload(baseParams)
+    expect(payload.noticeTitle).toBe('新規来客')
+    expect(payload.noticeIllustration).toBeUndefined()
+  })
 })

@@ -128,6 +128,38 @@ describe('ゲーム通し: ギミックの誤操作', () => {
     expect(harness.active()!.currentStepIndex).toBe(4)
   })
 
+  it('amend: 最初に git add . で全部のせても、告知どおりの git add で手順が進み配達できる', () => {
+    forceOrderEvent('amend')
+    const harness = createGameHarness(2)
+    harness.run('git pull')
+    const steps = harness.active()!.steps
+
+    harness.run('git add .')
+    harness.run(steps[1].displayCommand)
+    harness.run(steps[2].displayCommand)
+
+    expect(harness.active()!.currentStepIndex).toBe(3)
+    expect(harness.state.message).toContain('追加済み')
+
+    harness.playActiveOrder()
+    expect(harness.state.misses).toEqual([])
+    expect(harness.deliverActive()).toMatchObject({ result: 'delivered' })
+  })
+
+  it('add: 今の手順と関係ない追加済みの具材は、手順を進めず警告だけ出す', () => {
+    forceOrderEvent('amend')
+    const harness = createGameHarness(2)
+    harness.run('git pull')
+    const steps = harness.active()!.steps
+
+    harness.run(steps[0].displayCommand)
+    harness.run(steps[1].displayCommand)
+    harness.run(steps[0].displayCommand)
+
+    expect(harness.active()!.currentStepIndex).toBe(2)
+    expect(harness.state.message).toContain('既に追加されています')
+  })
+
   it('amend: 注文変更を無視して push すると手順未完了で失敗', () => {
     forceOrderEvent('amend')
     const harness = createGameHarness(2)
@@ -214,6 +246,30 @@ describe('ゲーム通し: ギミックの誤操作', () => {
 
     expect(harness.state.misses).toHaveLength(1)
     expect(harness.active()!.isStashed).toBe(false)
+  })
+})
+
+describe('ゲーム通し: 次の手順の告知の挿絵が伝票ウィンドウに渡る', () => {
+  it('手順を進めて告知付きの手順になると、その挿絵が statusWindow に入る', () => {
+    forceOrderEvent('stash')
+    const harness = createGameHarness(2)
+    harness.run('git pull')
+
+    harness.run(harness.active()!.steps[0].displayCommand)
+
+    expect(harness.state.statusWindow?.title).toBe('常連さんの割り込み！')
+    expect(harness.state.statusWindow?.illustration).toBe('stash')
+  })
+
+  it('告知のない手順に進んでも、新しい告知は出ず挿絵は渡されない', () => {
+    forceOrderEvent('standard')
+    const harness = createGameHarness(1)
+    harness.run('git pull')
+    harness.state.statusWindowTitles = []
+
+    harness.run(harness.active()!.steps[0].displayCommand)
+
+    expect(harness.state.statusWindowTitles).toEqual([])
   })
 })
 

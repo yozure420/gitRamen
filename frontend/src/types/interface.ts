@@ -25,11 +25,18 @@ export type CommandStepType =
 /** ステップに入った瞬間に厨房で起きる出来事 */
 export type StepEnterEffect = 'drop_bowl' // 新人の reset --hard で丼（コミット）が消える
 
+/** イベント告知に添える挿絵の種類（画像との対応は components/gmV2/gimmickIllustrations.ts） */
+export type GimmickIllustration =
+    | 'stash' | 'reset_soft' | 'amend' // normal
+    | 'reflog' | 'bisect' | 'bisect_culprit' // high
+    | 'plumbing' // god
+
 /** ステップが「今やるべき手順」になった瞬間に表示するイベント告知 */
 export interface StepEventNotice {
     title: string
     message: string
     details: string[]
+    illustration: GimmickIllustration
 }
 
 export interface CommandStep {
@@ -99,4 +106,5 @@ export interface StatusWindowData {
     title: string
     phaseMessage: string
     details: string[]
+    illustration?: GimmickIllustration
 }
