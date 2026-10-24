@@ -7,6 +7,7 @@ import { GIMMICK_ILLUSTRATIONS } from '../components/gmV2/gimmickIllustrations'
 import { ResumePanels } from '../components/ResumePanels'
 import { useSoundSettings } from '../context/SoundContext'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
+import { useNews } from '../hooks/useNews'
 
 const getCommitHash = (id: number, isShort: boolean) => {
   const salts = [
@@ -64,6 +65,7 @@ function GmScreen() {
   const isUiLayerOpen = !!statusWindow || showLog;
   // 注文が無い間に伝票欄へ更新情報を載せるか。ボタンで切り替える
   const [showNews, setShowNews] = useState(true)
+  const news = useNews()
 
   return (
     <>
@@ -181,6 +183,7 @@ function GmScreen() {
         isPaused={isPaused}
         resumeGame={resumeGame}
         showNews={showNews}
+        news={news}
       />
       <GmBottomPanelV2
         handleSubmit={handleSubmit}

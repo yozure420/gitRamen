@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Command, Ramen } from "../../types/interface"
 import GithubNewsPanel from '../GithubNewsPanel'
+import type { NewsState } from '../../hooks/useNews'
 
 type GmOrderPanelV2Props = {
   ramen: Ramen | null
@@ -11,6 +12,7 @@ type GmOrderPanelV2Props = {
   isPaused: boolean
   resumeGame: () => void
   showNews: boolean
+  news: NewsState
 }
 
 function resolveOrderTitle(ramen: Ramen): string {
@@ -36,6 +38,7 @@ function GmOrderPanelV2({
   isPaused,
   resumeGame,
   showNews,
+  news,
 }: GmOrderPanelV2Props) {
   const navigate = useNavigate()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -81,7 +84,7 @@ function GmOrderPanelV2({
         <div className="receipt-slip">
           <div className="receipt-slip-waiting">— git pull で注文を受け取れ！ —</div>
           {/* 注文が無い間（開始直後・push して注文が捌けた後）は更新情報を載せる */}
-          {showNews && <GithubNewsPanel />}
+          {showNews && <GithubNewsPanel news={news.news} error={news.error} />}
         </div>
       </div>
     )

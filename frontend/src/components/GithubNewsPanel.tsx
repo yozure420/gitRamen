@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import '../css/GithubNewsPanel.css'
-import { fetchNews } from '../api/news'
-import type { NewsItem, NewsResponse, NewsSource } from '../api/news'
+import type { NewsItem, NewsSource } from '../api/news'
+import type { NewsState } from '../hooks/useNews'
 
 type TabKey = 'upstream' | 'gitramen'
 
@@ -37,18 +37,9 @@ function sortByPublished(items: NewsItem[]): NewsItem[] {
   })
 }
 
-function GithubNewsPanel() {
-  const [news, setNews] = useState<NewsResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
+/** 取得は呼び出し側（useNews）が持ち、ここは表示だけを受け持つ */
+function GithubNewsPanel({ news, error }: NewsState) {
   const [activeTab, setActiveTab] = useState<TabKey>('upstream')
-
-  useEffect(() => {
-    let cancelled = false
-    fetchNews()
-      .then(result => { if (!cancelled) setNews(result) })
-      .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : '更新情報を取得できませんでした') })
-    return () => { cancelled = true }
-  }, [])
 
   const items = news
     ? (activeTab === 'upstream' ? sortByPublished([...news.git, ...news.github]) : sortByPublished(news.gitramen))
