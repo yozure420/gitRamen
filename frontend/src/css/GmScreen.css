@@ -1103,11 +1103,11 @@
   border: 2px solid #d4922a;
 }
 
-/* 更新情報のプルダウン。右端を「タイトルへ戻る」の左端から 8px 空けて揃える */
+/* 更新情報のプルダウン。「タイトルへ戻る」と左右対称になるよう、右端から同じ距離に置く */
 .news-dropdown {
   position: fixed;
   top: 16px;
-  right: calc(100% - (40.8% - 340px) + 8px);
+  right: calc(40.8% - 340px);
   z-index: 11;
 }
 
@@ -1117,14 +1117,73 @@
   white-space: nowrap;
 }
 
+/* パネルは注文伝票（.receipt-slip）と同じ紙・木の配色に合わせる */
 .news-dropdown .news-panel {
   position: absolute;
   top: calc(100% + 6px);
-  right: auto;
+  right: 0;
   bottom: auto;
-  left: 0;
-  width: 340px;
+  left: auto;
+  width: min(340px, calc(100vw - 16px));
   max-height: 60vh;
+  box-sizing: border-box;
+  background: #fffef5;
+  border: 1px solid rgba(143, 107, 67, 0.45);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  box-shadow:
+    0 3px 10px rgba(92, 66, 40, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  color: var(--ink);
+}
+
+.news-dropdown .news-panel-header {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed rgba(143, 107, 67, 0.4);
+}
+
+.news-dropdown .news-panel-title {
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+
+.news-dropdown .news-status {
+  background: rgba(191, 149, 95, 0.14);
+  border: 1px dashed rgba(136, 101, 64, 0.45);
+  color: var(--ink);
+}
+
+/* タブは一時停止中のボタン（.top-panel-pause-btn）に合わせる */
+.news-dropdown .news-tab {
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  transition: background 0.15s, color 0.15s;
+}
+
+.news-dropdown .news-tab:hover,
+.news-dropdown .news-tab--active {
+  background: var(--wood-mid);
+  color: var(--paper-strong);
+  border-color: #d4922a;
+}
+
+.news-dropdown .news-item {
+  border-bottom: 1px dashed rgba(143, 107, 67, 0.4);
+}
+
+.news-dropdown .news-item:last-child { border-bottom: none; }
+
+.news-dropdown .news-item-link { color: var(--ink); }
+
+.news-dropdown .news-item-meta,
+.news-dropdown .news-message { color: var(--ink-soft); }
+
+.news-dropdown .news-item-source {
+  background: rgba(191, 149, 95, 0.14);
+  border: 1px dashed rgba(136, 101, 64, 0.45);
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 body:has(.game-container-v2) {
