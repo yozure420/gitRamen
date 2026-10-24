@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import '../css/GithubNewsPanel.css'
 import { fetchNews } from '../api/news'
-import type { NewsItem, NewsResponse } from '../api/news'
+import type { NewsItem, NewsResponse, NewsSource } from '../api/news'
 
 type TabKey = 'upstream' | 'gitramen'
 
@@ -11,10 +11,15 @@ const TABS: { key: TabKey; label: string }[] = [
 ]
 
 /** 記事の出どころを表示用のラベルに対応させる */
-const SOURCE_LABEL: Record<NewsItem['source'], string> = {
+const SOURCE_LABEL: Record<NewsSource, string> = {
   git: 'Git 新バージョン',
   github: 'GitHub 新機能',
   gitramen: 'ゲーム更新',
+}
+
+/** unavailable には未知のソース名も来うるので、知っているものだけ日本語にする */
+function labelOfSource(source: string): string {
+  return Object.hasOwn(SOURCE_LABEL, source) ? SOURCE_LABEL[source as NewsSource] : source
 }
 
 function formatDate(value: string | null): string {
@@ -91,7 +96,7 @@ function GithubNewsPanel() {
         </ul>
 
         {failedSources.length > 0 && (
-          <p className="news-message news-message--warn">一部の情報を取得できませんでした（{failedSources.map(source => SOURCE_LABEL[source as NewsItem['source']] ?? source).join('、')}）</p>
+          <p className="news-message news-message--warn">一部の情報を取得できませんでした（{failedSources.map(labelOfSource).join('、')}）</p>
         )}
       </div>
     </aside>
