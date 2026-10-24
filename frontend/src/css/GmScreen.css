@@ -1119,7 +1119,6 @@
   bottom: auto;
   left: auto;
   width: auto;
-  max-height: none;
   background: transparent;
   border: none;
   border-top: 1px dashed rgba(143, 107, 67, 0.4);
@@ -1127,12 +1126,6 @@
   box-shadow: none;
   padding: 0.6rem 0 0;
   color: var(--ink);
-  /* 伝票が低いときに一覧が潰れないよう縮ませず、スクロールは伝票側の1か所にまとめる */
-  flex: 0 0 auto;
-}
-
-.receipt-slip .news-body {
-  overflow: visible;
 }
 
 .receipt-slip .news-panel-title {

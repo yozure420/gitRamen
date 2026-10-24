@@ -4,7 +4,6 @@
     right: 24px;
     z-index: 2;
     width: min(340px, 32vw);
-    max-height: 46vh;
     display: flex;
     flex-direction: column;
     background: rgba(255, 252, 245, 0.92);
@@ -61,11 +60,6 @@
 }
 
 /* 一覧 */
-.news-body {
-    overflow-y: auto;
-    flex: 1;
-}
-
 .news-list {
     margin: 0;
     padding: 0;
@@ -124,6 +118,5 @@
         right: 12px;
         left: 12px;
         width: auto;
-        max-height: 30vh;
     }
 }
