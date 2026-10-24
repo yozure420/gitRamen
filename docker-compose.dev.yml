@@ -4,6 +4,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: gitramen_backend
+    environment:
+      # 開発専用の鍵。本番では docker-compose.yml 側で別の値を渡す
+      - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:-dev-only-secret-key-not-for-production}
     volumes:
       - ./backend:/app
       - sqlite_data_dev:/app/db

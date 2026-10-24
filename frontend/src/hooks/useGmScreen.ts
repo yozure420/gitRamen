@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
+import { fetchCommandsByCourse, fetchPlayableCatalogUpToCourse } from '../api/cmdFetch_1'
 import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
 import { createLaneAwarePullOrderPayload } from '../game/commandLogic/index'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand/index'
@@ -11,6 +11,8 @@ import { postHistory } from '../api/history'
 
 const GAME_TIME_LIMIT = 3000
 const RAMEN_SPEED = 0.12
+// 上位コースは手順が長いので流れる速度を少し落とす（スコア倍率はコース番号）
+const COURSE_RAMEN_SPEED: Record<number, number> = { 1: 0.12, 2: 0.12, 3: 0.1, 4: 0.09 }
 const PUSH_SPEED = 5.0
 const MAX_LANES = 3
 const AVAILABLE_ITEMS = ['ネギ', 'バター', 'チャーシュー', 'メンマ', '煮玉子', 'のり', 'もやし', 'コーン', 'ナルト']
@@ -125,15 +127,15 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
       existingBranches: existingBranches,
-      currentLane: currentWorkingLane
-    } as any)
+      currentLane: currentWorkingLane,
+    })
 
     const baseRamen = createRamenEntry({
       id: nextRamenIdRef.current,
       command: payload.command,
       steps: payload.runtimeLogic.steps,
       laneCount: laneCountRef.current,
-      speed: RAMEN_SPEED,
+      speed: COURSE_RAMEN_SPEED[course] ?? RAMEN_SPEED,
       targetLaneOverride: payload.targetLaneOverride,
     })
 
@@ -153,6 +155,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
         title: payload.noticeTitle,
         phaseMessage: payload.orderText,
         details: payload.noticeDetails ?? [],
+        illustration: payload.noticeIllustration,
       })
     }
 
@@ -182,7 +185,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     try {
       const [commands, catalog] = await Promise.all([
         fetchCommandsByCourse(course, 20),
-        fetchCommandCatalogByCourse(course),
+        fetchPlayableCatalogUpToCourse(course),
       ])
 
       if (!commands || commands.length === 0) {

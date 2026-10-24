@@ -9,20 +9,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from database import SessionLocal, Base, engine
+from migrations import ensure_schema
 from models import Cmd, User, History, Miss  # noqa: F401 – 全モデルをロードして metadata を確定させる
+from playable_commands import PLAYABLE_COMMANDS
 
 # テーブル作成
 Base.metadata.create_all(bind=engine)
-
-
-def ensure_schema():
-    """既存DBに不足カラムがあれば追加する（簡易マイグレーション）"""
-    with engine.connect() as conn:
-        columns = conn.exec_driver_sql("PRAGMA table_info(command)").fetchall()
-        column_names = {col[1] for col in columns}
-        if "game_note" not in column_names:
-            conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
-            conn.commit()
 
 # 🟢 初級レベル（course=1）
 beginner_commands = [
@@ -46,14 +38,14 @@ beginner_commands = [
 
 # 🔵 中級レベル（course=2）
 intermediate_commands = [
-    ("git stash", "—", "作業中の変更を一時退避する"),
-    ("git stash pop", "—", "退避した変更を元に戻す"),
-    ("git stash list", "—", "退避した変更の一覧を表示する"),
+    ("git stash", "—", "作業中の変更を一時退避する", "作りかけの丼を一時退避（常連さんの割り込み対応）"),
+    ("git stash pop", "—", "退避した変更を元に戻す", "退避した丼を戻して調理再開"),
+    ("git stash list", "—", "退避した変更の一覧を表示する", "退避中の丼を確認"),
     ("git stash drop", "—", "特定のstashを削除する"),
     ("git rebase", "<branch>", "コミット履歴を別ブランチの先頭に付け替える"),
     ("git rebase", "-i HEAD~N", "直近N件のコミットを対話的に編集する"),
     ("git cherry-pick", "<hash>", "特定のコミットだけを現在のブランチに適用する"),
-    ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す"),
+    ("git reset", "--soft HEAD~1", "直前のコミットを取り消し、変更はステージに残す", "コール間違いを取り消す（具材はそのまま）"),
     ("git reset", "--hard HEAD~1", "直前のコミットを完全に取り消し、変更も消す"),
     ("git revert", "<hash>", "指定コミットを打ち消す新たなコミットを作る"),
     ("git remote", "-v", "リモートリポジトリの一覧とURLを表示する"),
@@ -71,7 +63,7 @@ intermediate_commands = [
     ("git show", "<hash>", "特定コミットの変更内容を表示する"),
     ("git blame", "<file>", "ファイルの各行を最後に変更したコミットを表示する"),
     ("git clean", "-fd", "未追跡のファイル・ディレクトリを一掃する"),
-    ("git commit", "--amend", "直前のコミットメッセージや内容を修正する"),
+    ("git commit", "--amend", "直前のコミットメッセージや内容を修正する", "注文変更を直前のコールに上書き"),
     ("git push", "--force-with-lease", "安全な強制プッシュ（他人の変更を上書きしない）"),
     ("git diff", "—", "ステージ前の変更差分を表示する"),
     ("git rm", "<file>", "ファイルを削除してステージングに反映する"),
@@ -82,11 +74,12 @@ intermediate_commands = [
 
 # 🟠 上級レベル（course=3）
 advanced_commands = [
-    ("git bisect start", "—", "バグが混入したコミットを二分探索で特定し始める"),
-    ("git bisect good", "<hash>", "指定コミットは正常だとマークする"),
-    ("git bisect bad", "<hash>", "指定コミットはバグありとマークする"),
-    ("git bisect reset", "—", "二分探索を終了して元のブランチに戻る"),
-    ("git reflog", "—", "HEADの移動履歴を表示し、消えたコミットを復元できる"),
+    ("git bisect start", "—", "バグが混入したコミットを二分探索で特定し始める", "まずいスープの犯人探しを開始"),
+    ("git bisect good", "<hash>", "指定コミットは正常だとマークする", "この仕込みは美味しかったと記録"),
+    ("git bisect bad", "—", "現在のコミットはバグありとマークする", "今のスープはまずいと記録"),
+    ("git bisect reset", "—", "二分探索を終了して元のブランチに戻る", "犯人探しを終えて厨房に戻る"),
+    ("git reflog", "—", "HEADの移動履歴を表示し、消えたコミットを復元できる", "消えた丼の履歴を探す"),
+    ("git reset", "--hard HEAD@{1}", "reflogで見つけた直前の状態に戻す", "消えた丼を復元する"),
     ("git worktree add", "<path> <branch>", "同リポジトリを複数ディレクトリで同時チェックアウト"),
     ("git submodule add", "<URL>", "別リポジトリをサブモジュールとして組み込む"),
     ("git submodule update", "--init --recursive", "サブモジュールを再帰的に初期化・更新する"),
@@ -113,8 +106,9 @@ expert_commands = [
     ("git update-ref", "-d refs/heads/<branch>", "refを直接操作してブランチポインタを強制削除する"),
     ("git symbolic-ref", "HEAD refs/heads/main", "HEADが指すブランチを低レイヤーで直接書き換える"),
     ("git read-tree", "-m -u <hash>", "ツリーオブジェクトをインデックスに直接読み込む"),
-    ("git write-tree", "—", "現在のインデックスからツリーオブジェクトを生成する"),
-    ("git commit-tree", '<tree> -p <parent> -m', "コミットオブジェクトを低レベルAPIで手動生成する"),
+    ("git write-tree", "—", "現在のインデックスからツリーオブジェクトを生成する", "ステージの具材からツリーを作る"),
+    ("git commit-tree", '<tree> -p <parent> -m', "コミットオブジェクトを低レベルAPIで手動生成する", "ツリーからコミットを手作りする"),
+    ("git update-ref", "refs/heads/<branch> <hash>", "ブランチが指すコミットを直接書き換える", "手作りコミットをブランチに貼る"),
     ("git update-index", "--assume-unchanged <file>", "ファイルを変更されていないとGitに思い込ませる"),
     ("git update-index", "--skip-worktree <file>", "ローカル設定ファイルをpush対象から除外する"),
     ("git pack-refs", "--all", "すべてのrefをpackファイルに圧縮してパフォーマンス向上"),
@@ -147,7 +141,7 @@ def seed_database():
     db = SessionLocal()
     
     try:
-        ensure_schema()
+        ensure_schema(engine)
         # 既存データをクリア
         db.query(Cmd).delete()
         db.commit()
@@ -160,12 +154,14 @@ def seed_database():
                 else:
                     cmd, option, desc = command_row
                     game_note = None
+                command = format_command(cmd, option)
                 db.add(
                     Cmd(
-                        command=format_command(cmd, option),
+                        command=command,
                         description=desc,
                         game_note=game_note,
                         course=course,
+                        playable=command in PLAYABLE_COMMANDS.get(course, set()),
                     )
                 )
         db.commit()

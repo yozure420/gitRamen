@@ -1,0 +1,176 @@
+.news-panel {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 2;
+    width: min(340px, 32vw);
+    max-height: 46vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 252, 245, 0.92);
+    border: 2px solid rgba(45, 36, 24, 0.12);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 16px rgba(45, 36, 24, 0.08);
+    font-family: inherit;
+    color: #3d3020;
+}
+
+.news-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.news-panel-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+/* GitHub ヘルスチェック */
+.news-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(45, 36, 24, 0.06);
+}
+
+.news-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9a9a9a;
+}
+
+.news-status--none .news-status-dot { background: #2ea44f; }
+.news-status--minor .news-status-dot,
+.news-status--maintenance .news-status-dot { background: #e8a735; }
+.news-status--major .news-status-dot { background: #e36209; }
+.news-status--critical .news-status-dot { background: #d73a49; }
+
+.news-status-components {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.news-status-component {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(46, 164, 79, 0.12);
+    color: #1f6f36;
+}
+
+.news-status-component:not(.news-status-component--operational) {
+    background: rgba(215, 58, 73, 0.12);
+    color: #a32029;
+}
+
+/* タブ */
+.news-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0 8px;
+}
+
+.news-tab {
+    flex: 1;
+    background: transparent;
+    border: 1px solid rgba(45, 36, 24, 0.18);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6b5940;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.news-tab:hover { background: rgba(232, 167, 53, 0.12); }
+
+.news-tab--active {
+    background: rgba(232, 167, 53, 0.22);
+    border-color: rgba(232, 167, 53, 0.6);
+    color: #3d3020;
+}
+
+/* 一覧 */
+.news-body {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.news-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.news-item {
+    border-bottom: 1px dashed rgba(45, 36, 24, 0.12);
+    padding-bottom: 6px;
+}
+
+.news-item:last-child { border-bottom: none; }
+
+.news-item-link {
+    color: #3d3020;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    text-decoration: none;
+    display: block;
+}
+
+.news-item-link:hover { text-decoration: underline; }
+
+.news-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    font-size: 0.65rem;
+    color: #a08060;
+}
+
+.news-item-source {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(45, 36, 24, 0.08);
+    letter-spacing: 0.04em;
+}
+
+.news-message {
+    margin: 6px 0 0;
+    font-size: 0.75rem;
+    color: #a08060;
+}
+
+.news-message--warn { color: #c0642a; }
+
+@media (max-width: 900px) {
+    .news-panel {
+        position: absolute;
+        top: auto;
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-height: 30vh;
+    }
+}

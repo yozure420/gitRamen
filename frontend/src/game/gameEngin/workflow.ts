@@ -14,13 +14,21 @@ export function getWorkflowToppingItems(ramen: Ramen): string[] {
     .map(step => step.itemName as string)
 }
 
+function applyStepEnterEffect(ramen: Ramen, nextStep: CommandStep | null): Partial<Ramen> {
+  if (nextStep?.onEnter === 'drop_bowl') {
+    return { isLost: true, lostItems: [...ramen.stagedItems], stagedItems: [], isCommitted: false }
+  }
+  return {}
+}
+
 export function advanceWorkflow(ramen: Ramen, overrides: Partial<Ramen> = {}): Ramen {
   const nextStepIndex = ramen.currentStepIndex + 1
   const nextStep = ramen.steps[nextStepIndex] ?? null
+  const updated = { ...ramen, ...overrides }
 
   return {
-    ...ramen,
-    ...overrides,
+    ...updated,
+    ...applyStepEnterEffect(updated, nextStep),
     currentStepIndex: nextStepIndex,
     displayCommand: nextStep?.displayCommand ?? ramen.displayCommand,
     expectedInputs: nextStep?.expectedInputs ?? [],

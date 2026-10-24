@@ -44,6 +44,11 @@ export function removeToken(): void {
   localStorage.removeItem(TOKEN_KEY)
 }
 
+/** 401（期限切れ・無効なトークン）が返ったら JWT を消し、ログアウト状態に戻す */
+export function removeTokenIfUnauthorized(res: Response): void {
+  if (res.status === 401) removeToken()
+}
+
 // ---- API 関数 -------------------------------------------
 
 /**
@@ -106,6 +111,7 @@ export async function fetchCurrentUser(): Promise<UserResponse> {
   })
 
   if (!res.ok) {
+    removeTokenIfUnauthorized(res)
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail ?? 'ユーザー情報の取得に失敗しました')
   }

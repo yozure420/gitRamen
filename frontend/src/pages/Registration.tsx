@@ -3,6 +3,9 @@ import '../css/Registration.css'
 import { useNavigate } from 'react-router-dom'
 import { registerUser } from '../api/auth'
 
+// bcrypt は先頭 72 バイトしか使わないので、バックエンド（schemas/auth.py）と同じ上限で弾く
+const MAX_PASSWORD_BYTES = 72
+
 function Registration() {
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
@@ -26,6 +29,10 @@ function Registration() {
     }
     if (password.length < 8) {
       setError('パスワードは8文字以上で入力してください')
+      return
+    }
+    if (new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES) {
+      setError('パスワードが長すぎます（72バイトまで。半角なら72文字、全角なら24文字）')
       return
     }
     if (password !== confirmPassword) return

@@ -66,6 +66,36 @@ function HowToPlay() {
                 </section>
 
                 <section className="howto-section">
+                    <h2 className="howto-section-title">コース別の厨房ギミック</h2>
+                    <div className="howto-cmd-list">
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git stash / git stash pop</code></div>
+                            <div className="howto-cmd-desc">中級: 常連さんの割り込み。作りかけを退避し、割り込みを捌いてから戻す</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git reset --soft HEAD~1</code></div>
+                            <div className="howto-cmd-desc">中級: コール間違い。具材はそのままでコールだけ取り消す</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git commit --amend</code></div>
+                            <div className="howto-cmd-desc">中級: 注文変更。追加した具材を直前のコールに上書きする</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git reflog / git reset --hard HEAD@&#123;1&#125;</code></div>
+                            <div className="howto-cmd-desc">上級: 丼が消えた！reflog で消える前の履歴を探して復元する</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git bisect start / bad / good / reset</code></div>
+                            <div className="howto-cmd-desc">上級: スープがまずい！どの仕込みで壊れたかを二分探索する</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git write-tree / commit-tree / update-ref</code></div>
+                            <div className="howto-cmd-desc">超上級: 親方の検品。plumbing コマンドだけでコミットを手作りする</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="howto-section">
                     <h2 className="howto-section-title">ヒント</h2>
                     <p className="howto-hint">
                         操作に迷った時は、入力欄に <strong>git help</strong> を入力するとコマンド一覧を確認できます。

@@ -12,11 +12,13 @@ type GmOrderPanelV2Props = {
 }
 
 function resolveOrderTitle(ramen: Ramen): string {
-  const commitStep = ramen.steps.find(s => s.type === 'commit')
+  // 割り込み・言い間違いなどで commit が複数ある場合、最後のコールが本来の注文。
+  // 超上級の plumbing は commit ではなく commit-tree でコールする
+  const commitStep = [...ramen.steps].reverse().find(s => s.type === 'commit' || s.type === 'commit_tree')
   if (!commitStep) {
     return ramen.command.game_note ?? ramen.displayCommand
   }
-  const match = commitStep.displayCommand.match(/^git commit -m "(.+)"$/)
+  const match = commitStep.displayCommand.match(/-m "(.+)"$/)
   return match ? match[1] : commitStep.displayCommand
 }
 
@@ -45,7 +47,6 @@ function GmOrderPanelV2({
   }, [ramen?.currentStepIndex, ramen?.isCommitted, ramen?.isPushed])
 
   if (showHelp) {
-    const visibleCommands = courseCommands.filter(cmd => cmd.id !== 1 && cmd.id !== 2)
     return (
       <div className="order-panel">
         <div className="receipt-slip">
@@ -59,7 +60,7 @@ function GmOrderPanelV2({
             )}
           </div>
           <div className="course-command-list">
-            {visibleCommands.map(cmd => (
+            {courseCommands.map(cmd => (
               <div key={cmd.id} className="course-command-item">
                 <code>{cmd.command}</code>
                 {cmd.game_note && <span> - {cmd.game_note}</span>}
@@ -117,7 +118,7 @@ function GmOrderPanelV2({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '4px' }}>
 
           {displaySteps.map((step, idx) => {
-            const isCompleted = step.type === 'commit' ? ramen.isCommitted : ramen.currentStepIndex > idx
+            const isCompleted = ramen.currentStepIndex > idx
 
             return (
               <div key={idx} className={`receipt-slip-command ${isCompleted ? 'receipt-slip-command-completed' : ''}`}>
