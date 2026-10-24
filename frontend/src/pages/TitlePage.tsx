@@ -2,7 +2,6 @@ import '../css/TitlePage.css'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getToken, removeToken } from '../api/auth'
-import GithubNewsPanel from '../components/GithubNewsPanel'
 
 function TitlePage() {
     const navigate = useNavigate()
@@ -24,7 +23,6 @@ function TitlePage() {
     <div className="title-container">
         <div className="title-bg-texture" />
         <div className="title-bg-gradient" />
-        <GithubNewsPanel />
         <div className="title-heading-wrapper">
             <h1 className="title-heading">ぎっとぎとラーメン</h1>
         </div>
