@@ -84,7 +84,7 @@ function GmOrderPanelV2({
         <div className="receipt-slip">
           <div className="receipt-slip-waiting">— git pull で注文を受け取れ！ —</div>
           {/* 注文が無い間（開始直後・push して注文が捌けた後）は更新情報を載せる */}
-          {showNews && <GithubNewsPanel news={news.news} error={news.error} />}
+          {showNews && !news.error && <GithubNewsPanel news={news.news} error={null} />}
         </div>
       </div>
     )

@@ -69,14 +69,17 @@ function GmScreen() {
 
   return (
     <>
-    <button
-      type="button"
-      className="title-back-btn news-toggle-btn"
-      aria-pressed={showNews}
-      onClick={() => setShowNews(show => !show)}
-    >
-      更新情報
-    </button>
+    {/* 取得に失敗したら、更新情報もその切り替えボタンも出さない */}
+    {!news.error && (
+      <button
+        type="button"
+        className="title-back-btn news-toggle-btn"
+        aria-pressed={showNews}
+        onClick={() => setShowNews(show => !show)}
+      >
+        更新情報
+      </button>
+    )}
     <button
       className="title-back-btn"
       onClick={() => navigate('/')}
