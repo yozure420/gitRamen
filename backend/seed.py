@@ -11,21 +11,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from database import SessionLocal, Base, engine
 from migrations import ensure_schema
 from models import Cmd, User, History, Miss  # noqa: F401 – 全モデルをロードして metadata を確定させる
+from playable_commands import PLAYABLE_COMMANDS
 
 # テーブル作成
 Base.metadata.create_all(bind=engine)
-
-# ゲーム内で実際に操作できる（ヘルプ・出題に出す）コマンド。ここにないものは playable=False で投入する
-PLAYABLE_COMMANDS = {
-    1: {
-        "git status", "git add <file>", "git add .", 'git commit -m "message"', "git push origin main",
-        "git pull", "git log", "git log --oneline", "git branch", "git branch <name>",
-        "git checkout <branch>", "git checkout -b <branch>",
-    },
-    2: {"git stash", "git stash pop", "git stash list", "git reset --soft HEAD~1", "git commit --amend"},
-    3: {"git bisect start", "git bisect good <hash>", "git bisect bad <hash>", "git bisect reset", "git reflog", "git reset --hard HEAD@{1}"},
-    4: {"git write-tree", "git commit-tree <tree> -p <parent> -m", "git update-ref refs/heads/<branch> <hash>"},
-}
 
 # 🟢 初級レベル（course=1）
 beginner_commands = [
@@ -87,7 +76,7 @@ intermediate_commands = [
 advanced_commands = [
     ("git bisect start", "—", "バグが混入したコミットを二分探索で特定し始める", "まずいスープの犯人探しを開始"),
     ("git bisect good", "<hash>", "指定コミットは正常だとマークする", "この仕込みは美味しかったと記録"),
-    ("git bisect bad", "<hash>", "指定コミットはバグありとマークする", "今のスープはまずいと記録"),
+    ("git bisect bad", "—", "現在のコミットはバグありとマークする", "今のスープはまずいと記録"),
     ("git bisect reset", "—", "二分探索を終了して元のブランチに戻る", "犯人探しを終えて厨房に戻る"),
     ("git reflog", "—", "HEADの移動履歴を表示し、消えたコミットを復元できる", "消えた丼の履歴を探す"),
     ("git reset", "--hard HEAD@{1}", "reflogで見つけた直前の状態に戻す", "消えた丼を復元する"),

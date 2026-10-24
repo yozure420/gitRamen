@@ -7,3 +7,4 @@ gunicorn==23.0.0
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2 
 python-jose[cryptography]==3.3.0
+httpx==0.28.1

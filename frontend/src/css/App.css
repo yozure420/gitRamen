@@ -1,3 +1,20 @@
+/* ルート分割のための main ランドマーク。レイアウトは各ページ側が 100vh で持つので、
+   ここではラップするだけにする（display:contents は支援技術から消える場合があるため使わない） */
+.app-main {
+  display: block;
+}
+
+.app-loading {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7efe0;
+  color: #6b5940;
+  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+
 /* #root {
   max-width: 1280px;
   margin: 0 auto;

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ラーメン">
+  <rect width="64" height="64" rx="12" fill="#f7efe0"/>
+  <path d="M10 30h44a22 22 0 0 1-22 22 22 22 0 0 1-22-22z" fill="#e8a735"/>
+  <path d="M8 28h48a2 2 0 0 1 0 4H8a2 2 0 0 1 0-4z" fill="#c0642a"/>
+  <path d="M22 24c0-6 6-6 6-12M34 24c0-6 6-6 6-12" stroke="#c0642a" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <circle cx="26" cy="38" r="4" fill="#fffbf2"/>
+  <rect x="34" y="35" width="10" height="6" rx="2" fill="#7a4a2b"/>
+</svg>

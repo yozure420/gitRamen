@@ -1,4 +1,4 @@
-import type { Command, CommandStep } from '../../types/interface'
+import type { Command, CommandStep, GimmickIllustration } from '../../types/interface'
 
 /** コマンドを複数組み合わせることで一つのラーメンに対するコマンド群にしたもの。 */
 export type RuntimeCommandLogic = {
@@ -11,7 +11,8 @@ export type PullOrderPayload = {
   orderText: string
   noticeTitle?: string
   noticeDetails?: string[]
-  targetLaneOverride?: number | 'startLane'
+  noticeIllustration?: GimmickIllustration
+  targetLaneOverride?: number | 'startLane' | 'newLane'
 }
 
 /** 注文に仕込まれる厨房ギミックの種類 */

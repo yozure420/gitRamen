@@ -44,6 +44,7 @@ export function createGameCommandContext(params: ExecuteGameCommandParams): Game
         title: nextEventNotice.title,
         phaseMessage: nextEventNotice.message,
         details: nextEventNotice.details,
+        illustration: nextEventNotice.illustration,
       })
     }
   }
