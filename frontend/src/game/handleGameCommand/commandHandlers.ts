@@ -56,6 +56,14 @@ export function handleAddCommand(ctx: GameCommandContext): boolean {
 
   if (ctx.availableItems.includes(item)) {
     if (ctx.activeRamen.stagedItems.includes(item)) {
+      // 先に git add . で全部のせた場合でも、伝票どおりの add で手順は進める
+      if (ctx.currentStep?.type === 'add' && ctx.currentStep.itemName === item) {
+        ctx.completeCurrentStep(ctx.activeRamen, {
+          message: nextStep ? `✅ ${item}は追加済みです。次: ${nextStep}` : `✅ ${item}は追加済みです`,
+        })
+        return true
+      }
+
       ctx.setMessage(`⚠️ ${item}は既に追加されています`)
       ctx.clearInput()
       return true
