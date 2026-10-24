@@ -41,6 +41,8 @@ export function createRamenEntry(params: CreateRamenEntryParams): Ramen {
     isPushed: false,
     isStashed: false,
     stashedItems: [],
+    isLost: false,
+    lostItems: [],
     pushedToMainFromOtherLane: false,
     commandsExecuted: 0,
     pushThreshold: steps.length,

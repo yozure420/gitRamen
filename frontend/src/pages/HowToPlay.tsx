@@ -80,6 +80,18 @@ function HowToPlay() {
                             <div className="howto-cmd-name"><code className="howto-cmd">git commit --amend</code></div>
                             <div className="howto-cmd-desc">中級: 注文変更。追加した具材を直前のコールに上書きする</div>
                         </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git reflog / git reset --hard HEAD@&#123;1&#125;</code></div>
+                            <div className="howto-cmd-desc">上級: 丼が消えた！reflog で消える前の履歴を探して復元する</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git bisect start / bad / good / reset</code></div>
+                            <div className="howto-cmd-desc">上級: スープがまずい！どの仕込みで壊れたかを二分探索する</div>
+                        </div>
+                        <div className="howto-cmd-row">
+                            <div className="howto-cmd-name"><code className="howto-cmd">git write-tree / commit-tree / update-ref</code></div>
+                            <div className="howto-cmd-desc">超上級: 親方の検品。plumbing コマンドだけでコミットを手作りする</div>
+                        </div>
                     </div>
                 </section>
 

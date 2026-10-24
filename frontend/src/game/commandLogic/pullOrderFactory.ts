@@ -93,7 +93,7 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
             logicLabel: 'レーン移動',
             logicDescription: '作成した新しいレーンに移動する。',
           }),
-          ...buildCookingSteps('standard', { meta, laneLabel: `${newBranchName}レーン` }),
+          ...buildCookingSteps('standard', { meta, laneLabel: `${newBranchName}レーン`, branchName: newBranchName }),
           createPushStep(newBranchName),
         ],
       },
@@ -129,8 +129,19 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
   }
 
   // 2. 調理（コースに応じたギミック込み）・配達
-  steps.push(...buildCookingSteps(event, { meta, laneLabel: `${targetBranchName}レーン` }))
+  const cookingSteps = buildCookingSteps(event, { meta, laneLabel: `${targetBranchName}レーン`, branchName: targetBranchName })
+  steps.push(...cookingSteps)
   steps.push(createPushStep(targetBranchName))
+
+  // 受付時の告知。調理の最初の手順からギミックが始まる注文（bisect など）は、準備手順や
+  // レーン移動が先に入っていてもギミック名だけは伝える。詳しい手順はその手順に入った時点で
+  // 告知されるので、受付時に出すのは告知がそのまま最初の手順になるときだけ
+  const gimmickNotice = cookingSteps[0]?.eventNotice
+  const startsWithGimmick = steps[0] === cookingSteps[0]
+  const noticeTitle = gimmickNotice ? `${NEW_ORDER_NOTICE}: ${gimmickNotice.title}` : NEW_ORDER_NOTICE
+  const noticeDetails = gimmickNotice && startsWithGimmick
+    ? [gimmickNotice.message, ...gimmickNotice.details]
+    : [`対象: ${targetBranchName}レーン`, `最初のコマンド: ${steps[0].displayCommand}`]
 
   return {
     command: {
@@ -142,8 +153,8 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
     },
     runtimeLogic: { steps },
     orderText: laneOrderText,
-    noticeTitle: NEW_ORDER_NOTICE,
-    noticeDetails: [`対象: ${targetBranchName}レーン`, `最初のコマンド: ${steps[0].displayCommand}`],
+    noticeTitle,
+    noticeDetails,
     targetLaneOverride: targetLane,
   }
 }

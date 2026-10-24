@@ -15,7 +15,7 @@ export type PullOrderPayload = {
 }
 
 /** 注文に仕込まれる厨房ギミックの種類 */
-export type OrderEventType = 'standard' | 'stash' | 'reset_soft' | 'amend'
+export type OrderEventType = 'standard' | 'stash' | 'reset_soft' | 'amend' | 'reflog' | 'bisect' | 'plumbing'
 
 export type CreateLaneAwarePullOrderParams = {
   course: number

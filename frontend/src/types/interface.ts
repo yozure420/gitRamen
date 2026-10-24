@@ -16,7 +16,14 @@ export interface SoundSettings {
 
 export const DEFAULT_SOUND: SoundSettings = { bgm: 50, se: 50, type: 50, miss: 50 }
 
-export type CommandStepType = 'add' | 'commit' | 'push' | 'command' | 'stash' | 'stash_pop' | 'reset_soft' | 'amend'
+export type CommandStepType =
+    | 'add' | 'commit' | 'push' | 'command'
+    | 'stash' | 'stash_pop' | 'reset_soft' | 'amend' // normal
+    | 'reset_hard_restore' // high
+    | 'commit_tree' | 'update_ref' // god
+
+/** ステップに入った瞬間に厨房で起きる出来事 */
+export type StepEnterEffect = 'drop_bowl' // 新人の reset --hard で丼（コミット）が消える
 
 /** ステップが「今やるべき手順」になった瞬間に表示するイベント告知 */
 export interface StepEventNotice {
@@ -35,6 +42,7 @@ export interface CommandStep {
     logicExample: string
     itemName?: string
     eventNotice?: StepEventNotice
+    onEnter?: StepEnterEffect
 }
 
 export interface Ramen {
@@ -56,6 +64,8 @@ export interface Ramen {
     isPushed: boolean // push実行済みか
     isStashed: boolean // 追加: git stashで退避されているか
     stashedItems: string[] // git stash で退避中の具材
+    isLost: boolean // reset --hard で丼（コミット）が消えているか
+    lostItems: string[] // 消えた丼に乗っていた具材（reflog から復元できる）
     pushedToMainFromOtherLane: boolean // 別レーンから origin main に push したか
     commandsExecuted: number // 実行済みコマンド数
     pushThreshold: number    // pushReadyになるまでのコマンド数（2か3）
