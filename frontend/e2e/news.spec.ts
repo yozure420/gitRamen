@@ -41,8 +41,9 @@ test.describe('ゲーム画面の更新情報（伝票欄）', () => {
     await expect(toggle(page)).toHaveAttribute('aria-pressed', 'true')
     await expect(page.locator('.receipt-slip-waiting')).toContainText('git pull')
     await expect(panel).toBeVisible()
-    await expect(panel.getByText('GitHub: 正常稼働中')).toBeVisible()
-    await expect(panel.getByText('Git Operations')).toBeVisible()
+    await expect(panel.getByText('正常稼働中')).toHaveCount(0)
+    await expect(panel.getByText('Git Operations')).toHaveCount(0)
+    await expect(panel.locator('.news-status')).toHaveCount(0)
     await expect(panel.getByRole('link', { name: 'GitHub Actions の更新' })).toBeVisible()
     await expect(panel.getByRole('link', { name: 'Git 2.51.0 がリリースされました' })).toBeVisible()
   })
@@ -62,12 +63,12 @@ test.describe('ゲーム画面の更新情報（伝票欄）', () => {
     await expect(panelOf(page)).toBeVisible()
   })
 
-  test('タブで GitRamen の更新に切り替えられる', async ({ page }) => {
+  test('タブで このゲームの更新に切り替えられる', async ({ page }) => {
     await mockApi(page)
     await page.goto('/game')
 
     const panel = panelOf(page)
-    await panel.getByRole('tab', { name: 'GitRamen' }).click()
+    await panel.getByRole('tab', { name: 'このゲームの更新' }).click()
 
     await expect(panel.getByRole('link', { name: 'feat: 更新情報の欄を追加' })).toBeVisible()
     await expect(panel.getByRole('link', { name: 'GitHub Actions の更新' })).toBeHidden()

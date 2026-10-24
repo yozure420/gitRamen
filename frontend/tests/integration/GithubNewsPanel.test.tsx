@@ -40,37 +40,47 @@ describe('GithubNewsPanel', () => {
     expect(screen.queryByText('feat: ニュース欄を追加')).toBeNull()
   })
 
-  it('タブを切り替えると GitRamen の更新を表示する', async () => {
+  it('タブを切り替えると このゲームの更新を表示する', async () => {
     fetchNewsMock.mockResolvedValue(response)
     const { container } = render(<GithubNewsPanel />)
     await waitFor(() => expect(screen.getByText('GitHub Actions の更新')).toBeTruthy())
 
-    screen.getByRole('tab', { name: 'GitRamen' }).click()
+    screen.getByRole('tab', { name: 'このゲームの更新' }).click()
 
     await waitFor(() => expect(screen.getByText('feat: ニュース欄を追加')).toBeTruthy())
     expect(screen.queryByText('GitHub Actions の更新')).toBeNull()
-    expect(container.querySelector('.news-tab--active')?.textContent).toBe('GitRamen')
+    expect(container.querySelector('.news-tab--active')?.textContent).toBe('このゲームの更新')
   })
 
-  it('GitHub の稼働状況と監視対象コンポーネントを表示する', async () => {
+  it('API が status を返しても稼働状況の表示は出さない', async () => {
     fetchNewsMock.mockResolvedValue(response)
     const { container } = render(<GithubNewsPanel />)
 
-    await waitFor(() => expect(screen.getByText(/GitHub: 正常稼働中/)).toBeTruthy())
-    expect(container.querySelector('.news-status--none')).toBeTruthy()
-    expect(screen.getByText('Git Operations')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('GitHub Actions の更新')).toBeTruthy())
+    expect(container.querySelector('.news-status')).toBeNull()
+    expect(container.querySelector('.news-status-components')).toBeNull()
+    expect(screen.queryByText(/正常稼働中/)).toBeNull()
+    expect(screen.queryByText('Git Operations')).toBeNull()
   })
 
-  it('障害発生中はステータス表示が変わる', async () => {
-    fetchNewsMock.mockResolvedValue({
-      ...response,
-      status: { indicator: 'major', description: 'Major Service Outage', components: [{ name: 'Actions', status: 'major_outage' }] },
-    })
-    const { container } = render(<GithubNewsPanel />)
+  it('タブのラベルは日本語で表示される', async () => {
+    fetchNewsMock.mockResolvedValue(response)
+    render(<GithubNewsPanel />)
 
-    await waitFor(() => expect(screen.getByText(/GitHub: 障害発生中/)).toBeTruthy())
-    expect(container.querySelector('.news-status--major')).toBeTruthy()
-    expect(container.querySelector('.news-status-component--major_outage')).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Git と GitHub の更新' })).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'このゲームの更新' })).toBeTruthy()
+  })
+
+  it('記事の出どころを日本語のラベルで表示する', async () => {
+    fetchNewsMock.mockResolvedValue(response)
+    const { container } = render(<GithubNewsPanel />)
+    await waitFor(() => expect(screen.getByText('GitHub Actions の更新')).toBeTruthy())
+
+    expect(container.querySelector('.news-item-source--github')?.textContent).toBe('GitHub 新機能')
+    expect(container.querySelector('.news-item-source--git')?.textContent).toBe('Git 新バージョン')
+
+    screen.getByRole('tab', { name: 'このゲームの更新' }).click()
+    await waitFor(() => expect(container.querySelector('.news-item-source--gitramen')?.textContent).toBe('ゲーム更新'))
   })
 
   it('一部のソースが取得できなかったときは注意書きを出す', async () => {
@@ -78,8 +88,8 @@ describe('GithubNewsPanel', () => {
     render(<GithubNewsPanel />)
 
     await waitFor(() => expect(screen.getByText(/一部の情報を取得できませんでした/)).toBeTruthy())
-    // status の失敗はバッジ側で表現するので一覧の注意書きには含めない
-    expect(screen.getByText(/（github）/)).toBeTruthy()
+    // status の失敗は注意書きに含めず、ソース名は日本語ラベルで出す
+    expect(screen.getByText(/（GitHub 新機能）/)).toBeTruthy()
   })
 
   it('取得に失敗したらエラーメッセージを表示する', async () => {
@@ -87,6 +97,5 @@ describe('GithubNewsPanel', () => {
     render(<GithubNewsPanel />)
 
     await waitFor(() => expect(screen.getByText('更新情報を取得できませんでした')).toBeTruthy())
-    expect(screen.getByText(/GitHub: 状況不明/)).toBeTruthy()
   })
 })

@@ -38,12 +38,12 @@ describe('GithubNewsPanel の表示状態', () => {
     expect(screen.queryByText('読み込み中…')).toBeNull()
   })
 
-  it('GitRamen タブだけが空のときもタブ単位で空表示になる', async () => {
+  it('このゲームの更新タブだけが空のときもタブ単位で空表示になる', async () => {
     fetchNewsMock.mockResolvedValue({ ...empty, git: [item({ source: 'git', title: 'Git 2.51.0' })] })
     render(<GithubNewsPanel />)
     await waitFor(() => expect(screen.getByText('Git 2.51.0')).toBeTruthy())
 
-    screen.getByRole('tab', { name: 'GitRamen' }).click()
+    screen.getByRole('tab', { name: 'このゲームの更新' }).click()
 
     await waitFor(() => expect(screen.getByText('表示できる更新情報がありません')).toBeTruthy())
   })
@@ -64,7 +64,7 @@ describe('GithubNewsPanel の表示状態', () => {
     await waitFor(() => expect(screen.getByText('更新情報を取得できませんでした')).toBeTruthy())
   })
 
-  it('status が null（取得失敗）でも一覧は表示され、バッジは「状況不明」になる', async () => {
+  it('status が null（取得失敗）でも一覧は表示され、稼働状況の表示は出ない', async () => {
     fetchNewsMock.mockResolvedValue({
       ...empty,
       git: [item({ source: 'git', title: 'Git 2.51.0' })],
@@ -74,36 +74,17 @@ describe('GithubNewsPanel の表示状態', () => {
     const { container } = render(<GithubNewsPanel />)
 
     await waitFor(() => expect(screen.getByText('Git 2.51.0')).toBeTruthy())
-    expect(screen.getByText(/GitHub: 状況不明/)).toBeTruthy()
-    expect(container.querySelector('.news-status--unknown')).toBeTruthy()
-    expect(container.querySelector('.news-status-components')).toBeNull()
+    expect(container.querySelector('.news-status')).toBeNull()
+    expect(screen.queryByText(/状況不明/)).toBeNull()
     // status のみの失敗は一覧の注意書きに出さない
     expect(screen.queryByText(/一部の情報を取得できませんでした/)).toBeNull()
   })
 
-  it('未知の indicator のときは API の description をバッジに使う', async () => {
-    fetchNewsMock.mockResolvedValue({
-      ...empty,
-      status: { indicator: 'brand_new', description: 'Something Else', components: [] },
-    })
-    render(<GithubNewsPanel />)
-
-    await waitFor(() => expect(screen.getByText(/GitHub: Something Else/)).toBeTruthy())
-  })
-
-  it('コンポーネントが空配列のときはコンポーネント一覧を描画しない', async () => {
-    fetchNewsMock.mockResolvedValue(empty)
-    const { container } = render(<GithubNewsPanel />)
-
-    await waitFor(() => expect(screen.getByText(/GitHub: 正常稼働中/)).toBeTruthy())
-    expect(container.querySelector('.news-status-components')).toBeNull()
-  })
-
-  it('複数ソースの失敗は注意書きにまとめて列挙する', async () => {
+  it('複数ソースの失敗は日本語ラベルを「、」区切りで注意書きにまとめる', async () => {
     fetchNewsMock.mockResolvedValue({ ...empty, unavailable: ['git', 'github', 'status'] })
     render(<GithubNewsPanel />)
 
-    await waitFor(() => expect(screen.getByText(/（git, github）/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/（Git 新バージョン、GitHub 新機能）/)).toBeTruthy())
   })
 
   it('不正な日付は日付表示を省き、リンクは別タブで noreferrer 付きで開く', async () => {
