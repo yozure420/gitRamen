@@ -87,13 +87,16 @@ describe('GmOrderPanelV2', () => {
       expect(screen.getByText('Git 2.51.0 がリリースされました')).toBeTruthy()
     })
 
-    it('news が未取得なら読み込み中、error ならそのメッセージをパネルに出す', () => {
-      const { unmount } = renderPanel({ ramen: null, showNews: true, news: { news: null, error: null } })
+    it('news が未取得なら読み込み中を出す', () => {
+      renderPanel({ ramen: null, showNews: true, news: { news: null, error: null } })
       expect(screen.getByText('読み込み中…')).toBeTruthy()
-      unmount()
+    })
 
+    it('取得に失敗していたら更新情報もエラー文言も出さず、待機メッセージだけにする', () => {
       renderPanel({ ramen: null, showNews: true, news: { news: null, error: '更新情報を取得できませんでした' } })
-      expect(screen.getByText('更新情報を取得できませんでした')).toBeTruthy()
+      expect(screen.getByText(/git pull で注文を受け取れ/)).toBeTruthy()
+      expect(screen.queryByRole('complementary', { name: NEWS_LABEL })).toBeNull()
+      expect(screen.queryByText('更新情報を取得できませんでした')).toBeNull()
     })
 
     it('showNews が false なら注文が無くても更新情報を表示しない', () => {

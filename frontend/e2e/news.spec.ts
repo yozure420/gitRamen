@@ -108,11 +108,16 @@ test.describe('ゲーム画面の更新情報（伝票欄）', () => {
     expect(newsRequests).toBe(1)
   })
 
-  test('取得に失敗してもゲーム画面は操作できる', async ({ page }) => {
+  test('取得に失敗したら更新情報も切り替えボタンも出さず、ゲーム画面は操作できる', async ({ page }) => {
     await mockApi(page, { news: 'error' })
+    const newsResponse = page.waitForResponse(res => res.url().includes('/news'))
     await page.goto('/game')
+    await newsResponse
 
-    await expect(page.getByText('更新情報を取得できませんでした')).toBeVisible()
+    await expect(page.getByText(/git pull で注文を受け取れ/)).toBeVisible()
+    await expect(panelOf(page)).toHaveCount(0)
+    await expect(toggle(page)).toHaveCount(0)
+    await expect(page.getByText('更新情報を取得できませんでした')).toHaveCount(0)
     await page.getByRole('button', { name: /タイトルへ戻る/ }).click()
     await expect(page).toHaveURL(/\/$/)
   })
