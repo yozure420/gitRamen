@@ -28,6 +28,11 @@ function Registration() {
       setError('パスワードは8文字以上で入力してください')
       return
     }
+    // bcrypt は先頭 72 バイトしか使わないので、バックエンドと同じ上限で弾く
+    if (new TextEncoder().encode(password).length > 72) {
+      setError('パスワードが長すぎます（半角72文字・全角24文字程度まで）')
+      return
+    }
     if (password !== confirmPassword) return
 
     setIsLoading(true)
