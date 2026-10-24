@@ -6,9 +6,16 @@ import type { NewsItem, NewsResponse } from '../api/news'
 type TabKey = 'upstream' | 'gitramen'
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'upstream', label: 'Git / GitHub' },
-  { key: 'gitramen', label: 'GitRamen' },
+  { key: 'upstream', label: 'Git と GitHub の更新' },
+  { key: 'gitramen', label: 'このゲームの更新' },
 ]
+
+/** 記事の出どころを表示用のラベルに対応させる */
+const SOURCE_LABEL: Record<NewsItem['source'], string> = {
+  git: 'Git 新バージョン',
+  github: 'GitHub 新機能',
+  gitramen: 'ゲーム更新',
+}
 
 function formatDate(value: string | null): string {
   if (!value) return ''
@@ -76,7 +83,7 @@ function GithubNewsPanel() {
                 {item.title}
               </a>
               <div className="news-item-meta">
-                <span className={`news-item-source news-item-source--${item.source}`}>{item.source}</span>
+                <span className={`news-item-source news-item-source--${item.source}`}>{SOURCE_LABEL[item.source]}</span>
                 {formatDate(item.published_at) && <span className="news-item-date">{formatDate(item.published_at)}</span>}
               </div>
             </li>
@@ -84,7 +91,7 @@ function GithubNewsPanel() {
         </ul>
 
         {failedSources.length > 0 && (
-          <p className="news-message news-message--warn">一部の情報を取得できませんでした（{failedSources.join(', ')}）</p>
+          <p className="news-message news-message--warn">一部の情報を取得できませんでした（{failedSources.map(source => SOURCE_LABEL[source as NewsItem['source']] ?? source).join('、')}）</p>
         )}
       </div>
     </aside>
