@@ -14,6 +14,18 @@ test.describe('ゲーム画面の更新情報プルダウン', () => {
     await expect(panelOf(page)).toHaveCount(0)
   })
 
+  for (const width of [900, 1280]) {
+    test(`幅 ${width}px でもボタンが画面内にあり開ける`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 })
+      await mockApi(page)
+      await page.goto('/game')
+
+      await expect(toggle(page)).toBeInViewport({ ratio: 1 })
+      await toggle(page).click()
+      await expect(panelOf(page)).toBeVisible()
+    })
+  }
+
   test('開くまでパネルは表示されない', async ({ page }) => {
     await mockApi(page)
     await page.goto('/game')
