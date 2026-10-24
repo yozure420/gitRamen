@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import GithubNewsPanel from './GithubNewsPanel'
 
-/** ゲーム画面の「タイトルへ戻る」の左に置く、更新情報のプルダウン */
+/** ゲーム画面の「タイトルへ戻る」と左右対称の右側に置く、更新情報のプルダウン */
 function GithubNewsDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
