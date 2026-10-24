@@ -5,6 +5,7 @@ pydantic==2.10.0
 pydantic-settings==2.6.0
 gunicorn==23.0.0
 passlib[bcrypt]==1.7.4
-bcrypt==3.2.2 
+# passlib 1.7.4 と組み合わせて固定。4.1 以降は 72 バイト超の入力でエラーになり、以前の上限（100 文字）で登録したユーザーのログインが 500 になるので上げない
+bcrypt==3.2.2
 python-jose[cryptography]==3.3.0
 httpx==0.28.1
