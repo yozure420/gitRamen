@@ -1103,59 +1103,45 @@
   border: 2px solid #d4922a;
 }
 
-/* 更新情報のプルダウン。「タイトルへ戻る」と左右対称になるよう、右端から同じ距離に置く。
-   狭い画面でも右端から 8px より外には出さない */
-.news-dropdown {
-  position: fixed;
-  top: 16px;
+/* 更新情報の表示切り替えボタン。見た目は .title-back-btn のまま、
+   「タイトルへ戻る」と左右対称になるよう右端から同じ距離に置く（狭い画面でも右端から 8px より外には出さない） */
+.title-back-btn.news-toggle-btn {
+  left: auto;
   right: max(8px, calc(40.8% - 340px));
-  z-index: 11;
-}
-
-/* 見た目は .title-back-btn をそのまま使い、配置だけ親に任せる */
-.title-back-btn.news-dropdown-toggle {
-  position: static;
   white-space: nowrap;
 }
 
-/* パネルは注文伝票（.receipt-slip）と同じ紙・木の配色に合わせる */
-.news-dropdown .news-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+/* 注文が無い間に伝票へ載せる更新情報。伝票（.receipt-slip）の紙の上に直接並べる */
+.receipt-slip .news-panel {
+  position: static;
+  top: auto;
+  right: auto;
   bottom: auto;
   left: auto;
-  width: min(340px, calc(100vw - 16px));
-  max-height: 60vh;
-  box-sizing: border-box;
-  background: #fffef5;
-  border: 1px solid rgba(143, 107, 67, 0.45);
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
-  box-shadow:
-    0 3px 10px rgba(92, 66, 40, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  width: auto;
+  max-height: none;
+  background: transparent;
+  border: none;
+  border-top: 1px dashed rgba(143, 107, 67, 0.4);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0.6rem 0 0;
   color: var(--ink);
 }
 
-.news-dropdown .news-panel-header {
-  padding-bottom: 0.5rem;
-  border-bottom: 1px dashed rgba(143, 107, 67, 0.4);
-}
-
-.news-dropdown .news-panel-title {
+.receipt-slip .news-panel-title {
   color: var(--ink);
   letter-spacing: 0.05em;
 }
 
-.news-dropdown .news-status {
+.receipt-slip .news-status {
   background: rgba(191, 149, 95, 0.14);
   border: 1px dashed rgba(136, 101, 64, 0.45);
   color: var(--ink);
 }
 
 /* タブは一時停止中のボタン（.top-panel-pause-btn）に合わせる */
-.news-dropdown .news-tab {
+.receipt-slip .news-tab {
   border: 2px solid var(--wood-dark);
   border-radius: 6px;
   background: var(--paper-strong);
@@ -1163,25 +1149,25 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.news-dropdown .news-tab:hover,
-.news-dropdown .news-tab--active {
+.receipt-slip .news-tab:hover,
+.receipt-slip .news-tab--active {
   background: var(--wood-mid);
   color: var(--paper-strong);
   border-color: #d4922a;
 }
 
-.news-dropdown .news-item {
+.receipt-slip .news-item {
   border-bottom: 1px dashed rgba(143, 107, 67, 0.4);
 }
 
-.news-dropdown .news-item:last-child { border-bottom: none; }
+.receipt-slip .news-item:last-child { border-bottom: none; }
 
-.news-dropdown .news-item-link { color: var(--ink); }
+.receipt-slip .news-item-link { color: var(--ink); }
 
-.news-dropdown .news-item-meta,
-.news-dropdown .news-message { color: var(--ink-soft); }
+.receipt-slip .news-item-meta,
+.receipt-slip .news-message { color: var(--ink-soft); }
 
-.news-dropdown .news-item-source {
+.receipt-slip .news-item-source {
   background: rgba(191, 149, 95, 0.14);
   border: 1px dashed rgba(136, 101, 64, 0.45);
   font-family: 'JetBrains Mono', 'Consolas', monospace;
