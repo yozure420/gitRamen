@@ -12,7 +12,7 @@ function GmStart() {
 
   const normalize = (input: string) => {
     return input
-      .replace(/　/g, ' ')
+      .replace(/\u3000/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase()
@@ -30,8 +30,8 @@ function GmStart() {
       }
 
       if (normalized === 'git clone normal') {
-        setMessage('error: 中級コースは現在開発中です')
-        setCommand('')
+        setMessage('中級で開始します')
+        navigate('/game', { state: { course: 2 } })
         return
       }
 

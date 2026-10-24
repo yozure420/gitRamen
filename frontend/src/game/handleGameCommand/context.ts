@@ -36,6 +36,16 @@ export function createGameCommandContext(params: ExecuteGameCommandParams): Game
 
     params.setMessage(message)
     clearInput()
+
+    // 次の手順にイベント告知（割り込み・注文変更など）があれば伝票ウィンドウで知らせる
+    const nextEventNotice = ramen.steps[ramen.currentStepIndex + 1]?.eventNotice
+    if (nextEventNotice) {
+      params.setStatusWindow({
+        title: nextEventNotice.title,
+        phaseMessage: nextEventNotice.message,
+        details: nextEventNotice.details,
+      })
+    }
   }
 
   const recordMiss = (ramen?: Ramen | null) => {
@@ -54,8 +64,10 @@ export function createGameCommandContext(params: ExecuteGameCommandParams): Game
       params.setMessage(`❌ まだ add の番ではありません。今は「${currentStep.displayCommand}」です`)
     } else if (stepType === 'commit') {
       params.setMessage(`❌ まだ commit できません。先に「${currentStep.displayCommand}」を完了してください`)
-    } else {
+    } else if (stepType === 'push') {
       params.setMessage(`❌ まだ push できません。先に「${currentStep.displayCommand}」を完了してください`)
+    } else {
+      params.setMessage(`❌ 今は「${currentStep.displayCommand}」の番です`)
     }
 
     clearInput()

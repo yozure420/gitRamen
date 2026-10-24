@@ -4,6 +4,7 @@ export interface Command {
     description: string
     game_note?: string | null
     course: number
+    playable?: boolean // ゲーム内で実際に操作できるコマンドか
 }
 
 export interface SoundSettings {
@@ -15,7 +16,14 @@ export interface SoundSettings {
 
 export const DEFAULT_SOUND: SoundSettings = { bgm: 50, se: 50, type: 50, miss: 50 }
 
-export type CommandStepType = 'add' | 'commit' | 'push' | 'command' | 'stash' | 'stash_pop' | 'reset_soft'
+export type CommandStepType = 'add' | 'commit' | 'push' | 'command' | 'stash' | 'stash_pop' | 'reset_soft' | 'amend'
+
+/** ステップが「今やるべき手順」になった瞬間に表示するイベント告知 */
+export interface StepEventNotice {
+    title: string
+    message: string
+    details: string[]
+}
 
 export interface CommandStep {
     id: string
@@ -26,6 +34,7 @@ export interface CommandStep {
     logicDescription: string
     logicExample: string
     itemName?: string
+    eventNotice?: StepEventNotice
 }
 
 export interface Ramen {
@@ -46,6 +55,7 @@ export interface Ramen {
     isCommitted: boolean // 追加: git commitしたか
     isPushed: boolean // push実行済みか
     isStashed: boolean // 追加: git stashで退避されているか
+    stashedItems: string[] // git stash で退避中の具材
     pushedToMainFromOtherLane: boolean // 別レーンから origin main に push したか
     commandsExecuted: number // 実行済みコマンド数
     pushThreshold: number    // pushReadyになるまでのコマンド数（2か3）

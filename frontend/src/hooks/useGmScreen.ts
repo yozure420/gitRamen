@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { fetchCommandCatalogByCourse, fetchCommandsByCourse } from '../api/cmdFetch_1'
+import { fetchCommandsByCourse, fetchPlayableCatalogUpToCourse } from '../api/cmdFetch_1'
 import type { Command, Ramen, CommandHistory, OrderLog, CustomerAlert, StatusWindowData } from '../types/interface'
 import { createLaneAwarePullOrderPayload } from '../game/commandLogic/index'
 import { executeGameCommand, normalizeCommand } from '../game/handleGameCommand/index'
@@ -125,8 +125,8 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       laneCount: laneCountRef.current,
       maxLanes: MAX_LANES,
       existingBranches: existingBranches,
-      currentLane: currentWorkingLane
-    } as any)
+      currentLane: currentWorkingLane,
+    })
 
     const baseRamen = createRamenEntry({
       id: nextRamenIdRef.current,
@@ -182,7 +182,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
     try {
       const [commands, catalog] = await Promise.all([
         fetchCommandsByCourse(course, 20),
-        fetchCommandCatalogByCourse(course),
+        fetchPlayableCatalogUpToCourse(course),
       ])
 
       if (!commands || commands.length === 0) {

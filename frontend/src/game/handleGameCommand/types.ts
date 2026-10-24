@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { Command, CommandHistory, CommandStep, Ramen, StatusWindowData } from '../../types/interface'
+import type { Command, CommandHistory, CommandStep, CommandStepType, Ramen, StatusWindowData } from '../../types/interface'
 
 export type ExecuteGameCommandParams = {
   cmd: string
@@ -66,7 +66,7 @@ export type GameCommandContext = {
   applyLaneSwitchWithoutStepAdvance: (ramen: Ramen, lane: number) => void
   completeCurrentStep: (ramen: Ramen, options?: CompleteCurrentStepOptions) => void
   recordMiss: (ramen?: Ramen | null) => void
-  rejectOutOfOrder: (stepType: 'add' | 'commit' | 'push') => boolean
+  rejectOutOfOrder: (stepType: CommandStepType) => boolean
 }
 
 export type GameCommandHandler = (ctx: GameCommandContext) => boolean

@@ -2,38 +2,17 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from sqlalchemy.exc import OperationalError
 from database import get_db, engine, Base
+from migrations import ensure_schema
 from models import User, History, Cmd, Miss
 from pydantic import BaseModel
 from typing import List, Optional
 from routers.auth import router as auth_router, get_current_user
 import random
 
-
-def ensure_schema() -> None:
-    """Add missing columns for existing SQLite DBs (lightweight migration)."""
-    with engine.connect() as conn:
-        columns = conn.exec_driver_sql("PRAGMA table_info(command)").fetchall()
-        column_names = {col[1] for col in columns}
-        if "game_note" not in column_names:
-            try:
-                conn.exec_driver_sql("ALTER TABLE command ADD COLUMN game_note TEXT")
-                conn.commit()
-            except OperationalError as exc:
-                if "duplicate column name" not in str(exc).lower():
-                    raise
-        if "course" not in column_names:
-            try:
-                conn.exec_driver_sql("ALTER TABLE command ADD COLUMN course INTEGER NOT NULL DEFAULT 1")
-                conn.commit()
-            except OperationalError as exc:
-                if "duplicate column name" not in str(exc).lower():
-                    raise
-
 # データベーステーブルを作成
 Base.metadata.create_all(bind=engine)
-ensure_schema()
+ensure_schema(engine)
 
 app = FastAPI(title="GitRamen API")
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
@@ -59,7 +38,8 @@ class CommandResponse(BaseModel):
     description: str
     game_note: Optional[str] = None
     course: int
-    
+    playable: bool = True
+
     class Config:
         from_attributes = True
 
@@ -107,10 +87,14 @@ async def health():
 async def get_random_commands(
     course: int = 1,
     count: int = 3,
+    playable_only: bool = False,
     db: Session = Depends(get_db)
 ):
-    """指定コースのコマンドをランダムに取得"""
-    commands = db.query(Cmd).filter(Cmd.course == course).all()
+    """指定コースのコマンドをランダムに取得（playable_only=true でゲーム内で操作できるものに限定）"""
+    query = db.query(Cmd).filter(Cmd.course == course)
+    if playable_only:
+        query = query.filter(Cmd.playable.is_(True))
+    commands = query.all()
     
     if not commands:
         raise HTTPException(status_code=404, detail=f"No commands found for course {course}")
@@ -124,15 +108,14 @@ async def get_random_commands(
 @app.get("/commands/course", response_model=List[CommandResponse])
 async def get_commands_by_course(
     course: int = 1,
+    playable_only: bool = False,
     db: Session = Depends(get_db)
 ):
     """指定コースのコマンド一覧をID順で取得（ヘルプ表示用）"""
-    commands = (
-        db.query(Cmd)
-        .filter(Cmd.course == course)
-        .order_by(Cmd.id.asc())
-        .all()
-    )
+    query = db.query(Cmd).filter(Cmd.course == course)
+    if playable_only:
+        query = query.filter(Cmd.playable.is_(True))
+    commands = query.order_by(Cmd.id.asc()).all()
 
     if not commands:
         raise HTTPException(status_code=404, detail=f"No commands found for course {course}")

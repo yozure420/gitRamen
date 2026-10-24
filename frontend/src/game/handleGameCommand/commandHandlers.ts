@@ -85,6 +85,13 @@ export function handleCommitCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
+  if (ctx.currentStep?.type === 'amend') {
+    ctx.recordMiss(ctx.activeRamen)
+    ctx.setMessage('❌ 注文変更は git commit --amend で上書き！普通の commit だと別の丼になってしまいます')
+    ctx.clearInput()
+    return true
+  }
+
   if (ctx.rejectOutOfOrder('commit')) return true
 
   // 👇 修正2: 「醤油」問題などの文字コードバグで詰まるのを防ぐため、
@@ -159,18 +166,28 @@ export function handlePushCommand(ctx: GameCommandContext): boolean {
     return true
   }
 
-  // 👇 すべての条件をクリアしている正規のプッシュ（大成功）
+  // 手順が残ったままの push（stash pop / amend 忘れなど）は届けるが、到着時に手順未完了で失敗判定になる
+  const skipsRemainingSteps = ctx.currentStep !== null && ctx.currentStep.type !== 'push'
+
   ctx.setRamens(prev => prev.map(r => {
     if (r.id !== ctx.activeRamen?.id) return r
     return {
       ...r,
-      currentStepIndex: r.steps.length,
+      currentStepIndex: skipsRemainingSteps ? r.currentStepIndex : r.steps.length,
       speed: ctx.pushSpeed,
       isPushed: true,
       pushedToMainFromOtherLane: false,
     }
   }))
 
+  if (skipsRemainingSteps) {
+    ctx.recordMiss(ctx.activeRamen)
+    ctx.setMessage(`⚠️ 「${ctx.currentStep?.displayCommand}」が残ったまま push してしまった！`)
+    ctx.clearInput()
+    return true
+  }
+
+  // 👇 すべての条件をクリアしている正規のプッシュ（大成功）
   ctx.setMessage(hasUpstreamOption
     ? `🚀 [Upstream] push 完了！追跡ブランチを設定しました！`
     : '🚀 push 完了！お客さんのところへ急げーー！！'
