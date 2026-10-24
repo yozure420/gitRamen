@@ -63,7 +63,7 @@ test.describe('ゲーム画面の更新情報（伝票欄）', () => {
     await expect(panelOf(page)).toBeVisible()
   })
 
-  test('タブで このゲームの更新に切り替えられる', async ({ page }) => {
+  test('タブで「このゲームの更新」に切り替えられる', async ({ page }) => {
     await mockApi(page)
     await page.goto('/game')
 

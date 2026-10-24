@@ -40,7 +40,7 @@ describe('GithubNewsPanel', () => {
     expect(screen.queryByText('feat: ニュース欄を追加')).toBeNull()
   })
 
-  it('タブを切り替えると このゲームの更新を表示する', async () => {
+  it('タブを切り替えると「このゲームの更新」を表示する', async () => {
     fetchNewsMock.mockResolvedValue(response)
     const { container } = render(<GithubNewsPanel />)
     await waitFor(() => expect(screen.getByText('GitHub Actions の更新')).toBeTruthy())
