@@ -156,6 +156,7 @@ export function createLaneAwarePullOrderPayload(params: CreateLaneAwarePullOrder
     orderText: laneOrderText,
     noticeTitle,
     noticeDetails,
+    noticeIllustration: gimmickNotice?.illustration,
     targetLaneOverride: targetLane,
   }
 }

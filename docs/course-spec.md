@@ -81,6 +81,33 @@
 
 ミス: 普通の `git commit`、ツリー / 親の指定違い、貼り先ブランチ・コミット違い。
 
+## ギミック告知の挿絵
+
+イベント告知（伝票ウィンドウ）には、告知ごとに挿絵が 1 枚出る。ゲームのルール・判定・スコアには関係しない。git status の伝票や通常注文・新規来客の告知には挿絵がない。受付時の告知は、調理の最初の手順に告知がある注文（現状は bisect）だけ挿絵が付く。
+
+| 種類 | 告知 | 画像（`frontend/src/assets/gimmick/`） | 素材名 |
+|---|---|---|---|
+| stash | 常連さんの割り込み | manner_warikomi.png | [割り込みのイラスト](https://www.irasutoya.com/2015/07/blog-post_107.html) |
+| reset_soft | コール間違い | pose_ukkari_man.png | [うっかりした人のイラスト（男性）](https://www.irasutoya.com/2019/07/blog-post_67.html) |
+| amend | 注文変更 | menu_tenin_yobu.png | [店員を呼ぶ人のイラスト](https://www.irasutoya.com/2015/09/blog-post_73.html) |
+| reflog | 丼が消えた！ | pose_syazai_sliding_dogeza_man.png | [急いで謝る人のイラスト（男性）](https://www.irasutoya.com/2018/09/blog-post_143.html) |
+| bisect | スープがまずい！（開始） | ajimi_mazui_man.png | [料理を失敗した人のイラスト（男性）](https://www.irasutoya.com/2018/09/blog-post_910.html) |
+| bisect_culprit | 犯人判明 | tantei_hannin.png | [犯人を言い当てる探偵のイラスト](https://www.irasutoya.com/2016/10/blog-post_79.html) |
+| plumbing | 親方の検品 | ganko_oyaji.png | [頑固おやじのイラスト](https://www.irasutoya.com/2014/03/blog-post_4378.html) |
+
+挿絵を足すとき:
+1. `frontend/src/types/interface.ts` の `GimmickIllustration` に種類を足す
+2. `frontend/src/components/gmV2/gimmickIllustrations.ts` で種類と画像を対応させる
+3. `frontend/src/game/commandLogic/orderEvents.ts` の告知に指定する（`StepEventNotice.illustration` は必須なので、指定がないと型エラーになる）
+
+伝票ウィンドウは高さが画面の 90% までで、中身はスクロールできる。幅は画面に合わせて縮み、挿絵の高さは画面の高さに応じて 80〜130px になる。
+
+### 素材の出典と利用規約
+- 素材は「いらすとや」（https://www.irasutoya.com/）。ファイル名は配布元のまま。各素材のページは上の表のリンク
+- 利用規約（https://www.irasutoya.com/p/terms.html ）と FAQ（https://www.irasutoya.com/p/faq.html ）を 2026-10-07 に確認した。非商用は無料。商用は 1 制作物につき 20 点までで、広告や課金を入れると商用扱いになる。加工は元のイメージを保つ範囲で可、クレジット表記は不要
+- 規約に「加工の有無に関わらず素材の再配布はお断り」とある。このリポジトリは公開で、画像ファイルを置くことが再配布に当たるかは規約に記載がなく未確定。オーナーが承知のうえで、いったんこのまま進めている
+- 商用利用（広告・課金の追加など）に変える場合は、使用点数（現在 7 点）と規約を確認し直すこと
+
 ## 配達判定（到着時）
 1. push 済みかつ未コミット → 空振りプッシュ（-70×course）
 2. 別レーンから main へ push → push先ミス（-60×course）
