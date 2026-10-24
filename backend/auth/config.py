@@ -20,6 +20,8 @@ class AuthSettings(BaseSettings):
     @field_validator("secret_key")
     @classmethod
     def _reject_weak_secret_key(cls, value: str) -> str:
+        if value == "":
+            raise ValueError("AUTH_SECRET_KEY を設定してください（.env.example 参照）")
         if value == _LEAKED_SECRET_KEY:
             raise ValueError("AUTH_SECRET_KEY に公開済みの既定値が使われています。ランダムな値に変えてください")
         if len(value) < _MIN_SECRET_KEY_LENGTH:
