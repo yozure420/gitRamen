@@ -1,18 +1,14 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import GmOrderPanelV2 from '../../src/components/gmV2/GmOrderPanelV2'
 import { buildCookingSteps } from '../../src/game/commandLogic/orderEvents'
 import { createStep } from '../../src/game/commandLogic/stepFactory'
 import type { Command, Ramen } from '../../src/types/interface'
 import { makeRamen } from '../helpers/ramen'
-import { fetchNews } from '../../src/api/news'
 import type { NewsResponse } from '../../src/api/news'
-
-vi.mock('../../src/api/news', () => ({ fetchNews: vi.fn() }))
-
-const fetchNewsMock = vi.mocked(fetchNews)
+import type { NewsState } from '../../src/hooks/useNews'
 
 const newsResponse: NewsResponse = {
   git: [{ source: 'git', title: 'Git 2.51.0 がリリースされました', url: 'https://example.test/git', published_at: null }],
@@ -25,8 +21,6 @@ const newsResponse: NewsResponse = {
 
 const NEWS_LABEL = 'Git / GitHub の更新情報'
 
-beforeEach(() => { fetchNewsMock.mockReset(); fetchNewsMock.mockResolvedValue(newsResponse) })
-
 beforeAll(() => {
   // jsdom は scrollTo を実装していない
   Element.prototype.scrollTo = () => {}
@@ -36,7 +30,7 @@ afterEach(cleanup)
 
 const meta = { baseRamen: '豚骨ラーメン', topping: 'ネギ', call: '豚骨ラーメンネギ入りおまち！' }
 
-function renderPanel(props: { ramen: Ramen | null; showHelp?: boolean; showNews?: boolean; courseCommands?: Command[] }) {
+function renderPanel(props: { ramen: Ramen | null; showHelp?: boolean; showNews?: boolean; news?: NewsState; courseCommands?: Command[] }) {
   return render(
     <MemoryRouter>
       <GmOrderPanelV2
@@ -44,6 +38,7 @@ function renderPanel(props: { ramen: Ramen | null; showHelp?: boolean; showNews?
         lanes={['main']}
         showHelp={props.showHelp ?? false}
         showNews={props.showNews ?? false}
+        news={props.news ?? { news: newsResponse, error: null }}
         courseCommands={props.courseCommands ?? []}
         isPaused={false}
         resumeGame={() => {}}
@@ -85,11 +80,20 @@ describe('GmOrderPanelV2', () => {
   })
 
   describe('更新情報', () => {
-    it('注文が無く showNews が true なら、待機メッセージの下に更新情報を表示する', async () => {
+    it('注文が無く showNews が true なら、待機メッセージの下に渡された更新情報を表示する', () => {
       renderPanel({ ramen: null, showNews: true })
       expect(screen.getByRole('complementary', { name: NEWS_LABEL })).toBeTruthy()
       expect(screen.getByText(/git pull で注文を受け取れ/)).toBeTruthy()
-      await waitFor(() => expect(screen.getByText('Git 2.51.0 がリリースされました')).toBeTruthy())
+      expect(screen.getByText('Git 2.51.0 がリリースされました')).toBeTruthy()
+    })
+
+    it('news が未取得なら読み込み中、error ならそのメッセージをパネルに出す', () => {
+      const { unmount } = renderPanel({ ramen: null, showNews: true, news: { news: null, error: null } })
+      expect(screen.getByText('読み込み中…')).toBeTruthy()
+      unmount()
+
+      renderPanel({ ramen: null, showNews: true, news: { news: null, error: '更新情報を取得できませんでした' } })
+      expect(screen.getByText('更新情報を取得できませんでした')).toBeTruthy()
     })
 
     it('showNews が false なら注文が無くても更新情報を表示しない', () => {

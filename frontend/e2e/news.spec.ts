@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { mockApi } from './fixtures'
+import { runCommand, serveCurrentOrder } from './helpers'
 
 const toggle = (page: Page) => page.getByRole('button', { name: '更新情報', exact: true })
 const panelOf = (page: Page) => page.getByRole('complementary', { name: 'Git / GitHub の更新情報' })
@@ -86,6 +87,25 @@ test.describe('ゲーム画面の更新情報（伝票欄）', () => {
     await expect(page.locator('.receipt-slip-command').first()).toBeVisible()
     await expect(panelOf(page)).toHaveCount(0)
     await expect(toggle(page)).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  test('注文を捌いて更新情報が再表示されても /news のリクエストは1回だけ', async ({ page }) => {
+    await mockApi(page)
+    let newsRequests = 0
+    page.on('request', request => {
+      if (new URL(request.url()).pathname.endsWith('/api/news')) newsRequests++
+    })
+    await startGame(page)
+    await expect(panelOf(page)).toBeVisible()
+
+    await runCommand(page, 'git pull')
+    await expect(panelOf(page)).toHaveCount(0)
+    await serveCurrentOrder(page)
+
+    await expect(page.locator('.score')).not.toContainText('売上: 0')
+    await expect(panelOf(page)).toBeVisible()
+    await expect(panelOf(page).getByRole('link', { name: 'GitHub Actions の更新' })).toBeVisible()
+    expect(newsRequests).toBe(1)
   })
 
   test('取得に失敗してもゲーム画面は操作できる', async ({ page }) => {
