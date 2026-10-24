@@ -1,4 +1,4 @@
-import { getToken } from './auth'
+import { getToken, removeTokenIfUnauthorized } from './auth'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -29,7 +29,7 @@ export async function postHistory(course: number, score: number, misses: MissEnt
   const token = getToken()
   if (!token) return
 
-  await fetch(`${API_BASE_URL}/history`, {
+  const res = await fetch(`${API_BASE_URL}/history`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -37,6 +37,7 @@ export async function postHistory(course: number, score: number, misses: MissEnt
     },
     body: JSON.stringify({ course, score, misses }),
   })
+  removeTokenIfUnauthorized(res)
 }
 
 /**
@@ -51,6 +52,7 @@ export async function fetchUserStats(): Promise<UserStats> {
   })
 
   if (!res.ok) {
+    removeTokenIfUnauthorized(res)
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail ?? '統計情報の取得に失敗しました')
   }

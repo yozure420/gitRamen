@@ -37,7 +37,8 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    # 認証は Authorization ヘッダーの Bearer トークンだけで、クッキーは使わない
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

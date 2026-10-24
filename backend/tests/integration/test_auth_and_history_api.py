@@ -66,3 +66,52 @@ def test_history_is_reflected_in_stats(client, auth_headers):
         {"cmd": stash["command"], "count": 3},
         {"cmd": amend["command"], "count": 1},
     ]
+
+
+def _bearer(payload):
+    from auth.jwt import create_access_token
+
+    return {"Authorization": f"Bearer {create_access_token(payload)}"}
+
+
+def test_me_returns_401_when_sub_is_not_a_uuid(client):
+    assert client.get("/auth/me", headers=_bearer({"sub": "not-a-uuid"})).status_code == 401
+
+
+def test_me_returns_401_when_sub_is_missing(client):
+    assert client.get("/auth/me", headers=_bearer({"foo": "bar"})).status_code == 401
+
+
+def test_me_returns_401_when_user_does_not_exist(client):
+    assert client.get("/auth/me", headers=_bearer({"sub": str(uuid.uuid4())})).status_code == 401
+
+
+def _register(client, password):
+    return client.post("/auth/register", json={"name": f"u-{uuid.uuid4().hex[:8]}", "password": password})
+
+
+def test_register_accepts_password_of_exactly_72_bytes(client):
+    assert _register(client, "a" * 72).status_code == 200
+
+
+def test_register_rejects_password_of_73_bytes(client):
+    assert _register(client, "a" * 73).status_code == 422
+
+
+def test_register_rejects_25_fullwidth_chars_75_bytes(client):
+    assert _register(client, "あ" * 25).status_code == 422
+
+
+def test_register_accepts_24_fullwidth_chars_72_bytes(client):
+    assert _register(client, "あ" * 24).status_code == 200
+
+
+def test_login_passes_validation_with_password_of_100_chars(client):
+    # 100 文字はスキーマ上は通り、認証失敗の 401 になる（422 ではない）
+    r = client.post("/auth/login", json={"name": "nobody", "password": "a" * 100})
+    assert r.status_code == 401
+
+
+def test_login_rejects_password_of_101_chars(client):
+    r = client.post("/auth/login", json={"name": "nobody", "password": "a" * 101})
+    assert r.status_code == 422

@@ -48,7 +48,16 @@ def get_current_user(
             detail="Invalid token payload",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    try:
+        parsed_user_id = uuid.UUID(str(user_id))
+    except ValueError:
+        # sub が UUID の形をしていない
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user = db.query(User).filter(User.id == parsed_user_id).first()
     if user is None:
         # トークンは正しいが、該当するユーザーが DB に存在しない（削除済みなど）
         raise HTTPException(
