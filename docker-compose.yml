@@ -4,6 +4,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: gitramen_backend
+    environment:
+      # JWT の署名鍵。リポジトリ直下の .env か環境変数で渡す（未設定なら compose が止まる）
+      - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:?AUTH_SECRET_KEY を設定してください}
     volumes:
       - sqlite_data:/app/db
     restart: always

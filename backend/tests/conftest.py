@@ -12,6 +12,8 @@ sys.path.insert(0, str(BACKEND_DIR))
 # database.py が読み込まれる前に、テスト専用の SQLite に向ける（本番DBを触らない）
 _TEST_DB_DIR = Path(tempfile.mkdtemp(prefix="gitramen-test-"))
 os.environ["DATABASE_URL"] = f"sqlite:///{(_TEST_DB_DIR / 'test.db').as_posix()}"
+# auth.config は署名鍵が未設定だと起動を止めるので、テスト用の鍵を渡す
+os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key-for-pytest-only-0123456789")
 
 
 @pytest.fixture(scope="session")
