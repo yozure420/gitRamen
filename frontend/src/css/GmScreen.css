@@ -1103,6 +1103,30 @@
   border: 2px solid #d4922a;
 }
 
+/* 更新情報のプルダウン。右端を「タイトルへ戻る」の左端から 8px 空けて揃える */
+.news-dropdown {
+  position: fixed;
+  top: 16px;
+  right: calc(100% - (40.8% - 340px) + 8px);
+  z-index: 11;
+}
+
+/* 見た目は .title-back-btn をそのまま使い、配置だけ親に任せる */
+.title-back-btn.news-dropdown-toggle {
+  position: static;
+  white-space: nowrap;
+}
+
+.news-dropdown .news-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: auto;
+  bottom: auto;
+  left: 0;
+  width: 340px;
+  max-height: 60vh;
+}
+
 body:has(.game-container-v2) {
   background:
     radial-gradient(circle at 18% 22%, rgba(255, 252, 241, 0.34) 0%, rgba(255, 252, 241, 0) 45%),

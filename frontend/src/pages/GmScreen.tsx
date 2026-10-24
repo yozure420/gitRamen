@@ -5,6 +5,7 @@ import { useGmScreen } from '../hooks/useGmScreen'
 import { GmTopPanelV2, GmLanePanelV2, GmOrderPanelV2, GmBottomPanelV2 } from '../components/gmV2';
 import { GIMMICK_ILLUSTRATIONS } from '../components/gmV2/gimmickIllustrations'
 import { ResumePanels } from '../components/ResumePanels'
+import GithubNewsDropdown from '../components/GithubNewsDropdown'
 import { useSoundSettings } from '../context/SoundContext'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
 
@@ -65,6 +66,7 @@ function GmScreen() {
 
   return (
     <>
+    <GithubNewsDropdown />
     <button
       className="title-back-btn"
       onClick={() => navigate('/')}
