@@ -10,16 +10,6 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'gitramen', label: 'GitRamen' },
 ]
 
-/** githubstatus.com の indicator を表示用のラベルと色に対応させる */
-const STATUS_LABEL: Record<string, string> = {
-  none: '正常稼働中',
-  minor: '一部で障害',
-  major: '障害発生中',
-  critical: '重大な障害',
-  maintenance: 'メンテナンス中',
-  unknown: '状況不明',
-}
-
 function formatDate(value: string | null): string {
   if (!value) return ''
   const date = new Date(value)
@@ -48,8 +38,6 @@ function GithubNewsPanel() {
     return () => { cancelled = true }
   }, [])
 
-  const indicator = news?.status?.indicator ?? 'unknown'
-  const statusLabel = news?.status ? (STATUS_LABEL[indicator] ?? news.status.description) : STATUS_LABEL.unknown
   const items = news
     ? (activeTab === 'upstream' ? sortByPublished([...news.git, ...news.github]) : sortByPublished(news.gitramen))
     : []
@@ -59,21 +47,7 @@ function GithubNewsPanel() {
     <aside className="news-panel" aria-label="Git / GitHub の更新情報">
       <div className="news-panel-header">
         <h2 className="news-panel-title">更新情報</h2>
-        <span className={`news-status news-status--${indicator}`} title={news?.status?.description ?? ''}>
-          <span className="news-status-dot" aria-hidden="true" />
-          GitHub: {statusLabel}
-        </span>
       </div>
-
-      {news?.status && news.status.components.length > 0 && (
-        <ul className="news-status-components">
-          {news.status.components.map(component => (
-            <li key={component.name} className={`news-status-component news-status-component--${component.status}`}>
-              {component.name}
-            </li>
-          ))}
-        </ul>
-      )}
 
       <div className="news-tabs" role="tablist">
         {TABS.map(tab => (

@@ -1140,12 +1140,6 @@
   letter-spacing: 0.05em;
 }
 
-.receipt-slip .news-status {
-  background: rgba(191, 149, 95, 0.14);
-  border: 1px dashed rgba(136, 101, 64, 0.45);
-  color: var(--ink);
-}
-
 /* タブは一時停止中のボタン（.top-panel-pause-btn）に合わせる */
 .receipt-slip .news-tab {
   border: 2px solid var(--wood-dark);
