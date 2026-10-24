@@ -14,7 +14,7 @@ test.describe('ゲーム画面の更新情報プルダウン', () => {
     await expect(panelOf(page)).toHaveCount(0)
   })
 
-  for (const width of [900, 1280]) {
+  for (const width of [600, 900, 1280]) {
     test(`幅 ${width}px でもボタンが画面内にあり開ける`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 })
       await mockApi(page)
