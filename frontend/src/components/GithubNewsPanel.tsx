@@ -1,23 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import '../css/GithubNewsPanel.css'
-import { fetchNews } from '../api/news'
-import type { NewsItem, NewsResponse } from '../api/news'
+import type { NewsItem, NewsSource } from '../api/news'
+import type { NewsState } from '../hooks/useNews'
 
 type TabKey = 'upstream' | 'gitramen'
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'upstream', label: 'Git / GitHub' },
-  { key: 'gitramen', label: 'GitRamen' },
+  { key: 'upstream', label: 'Git と GitHub の更新' },
+  { key: 'gitramen', label: 'このゲームの更新' },
 ]
 
-/** githubstatus.com の indicator を表示用のラベルと色に対応させる */
-const STATUS_LABEL: Record<string, string> = {
-  none: '正常稼働中',
-  minor: '一部で障害',
-  major: '障害発生中',
-  critical: '重大な障害',
-  maintenance: 'メンテナンス中',
-  unknown: '状況不明',
+/** 記事の出どころを表示用のラベルに対応させる */
+const SOURCE_LABEL: Record<NewsSource, string> = {
+  git: 'Git 新バージョン',
+  github: 'GitHub 新機能',
+  gitramen: 'ゲーム更新',
+}
+
+/** unavailable には未知のソース名も来うるので、知っているものだけ日本語にする */
+function labelOfSource(source: string): string {
+  return Object.hasOwn(SOURCE_LABEL, source) ? SOURCE_LABEL[source as NewsSource] : source
 }
 
 function formatDate(value: string | null): string {
@@ -35,21 +37,10 @@ function sortByPublished(items: NewsItem[]): NewsItem[] {
   })
 }
 
-function GithubNewsPanel() {
-  const [news, setNews] = useState<NewsResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
+/** 取得は呼び出し側（useNews）が持ち、ここは表示だけを受け持つ */
+function GithubNewsPanel({ news, error }: NewsState) {
   const [activeTab, setActiveTab] = useState<TabKey>('upstream')
 
-  useEffect(() => {
-    let cancelled = false
-    fetchNews()
-      .then(result => { if (!cancelled) setNews(result) })
-      .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : '更新情報を取得できませんでした') })
-    return () => { cancelled = true }
-  }, [])
-
-  const indicator = news?.status?.indicator ?? 'unknown'
-  const statusLabel = news?.status ? (STATUS_LABEL[indicator] ?? news.status.description) : STATUS_LABEL.unknown
   const items = news
     ? (activeTab === 'upstream' ? sortByPublished([...news.git, ...news.github]) : sortByPublished(news.gitramen))
     : []
@@ -59,21 +50,7 @@ function GithubNewsPanel() {
     <aside className="news-panel" aria-label="Git / GitHub の更新情報">
       <div className="news-panel-header">
         <h2 className="news-panel-title">更新情報</h2>
-        <span className={`news-status news-status--${indicator}`} title={news?.status?.description ?? ''}>
-          <span className="news-status-dot" aria-hidden="true" />
-          GitHub: {statusLabel}
-        </span>
       </div>
-
-      {news?.status && news.status.components.length > 0 && (
-        <ul className="news-status-components">
-          {news.status.components.map(component => (
-            <li key={component.name} className={`news-status-component news-status-component--${component.status}`}>
-              {component.name}
-            </li>
-          ))}
-        </ul>
-      )}
 
       <div className="news-tabs" role="tablist">
         {TABS.map(tab => (
@@ -102,7 +79,7 @@ function GithubNewsPanel() {
                 {item.title}
               </a>
               <div className="news-item-meta">
-                <span className={`news-item-source news-item-source--${item.source}`}>{item.source}</span>
+                <span className={`news-item-source news-item-source--${item.source}`}>{SOURCE_LABEL[item.source]}</span>
                 {formatDate(item.published_at) && <span className="news-item-date">{formatDate(item.published_at)}</span>}
               </div>
             </li>
@@ -110,7 +87,7 @@ function GithubNewsPanel() {
         </ul>
 
         {failedSources.length > 0 && (
-          <p className="news-message news-message--warn">一部の情報を取得できませんでした（{failedSources.join(', ')}）</p>
+          <p className="news-message news-message--warn">一部の情報を取得できませんでした（{failedSources.map(labelOfSource).join('、')}）</p>
         )}
       </div>
     </aside>

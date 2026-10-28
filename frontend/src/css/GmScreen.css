@@ -1103,6 +1103,69 @@
   border: 2px solid #d4922a;
 }
 
+/* 更新情報の表示切り替えボタン。見た目は .title-back-btn のまま、
+   「タイトルへ戻る」と左右対称になるよう右端から同じ距離に置く（狭い画面でも右端から 8px より外には出さない） */
+.title-back-btn.news-toggle-btn {
+  left: auto;
+  right: max(8px, calc(40.8% - 340px));
+  white-space: nowrap;
+}
+
+/* 注文が無い間に伝票へ載せる更新情報。伝票（.receipt-slip）の紙の上に直接並べる */
+.receipt-slip .news-panel {
+  position: static;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: auto;
+  background: transparent;
+  border: none;
+  border-top: 1px dashed rgba(143, 107, 67, 0.4);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0.6rem 0 0;
+  color: var(--ink);
+}
+
+.receipt-slip .news-panel-title {
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+
+/* タブは一時停止中のボタン（.top-panel-pause-btn）に合わせる */
+.receipt-slip .news-tab {
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  transition: background 0.15s, color 0.15s;
+}
+
+.receipt-slip .news-tab:hover,
+.receipt-slip .news-tab--active {
+  background: var(--wood-mid);
+  color: var(--paper-strong);
+  border-color: #d4922a;
+}
+
+.receipt-slip .news-item {
+  border-bottom: 1px dashed rgba(143, 107, 67, 0.4);
+}
+
+.receipt-slip .news-item:last-child { border-bottom: none; }
+
+.receipt-slip .news-item-link { color: var(--ink); }
+
+.receipt-slip .news-item-meta,
+.receipt-slip .news-message { color: var(--ink-soft); }
+
+.receipt-slip .news-item-source {
+  background: rgba(191, 149, 95, 0.14);
+  border: 1px dashed rgba(136, 101, 64, 0.45);
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
 body:has(.game-container-v2) {
   background:
     radial-gradient(circle at 18% 22%, rgba(255, 252, 241, 0.34) 0%, rgba(255, 252, 241, 0) 45%),
@@ -1262,7 +1325,7 @@ body:has(.game-container-v2) {
 .receipt-slip-lane { font-size: 1.4rem; font-weight: 700; color: var(--ink); font-family: 'JetBrains Mono', 'Consolas', monospace; }
 .receipt-slip-branch { font-size: 0.95rem; color: var(--ink-soft); }
 .receipt-slip-branch--new { font-size: 1.1rem; font-weight: 700; color: var(--accent-red); }
-.receipt-slip-waiting { text-align: center; color: var(--ink-soft); font-size: 0.95rem; padding: 0.4rem 0; letter-spacing: 0.05em; }
+.receipt-slip-waiting { text-align: center; color: var(--ink-soft); font-size: 0.95rem; font-weight: 700; padding: 0.4rem 0; letter-spacing: 0.05em; }
 .receipt-slip-no-topping { font-size: 0.9rem; color: var(--ink-soft); }
 .receipt-slip-title { font-size: 1.5rem; font-weight: 700; color: var(--ink); line-height: 1.3; letter-spacing: 0.02em; }
 .receipt-slip-command { display: inline-block; margin-top: 0.2rem; padding: 0.3rem 0.65rem; border-radius: 7px; background: rgba(191, 149, 95, 0.14); border: 1px dashed rgba(136, 101, 64, 0.45); font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 0.95rem; color: var(--ink); }

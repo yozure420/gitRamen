@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import '../css/GmScreen.css'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGmScreen } from '../hooks/useGmScreen'
@@ -7,6 +7,7 @@ import { GIMMICK_ILLUSTRATIONS } from '../components/gmV2/gimmickIllustrations'
 import { ResumePanels } from '../components/ResumePanels'
 import { useSoundSettings } from '../context/SoundContext'
 import { startGameBgm, stopGameBgm } from '../lib/Sounds'
+import { useNews } from '../hooks/useNews'
 
 const getCommitHash = (id: number, isShort: boolean) => {
   const salts = [
@@ -62,9 +63,23 @@ function GmScreen() {
   }, [soundSettings])
 
   const isUiLayerOpen = !!statusWindow || showLog;
+  // 注文が無い間に伝票欄へ更新情報を載せるか。ボタンで切り替える
+  const [showNews, setShowNews] = useState(true)
+  const news = useNews()
 
   return (
     <>
+    {/* 取得に失敗したら、更新情報もその切り替えボタンも出さない */}
+    {!news.error && (
+      <button
+        type="button"
+        className="title-back-btn news-toggle-btn"
+        aria-pressed={showNews}
+        onClick={() => setShowNews(show => !show)}
+      >
+        更新情報
+      </button>
+    )}
     <button
       className="title-back-btn"
       onClick={() => navigate('/')}
@@ -170,6 +185,8 @@ function GmScreen() {
         courseCommands={courseCommands}
         isPaused={isPaused}
         resumeGame={resumeGame}
+        showNews={showNews}
+        news={news}
       />
       <GmBottomPanelV2
         handleSubmit={handleSubmit}
