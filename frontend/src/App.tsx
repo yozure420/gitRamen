@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Suspense } from 'react'
 import RouteErrorBoundary from './components/RouteErrorBoundary'
+import AnalyticsTracker from './components/AnalyticsTracker'
 import { lazyWithReload } from './lazyWithReload'
 import './css/App.css'
 
@@ -17,6 +18,7 @@ const Registration = lazyWithReload(() => import('./pages/Registration'))
 function App() {
   return (
     <main className="app-main">
+      <AnalyticsTracker />
       <RouteErrorBoundary>
         <Suspense fallback={<div className="app-loading">読み込み中…</div>}>
           <Routes>
