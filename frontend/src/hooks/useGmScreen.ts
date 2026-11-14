@@ -8,6 +8,7 @@ import { selectActiveRamen, selectLaneRamens } from '../game/gameEngin/ramenSele
 import { useGameTimer, useRamenMovement } from './useGameEffects'
 import type { SoundSettings } from '../types/interface'
 import { postHistory } from '../api/history'
+import { trackAnalyticsEvent } from '../analytics'
 
 const GAME_TIME_LIMIT = 3000
 const RAMEN_SPEED = 0.12
@@ -196,6 +197,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
       setAvailableCommands(commands)
       setCourseCommands(catalog)
       setMessage(`🎮 コース ${course} スタート！まずは git pull で注文を受けてください`)
+      trackAnalyticsEvent('game_start', { course })
     } catch (error) {
       console.error('Failed to load commands:', error)
       setMessage('❌ サーバーに接続できません')
@@ -207,6 +209,7 @@ export function useGmScreen({ soundSettings, initialCourse }: UseGmScreenParams)
   const gameOver = () => {
     setIsGameOver(true)
     setMessage(`⏰ タイムアップ！最終スコア: ${score}点`)
+    trackAnalyticsEvent('game_over', { course })
 
     const misses = Array.from(missCountsRef.current.entries()).map(([command_id, miss_count]) => ({
       command_id,
